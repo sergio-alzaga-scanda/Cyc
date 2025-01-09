@@ -1,0 +1,339 @@
+@font-face {
+    font-family: 'League Spartan';
+    src: url('LeagueSpartan-VariableFont_wght.ttf') format('truetype');
+    font-weight: 100 900; /* Ajusta el rango de pesos si es necesario */
+    font-style: normal;
+}
+.bold-text {
+  font-weight: bold; /* Esto hace que el texto sea más grueso */
+}
+/* Aplica la fuente a todo el cuerpo de la página */
+body {
+    font-family: 'League Spartan', sans-serif;
+
+/* También puedes aplicar la fuente a otros elementos específicos si es necesario */
+h1, h2, h3, p {
+    font-family: 'League Spartan', sans-serif;
+}
+
+
+body {
+  font-family: 'League Spartan', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f9f9f9;
+  display: flex;
+  position: relative; /* Asegura que los elementos se posicionen correctamente */
+}
+
+.sidebar {
+  font-family: 'League Spartan', sans-serif;
+  position: fixed; 
+  top: 0; 
+  left: 0; 
+  margin: 10px;
+  width: 250px;
+  background: linear-gradient(to bottom, #4F8978, #427463); /* Degradado de arriba a abajo */
+  color: white;
+  padding: 20px 10px;
+  border-radius: 10px;
+  height: auto;
+  box-sizing: border-box;
+  z-index: 10; /* Asegura que el menú esté por encima de otros elementos */
+}
+
+.sidebar .profile {
+  font-family: 'League Spartan', sans-serif;
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.sidebar .profile img {
+  font-family: 'League Spartan', sans-serif;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.sidebar .profile span {
+  font-family: 'League Spartan', sans-serif;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.sidebar h2 {
+  font-family: 'League Spartan', sans-serif;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.sidebar ul {
+  font-family: 'League Spartan', sans-serif;
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar ul li {
+  font-family: 'League Spartan', sans-serif;
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+  cursor: pointer;
+  padding: 15px 10px;
+  border-radius: 10px;
+  transition: background-color 0.3s;
+  position: relative;
+}
+
+.sidebar ul li i {
+  font-family: 'League Spartan', sans-serif;
+  margin-right: 10px;
+}
+
+.sidebar ul li:hover {
+  font-family: 'League Spartan', sans-serif;
+  background-color: #2e5c4b;
+  color: #fff;
+}
+
+.sidebar ul li.active {
+  font-family: 'League Spartan', sans-serif;
+  background-color: #2e5c4b;
+  color: #fff;
+}
+
+.sidebar ul li.active::after {
+  font-family: 'League Spartan', sans-serif;
+  content: '';
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-right: 10px solid #fff;
+}
+
+.content {
+  font-family: 'League Spartan', sans-serif;
+  flex-grow: 1;
+  position: relative;
+  padding-left: 270px; /* Aumentado para evitar que el contenido quede debajo del menú */
+  box-sizing: border-box;
+  z-index: 1; /* Asegura que el contenido esté por debajo del menú */
+}
+
+.header {
+  font-family: 'League Spartan', sans-serif;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header .kenos-logo {
+  font-family: 'League Spartan', sans-serif;
+  font-size: 24px;
+  font-weight: bold;
+  color: #4B4A4B;
+  margin-left: 20px;
+}
+
+.header button {
+  font-family: 'League Spartan', sans-serif;
+  background-color: #4B4A4B;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.header button:hover {
+  font-family: 'League Spartan', sans-serif;
+  background-color: #2e5c4b;
+}
+
+.filters {
+  font-family: 'League Spartan', sans-serif;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.filters input[type="text"],
+.filters input[type="date"] {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-right: 10px;
+}
+
+.filters .radio-group {
+  font-family: 'League Spartan', sans-serif;
+  display: flex;
+  align-items: center;
+}
+
+.radio-group input {
+  font-family: 'League Spartan', sans-serif;
+  margin-right: 5px;
+}
+
+table {
+  font-family: 'League Spartan', sans-serif;
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+table thead {
+  font-family: 'League Spartan', sans-serif;
+  background-color: #4B4A4B;
+  color: white;
+}
+
+table thead th {
+  font-family: 'League Spartan', sans-serif;
+  padding: 10px;
+}
+
+table tbody tr {
+  font-family: 'League Spartan', sans-serif;
+  background-color: white;
+  border-bottom: 1px solid #ccc;
+}
+
+table tbody tr:hover {
+  font-family: 'League Spartan', sans-serif;
+  background-color: #f1f1f1;
+}
+
+table tbody td {
+  font-family: 'League Spartan', sans-serif;
+  padding: 10px;
+  text-align: center;
+}
+
+.actions {
+  font-family: 'League Spartan', sans-serif;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.actions button {
+  font-family: 'League Spartan', sans-serif;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.actions button.edit {
+  font-family: 'League Spartan', sans-serif;
+  color: #4B4A4B;
+}
+
+.actions button.delete {
+  font-family: 'League Spartan', sans-serif;
+  color: red;
+}
+
+.toggle {
+  font-family: 'League Spartan', sans-serif;
+  width: 40px;
+  height: 20px;
+  background: #ccc;
+  border-radius: 10px;
+  position: relative;
+  cursor: pointer;
+}
+
+.toggle::before {
+  font-family: 'League Spartan', sans-serif;
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: 0.3s;
+}
+
+.toggle.active {
+  font-family: 'League Spartan', sans-serif;
+  background: #4B4A4B;
+}
+
+.toggle.active::before {
+  font-family: 'League Spartan', sans-serif;
+  left: 22px;
+}
+
+.boton-formateado {
+  font-family: 'League Spartan', sans-serif;
+  max-width: 100%;
+  max-height: 58px;
+  padding: 0 23px;
+  border-radius: 5px;
+  border: none;
+  background-color: #4B4A4B;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.texto-formateado {
+  font-family: 'League Spartan', sans-serif;
+  margin-left: 10px;
+  font-size: 16px;
+  color: #fff;
+}
+
+.icono-formateado {
+  font-family: 'League Spartan', sans-serif;
+  color: #fff;
+  font-size: 30px;
+  margin-right: 10px;
+  background-color: #4B4A4B;
+}
+
+strong svg path {
+  font-family: 'League Spartan', sans-serif;
+  stroke-width: 1;
+  stroke: #fff;
+}
+
+strong svg {
+  font-family: 'League Spartan', sans-serif;
+  margin-right: 10px;
+}
+
+.icono-custom {
+      color: #427463; /* Color de los iconos */
+    }
+
+.form-floating>.form-select {
+            padding-top: 1.625rem;
+            padding-bottom: 0.625rem;
+        }
+
+        .form-floating>.form-select:focus~label,
+        .form-floating>.form-select:not(:placeholder-shown)~label {
+            transform: scale(.85) translateY(-0.8rem);
+        }
+.is-invalid {
+    border-color: red !important;
+}
+
+input:invalid, select:invalid, textarea:invalid {
+    border: 2px solid red;
+    background-color: #f8d7da;
+}
