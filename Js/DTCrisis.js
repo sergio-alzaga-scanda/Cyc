@@ -35,17 +35,9 @@ $(document).ready(function() {
                 return rows;
             }
         },
-        "columns": [
-            { "title": "ID" },
-            { "title": "No. Ticket" },
-            { "title": "Categoría" },
-            { "title": "Tipo" },
-            { "title": "Ubicación" },
-            { "title": "Fecha Activación" },
-            { "title": "Acciones" }
-        ],
+        "processing": true,  // Activa el procesamiento
         "language": {
-            "processing": "Procesando...",
+            "processing": "<div class='loading-overlay'><div class='loader'></div></div>",  // Agrega un indicador de carga
             "search": "Buscar:",
             "lengthMenu": "Mostrar _MENU_ registros",
             "info": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
@@ -155,7 +147,19 @@ function deleteCrisis(id) {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            window.location.href = `../Controllers/crisis.php?accion=5&id=${id}`;
+            // Mostrar carga mientras se procesa la eliminación
+            Swal.fire({
+                title: 'Eliminando...',
+                text: 'Por favor espera',
+                icon: 'info',
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            window.location.href = `../Controllers/crisis.php?accion=4&id=${id}`;
         }
     });
 }
@@ -168,6 +172,18 @@ function toggleStatus(id, imgElement, status_cyc) {
     imgElement.setAttribute('data-status', status);
     imgElement.src = (status === 1) ? "../iconos/activo.png" : "../iconos/desactivo.png";
     
+    // Mostrar carga mientras se actualiza el estado
+    Swal.fire({
+        title: 'Actualizando estado...',
+        text: 'Por favor espera',
+        icon: 'info',
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
     // Realiza la actualización en el backend (sin promesas, directamente)
     window.location.href = `../Controllers/crisis.php?accion=6&id=${id}&status=${status_cyc}`;
 }

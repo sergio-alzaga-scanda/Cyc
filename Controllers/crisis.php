@@ -400,7 +400,7 @@ ORDER BY
 
              $id_cyc = $_GET['id'];
              $status_inicial = $_GET['status'];
-             echo $status_inicial;
+            
              try {
                 if ($status_inicial === '1') {
                     $nuevo_status = 2;

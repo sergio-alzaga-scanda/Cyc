@@ -1,0 +1,28 @@
+
+  /* Centrando el formulario en la página */
+  .modal-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Ajustando el tamaño de los inputs para que estén alineados y centrados */
+  .form-control, .form-select {
+    width: 80%; /* Puedes ajustar el porcentaje del ancho según lo necesites */
+    margin: 10px 0;
+  }
+
+  /* Estilos para los inputs: solo mostrar el borde inferior */
+  .form-input {
+    border: none;
+    border-bottom: 2px solid #ccc;
+    border-radius: 0;
+    outline: none;
+    background-color: transparent;
+    padding: 10px;
+  }
+
+  /* Foco en el borde inferior */
+  .form-input:focus {
+    border-bottom: 2px solid #007bff; /* Cambia el color según tus preferencias */
+  }
