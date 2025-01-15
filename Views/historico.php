@@ -1,7 +1,7 @@
 <?php
 session_start();
-if ($_SESSION['usuario'] < 0) {
-    header("Location: ../index.php");  
+if (!$_SESSION['usuario']) {
+    header("Location: ../index.php"); 
 }
 $menu = 3;
 ?>
@@ -20,15 +20,28 @@ $menu = 3;
 <body>
 
 <?php 
-include ("menu.php");
+include("menu.php");
 ?>
-    <div class="content">
-        <div class="header">
-            <button class="boton-formateado"  style="width: 200px; background-color:#4B4A4B ;">
-                <b><span class="texto-formateado">Agregar</span></b>
-                <img src="../iconos/add.png" width="13%">
+
+<div class="container mt-5">
+    <div class="text-center">
+        <img src="../img/logo.png" alt="Logo" width="10%" class="mb-4">
+        <h1>¡Estamos trabajando en ello!</h1>
+        <p>El sitio se encuentra en mantenimiento. Estamos mejorando la experiencia para ti.</p>
+        <p>Por favor, vuelve más tarde.</p>
+
+        <div class="mt-4">
+            <button type="button" class="btn btn-primary" onclick="window.location.href='index.php'">
+                Volver al Inicio
             </button>
-            <img class="kenos-logo" width="6%" src="../img/logo.png">
-            
         </div>
+    </div>
+</div>
+
+<!-- Scripts de Bootstrap -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
        

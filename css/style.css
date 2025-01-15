@@ -337,3 +337,21 @@ input:invalid, select:invalid, textarea:invalid {
     border: 2px solid red;
     background-color: #f8d7da;
 }
+
+
+.btn-agregar {
+    width: 200px;
+    height: 48px;
+    background-color: #4B4A4B;
+    color: white;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 20px;
+}
+
+.btn-agregar .icono-plus {
+    font-size: 24px;
+    margin-right: 10px;
+}

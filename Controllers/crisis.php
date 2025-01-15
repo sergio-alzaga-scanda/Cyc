@@ -1,6 +1,8 @@
 <?php
 session_start();
-
+if (!$_SESSION['usuario']) {
+    header("Location: ../index.php"); 
+}
 include("../Controllers/bd.php");
 $id_usuario = $_SESSION['usuario'];
 ini_set('display_errors', 1);
@@ -10,7 +12,9 @@ error_reporting(E_ALL);
 $fechaActual = date("Y-m-d H:i:s");
 $fechaHoraActual = $fechaActual;
 
-$accion = $_POST['accion'];
+$accion = $_POST['accion'] ?? $_GET['accion'] ?? null;
+
+
 
 switch ($accion) {
     case 1:
@@ -164,28 +168,32 @@ switch ($accion) {
         // Definir la nueva consulta
         $queryTbl = "
         SELECT 
-            c.id_cyc,
-            c.no_ticket,
-            cc.nombre_crisis AS categoria_nombre,
-            CASE 
-                WHEN c.tipo_cyc = 1 THEN 'Crisis'
-                WHEN c.tipo_cyc = 2 THEN 'Contingencia'
-                ELSE 'Desconocido'
-            END AS tipo_cyc,
-            c.ubicacion_cyc,
-            ui.nombre_ubicacion_ivr AS ubicacion,  -- Columna adicional para el nombre de la ubicación
-            CASE 
-                WHEN c.fecha_programacion > c.fecha_registro_cyc THEN c.fecha_programacion
-                ELSE c.fecha_registro_cyc
-            END AS fecha_activacion
-        FROM 
-            cyc AS c
-        JOIN 
-            cat_crisis AS cc ON c.categoria_cyc = cc.id
-        LEFT JOIN 
-            ubicacion_ivr AS ui ON c.ubicacion_cyc = ui.id_ubicacion_ivr  -- Relacionar con la tabla de ubicaciones
-        ORDER BY 
-            c.fecha_registro_cyc DESC;
+    c.id_cyc,
+    c.no_ticket,
+    c.status_cyc,
+    cc.nombre_crisis AS categoria_nombre,
+    CASE 
+        WHEN c.tipo_cyc = 1 THEN 'Crisis'
+        WHEN c.tipo_cyc = 2 THEN 'Contingencia'
+        ELSE 'Desconocido'
+    END AS tipo_cyc,
+    c.ubicacion_cyc,
+    ui.nombre_ubicacion_ivr AS nombre_ubicacion,  -- Columna adicional para el nombre de la ubicación
+    CASE 
+        WHEN c.fecha_programacion > c.fecha_registro_cyc THEN c.fecha_programacion
+        ELSE c.fecha_registro_cyc
+    END AS fecha_activacion
+FROM 
+    cyc AS c
+JOIN 
+    cat_crisis AS cc ON c.categoria_cyc = cc.id
+LEFT JOIN 
+    ubicacion_ivr AS ui ON c.ubicacion_cyc = ui.id_ubicacion_ivr  -- Relacionar con la tabla de ubicaciones
+WHERE 
+    c.status_cyc > 0
+ORDER BY 
+    c.fecha_registro_cyc DESC;
+
         ";
 
         // Ejecutar la consulta usando PDO
@@ -216,10 +224,12 @@ switch ($accion) {
             $DtosTbl[] = array(
                 'id_cyc' => $rowTbl['id_cyc'],
                 'no_ticket' => $rowTbl['no_ticket'],
-                'categoria_nombre' => $rowTbl['categoria_nombre'],  // Cambiado para que coincida con el alias 'categoria_nombre'
-                'tipo_cyc' => $rowTbl['tipo_cyc'],
+                'status_cyc' => $rowTbl['status_cyc'],
+                'categoria_nombre' => $rowTbl['categoria_nombre'], 
+                'tipo_cyc' => $rowTbl['tipo_cyc'], 
+                'nombre_ubicacion' => $rowTbl['nombre_ubicacion'],
                 'ubicacion_cyc' => $rowTbl['ubicacion_cyc'],
-                'fecha_activacion' => $rowTbl['fecha_activacion'],  // Cambiado para que coincida con el alias 'fecha_activacion'
+                'fecha_activacion' => $rowTbl['fecha_activacion'],  
             );
         }
 
@@ -268,7 +278,48 @@ switch ($accion) {
     }
     break;
         case 4:
-            $id_cyc = intval($_POST['id']);
+         $id_cyc = $_GET['id'];
+             try {
+                $query = "UPDATE cyc 
+                          SET status_cyc = 0
+                          WHERE id_cyc = :id_cyc";
+
+                $stmt = $conn->prepare($query);
+                $stmt->execute([
+                    
+                    ':id_cyc' => $id_cyc
+                ]);
+                echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+                              <script type='text/javascript'>
+                                window.onload = function() {
+                                    Swal.fire({
+                                        title: 'Éxito',
+                                        text: 'El ticket se eliminó correctamente.',
+                                        icon: 'success',
+                                        confirmButtonText: 'Aceptar'
+                                    }).then(function() {
+                                        window.location.href = '../Views/cyc.php'; // Redirige a la página de éxito
+                                    });
+                                }
+                              </script>";
+            } catch (PDOException $e) {
+               echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+                              <script type='text/javascript'>
+                                window.onload = function() {
+                                    Swal.fire({
+                                        title: 'Error',
+                                        text: 'No se pudo eliminar el registro',
+                                        icon: 'Error',
+                                        confirmButtonText: 'Aceptar'
+                                    }).then(function() {
+                                        window.location.href = '../Views/cyc.php'; // Redirige a la página de éxito
+                                    });
+                                }
+                              </script>";
+            }
+            break;
+        case 5:
+           $id_cyc = intval($_POST['id']);
             $nombre = $_POST['nombre'];
             $categoria_cyc = intval($_POST['categoria_edit']);
             $tipo_cyc = intval($_POST['tipo_edit']);
@@ -318,7 +369,7 @@ switch ($accion) {
                                 window.onload = function() {
                                     Swal.fire({
                                         title: 'Éxito',
-                                        text: 'El ticket se ha registrado correctamente.',
+                                        text: 'El registro se editó correctamente.',
                                         icon: 'success',
                                         confirmButtonText: 'Aceptar'
                                     }).then(function() {
@@ -332,7 +383,7 @@ switch ($accion) {
                                 window.onload = function() {
                                     Swal.fire({
                                         title: 'Error',
-                                        text: 'El ticket se ha registrado correctamente.',
+                                        text: 'Ocurrio un error al editar el registro',
                                         icon: 'success',
                                         confirmButtonText: 'Aceptar'
                                     }).then(function() {
@@ -342,6 +393,77 @@ switch ($accion) {
                               </script>";
             }
             break;
+            
+        break;    
+        case 6:
+            
+
+             $id_cyc = $_GET['id'];
+             $status_inicial = $_GET['status'];
+             echo $status_inicial;
+             try {
+                if ($status_inicial === '1') {
+                    $nuevo_status = 2;
+                }else{
+                    $nuevo_status = 1;
+                }
+                $query = "UPDATE cyc 
+                          SET status_cyc = :nuevo_status
+                          WHERE id_cyc = :id_cyc";
+
+                $stmt = $conn->prepare($query);
+                $stmt->execute([
+                    ':nuevo_status' => $nuevo_status,
+                    ':id_cyc' => $id_cyc
+                ]);
+                if ($status_inicial === '1') {
+                    echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+                              <script type='text/javascript'>
+                                window.onload = function() {
+                                    Swal.fire({
+                                        title: 'Éxito',
+                                        text: 'Se desactivo la crisis/contingencia.',
+                                        icon: 'info',
+                                        confirmButtonText: 'Aceptar'
+                                    }).then(function() {
+                                        window.location.href = '../Views/cyc.php'; // Redirige a la página de éxito
+                                    });
+                                }
+                              </script>";
+            }else{
+                 echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+                              <script type='text/javascript'>
+                                window.onload = function() {
+                                    Swal.fire({
+                                        title: 'Éxito',
+                                        text: 'Se activo la crisis/contingencia.',
+                                        icon: 'info',
+                                        confirmButtonText: 'Aceptar'
+                                    }).then(function() {
+                                        window.location.href = '../Views/cyc.php'; // Redirige a la página de éxito
+                                    });
+                                }
+                              </script>";
+            }
+                
+               
+            } catch (PDOException $e) {
+               echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+                              <script type='text/javascript'>
+                                window.onload = function() {
+                                    Swal.fire({
+                                        title: 'Error',
+                                        text: 'No se pudo activar la crisis/contingencia',
+                                        icon: 'Error',
+                                        confirmButtonText: 'Aceptar'
+                                    }).then(function() {
+                                        window.location.href = '../Views/cyc.php'; // Redirige a la página de éxito
+                                    });
+                                }
+                              </script>";
+            }
+            
+        break;    
 
         default:
             echo "Acción no reconocida.";

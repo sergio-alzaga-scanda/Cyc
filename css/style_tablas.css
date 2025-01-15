@@ -1,0 +1,135 @@
+.btn-custom {
+            background-color: #427463;
+            color: white;
+        }
+
+        .btn-custom.active {
+            background-color: #327257;
+        }
+
+        .filters-container {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .filters-container .filter-group {
+            margin-right: 30px;
+            margin-bottom: 15px;
+        }
+
+        .filters-container label {
+            font-weight: bold;
+        }
+
+        .filters-container input[type="radio"] {
+            margin-right: 5px;
+        }
+
+        /* Estilo para la tabla */
+        #crisisTable {
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        #crisisTable thead {
+            background-color: #000;
+            color: white;
+            text-align: center;
+        }
+
+        #crisisTable th {
+            color: white;
+            background-color: #000;
+            text-align: center;
+            border: none;
+        }
+
+        #crisisTable td {
+            text-align: center;
+            padding: 12px;
+            border: none;
+        }
+
+        #crisisTable tbody tr {
+            transition: background-color 0.3s ease;
+        }
+
+        #crisisTable tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        #crisisTable tbody tr:not(:last-child) {
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        /* Mover los controles (buscar y paginación) abajo */
+        .dataTables_wrapper .dataTables_filter {
+            float: none;
+            text-align: left;
+        }
+
+        .dataTables_wrapper .dataTables_length {
+            float: none;
+            text-align: left;
+        }
+
+        .dataTables_wrapper .dataTables_info {
+            float: none;
+            text-align: left;
+        }
+
+        .dataTables_wrapper .dataTables_paginate {
+            float: none;
+            text-align: left;
+        }
+
+        .dataTables_wrapper {
+            display: flex;
+            flex-direction: column-reverse;
+        }
+
+        /* Estilo para el botón de eliminar filtros con la imagen */
+        #resetFiltersBtn {
+            background: transparent;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        #resetFiltersBtn img {
+            width: 30px;
+            height: 30px;
+        }
+
+        /* Alineación vertical del botón de eliminar filtros */
+        .filter-group-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 50px;
+        }
+
+
+        .btn-agregar {
+    width: 200px;
+    height: 48px;
+    background-color: #4B4A4B;
+    color: white;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 20px;
+}
+
+.btn-agregar .icono-plus {
+    font-size: 24px;
+    margin-right: 10px;
+}

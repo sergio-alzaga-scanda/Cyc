@@ -9,19 +9,26 @@ $(document).ready(function() {
             "dataSrc": function (json) {
                 var rows = [];
                 $.each(json, function (index, item) {
-                    var checked = item.status_cyc === '1' ? 'checked' : '';
+                    // Se utiliza 'status_cyc' del backend para determinar la imagen
+                    var iconoStatus = item.status_cyc === '1' ? 
+                        `<img src="../iconos/activo.png" alt="Activo" style="width: 50px; height: 25px;" data-status="1" data-id="${item.id_cyc}" onclick="toggleStatus(${item.id_cyc}, this, ${item.status_cyc})">` : 
+                        `<img src="../iconos/desactivo.png" alt="Desactivado" style="width: 50px; height: 25px;" data-status="0" data-id="${item.id_cyc}" onclick="toggleStatus(${item.id_cyc}, this, ${item.status_cyc})">`;
+
                     rows.push([  
                         item.id_cyc,
-                        item.nombre, 
                         item.no_ticket,
                         item.categoria_nombre,  
                         item.tipo_cyc,  
                         item.ubicacion_cyc,  
                         item.fecha_activacion,  
                         `  
-                            <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal" data-id="${item.id_cyc}">Editar</button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteCrisis(${item.id_cyc})">Eliminar</button>
-                            <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked_${item.id_cyc}" ${checked} data-id="${item.id_cyc}" data-status="${item.status_cyc}" onclick="toggleCrisis(${item.id_cyc}, this)">
+                            <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal" data-id="${item.id_cyc}" style="background: transparent; border: none;">
+                                <img src="../iconos/edit.png" alt="Editar" style="width: 20px; height: 20px;">
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteCrisis(${item.id_cyc})" style="background: transparent; border: none;">
+                                <img src="../iconos/delete.png" alt="Eliminar" style="width: 20px; height: 20px;">
+                            </button>
+                            ${iconoStatus}
                         `
                     ]);
                 });
@@ -30,7 +37,6 @@ $(document).ready(function() {
         },
         "columns": [
             { "title": "ID" },
-            { "title": "Nombre" },
             { "title": "No. Ticket" },
             { "title": "Categoría" },
             { "title": "Tipo" },
@@ -39,21 +45,77 @@ $(document).ready(function() {
             { "title": "Acciones" }
         ],
         "language": {
-            "url": "https://cdn.datatables.net/plug-ins/1.13.4/i18n/Spanish.json"
+            "processing": "Procesando...",
+            "search": "Buscar:",
+            "lengthMenu": "Mostrar _MENU_ registros",
+            "info": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+            "infoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+            "infoFiltered": "(filtrado de un total de _MAX_ registros)",
+            "loadingRecords": "Cargando...",
+            "zeroRecords": "No se encontraron resultados",
+            "emptyTable": "No hay datos disponibles en la tabla",
+            "paginate": {
+                "first": "Primero",
+                "previous": "Anterior",
+                "next": "Siguiente",
+                "last": "Último"
+            },
+            "aria": {
+                "sortAscending": ": activar para ordenar la columna de manera ascendente",
+                "sortDescending": ": activar para ordenar la columna de manera descendente"
+            }
         },
-        "dom": 'lfrtip',  
+        "dom": 'iptlr',
+        "searching": true,
+        "lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "Todos"] ],
+        "pageLength": 10 
     });
+
+    // Filtros
+    $('input[name="statusType"]').on('change', function() {
+        table.ajax.reload(); 
+    });
+
+    // Filtrar por fecha
+    $('#filterDate').on('change', function() {
+        var selectedDate = $(this).val();
+        var formattedDate = selectedDate.split('-').reverse().join('-');
+        table.column(5).search(formattedDate).draw();  // Asegúrate de que la fecha está en la columna correcta
+    });
+
+    // Filtrar por texto de búsqueda
+    $('#searchText').on('keyup', function() {
+        table.search(this.value).draw();
+    });
+
+    // Filtrar por tipo de contingencia
+    $('input[name="contingencyType"]').on('change', function() {
+        var filterValue = this.value;
+        if (filterValue === "ambos") {
+            table.column(3).search('').draw();  // Limpiar el filtro de tipo
+        } else {
+            table.column(3).search(filterValue).draw();
+        }
+    });
+
+    // Restablecer filtros
+    $('#resetFiltersBtn').on('click', function() {
+        $('#filterDate').val('');
+        $('#searchText').val('');
+        $('input[name="contingencyType"]').prop('checked', false);
+        $('input[name="statusType"]').prop('checked', false);
+        table.search('').column(5).search('').column(3).search('').column(6).search('').draw();  // Limpia todos los filtros
+    });
+});
 
 // Función para cargar los datos en el formulario de edición
 function cargarDatosCrisis(crisisData) {
-    // Llenar los campos del formulario
     document.querySelector('#no_ticket_edit').value = crisisData.no_ticket || '';
     document.querySelector('#nombre_edit').value = crisisData.nombre || '';
     document.querySelector('#ubicacion_edit').value = crisisData.ubicacion_cyc || '';
     document.querySelector('#ivr_edit').value = crisisData.redaccion_cyc || '';
     document.querySelector('#redaccion_canales_edit').value = crisisData.redaccion_canales || '';
 
-    // Manejar la selección del checkbox "Programas"
     const checkboxProgramas = document.querySelector('#programar_edit');
     if (crisisData.fecha_programacion) {
         checkboxProgramas.checked = true;
@@ -63,7 +125,6 @@ function cargarDatosCrisis(crisisData) {
         document.querySelector('#fecha_programacion_edit').value = '';
     }
 
-    // Manejar los canales digitales
     const canalesSeleccionados = crisisData.canal_cyc || [];
     document.querySelectorAll('[name="canal[]"]').forEach((checkbox) => {
         if (canalesSeleccionados.includes(checkbox.value)) {
@@ -73,7 +134,6 @@ function cargarDatosCrisis(crisisData) {
         }
     });
 
-    // Manejar los bots
     const botsSeleccionados = crisisData.bot_cyc || [];
     document.querySelectorAll('[name="bot[]"]').forEach((checkbox) => {
         if (botsSeleccionados.includes(checkbox.value)) {
@@ -83,42 +143,6 @@ function cargarDatosCrisis(crisisData) {
         }
     });
 }
-
-// Ejemplo de solicitud para obtener datos de edición
-function obtenerDatosCrisis(idCrisis) {
-    const formData = new FormData();
-    formData.append('action', 3);
-    formData.append('id', idCrisis);
-
-    fetch('../Controllers/crisis.php', { // Cambia esto por la ruta de tu archivo PHP
-        method: 'POST',
-        body: formData,
-    })
-        .then((response) => response.json())
-        .then((data) => {
-            if (data.error) {
-                console.error(data.error);
-            } else {
-                cargarDatosCrisis(data);
-            }
-        })
-        .catch((error) => console.error('Error al obtener los datos:', error));
-}
-
-
-
-    // Función para filtrar la tabla por fecha
-    $('#filterDate').on('change', function() {
-        var selectedDate = $(this).val();
-        table.column(6).search(selectedDate).draw();
-    });
-
-    // Función para restablecer los filtros
-    $('#resetFiltersBtn').on('click', function() {
-        $('#filterDate').val('');
-        table.search('').column(6).search('').draw();  // Limpiar la búsqueda y restablecer los filtros
-    });
-});
 
 // Función para eliminar una crisis
 function deleteCrisis(id) {
@@ -131,33 +155,19 @@ function deleteCrisis(id) {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            // Hacer una solicitud de eliminación
-            window.location.href = `../Controllers/crisis.php?accion=4&id=${id}`;
+            window.location.href = `../Controllers/crisis.php?accion=5&id=${id}`;
         }
     });
 }
 
 // Función para activar/desactivar una crisis
-function toggleCrisis(id, checkbox) {
-    const status = checkbox.checked ? 1 : 0;  // Si está marcado, es 1 (prendido); si no, es 0 (apagado)
-    const mensaje = status === 1 ? 
-        '¿Está seguro que desea activar esta crisis o contingencia?' :
-        '¿Está seguro que desea desactivar esta crisis o contingencia?';
-
-    Swal.fire({
-        title: '¿Estás seguro?',
-        text: mensaje,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: status === 1 ? 'Sí, activar' : 'Sí, desactivar',
-        cancelButtonText: 'Cancelar'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Hacer una solicitud para cambiar el estado de la crisis
-            window.location.href = `../Controllers/crisis.php?accion=5&id=${id}&status=${status}`;
-        } else {
-            // Si se cancela, revertir el checkbox
-            checkbox.checked = !checkbox.checked;
-        }
-    });
+function toggleStatus(id, imgElement, status_cyc) {
+    // Si el estatus es '1' (activo), desactivamos; de lo contrario, activamos.
+    var status = (status_cyc === '1') ? 0 : 1;  // 1 = activar, cualquier otro valor = desactivar
+    // Actualiza el ícono visualmente
+    imgElement.setAttribute('data-status', status);
+    imgElement.src = (status === 1) ? "../iconos/activo.png" : "../iconos/desactivo.png";
+    
+    // Realiza la actualización en el backend (sin promesas, directamente)
+    window.location.href = `../Controllers/crisis.php?accion=6&id=${id}&status=${status_cyc}`;
 }

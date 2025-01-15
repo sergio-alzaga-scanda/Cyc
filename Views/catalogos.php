@@ -1,6 +1,6 @@
 <?php
 session_start();
-if ($_SESSION['usuario'] < 0) {
+if (!$_SESSION['usuario']) {
     header("Location: ../index.php"); 
 }
 $menu = 8;

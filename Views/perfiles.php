@@ -1,7 +1,7 @@
 <?php
 session_start();
-if ($_SESSION['usuario'] < 0) {
-    header("Location: ../index.php");  
+if (!$_SESSION['usuario']) {
+    header("Location: ../index.php"); 
 }
 $menu = 5;
 ?>
