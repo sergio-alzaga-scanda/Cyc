@@ -18,7 +18,6 @@ $menu = 2;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
-    
 </head>
 <body>
 
@@ -31,9 +30,8 @@ include("../Modals/modalEditarCrisis.php");
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <button type="button" class="btn-agregar" data-bs-toggle="modal" data-bs-target="#loginModal">
-     Agregar &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span class="icono-plus">+</span>
-</button>
-
+            Agregar &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span class="icono-plus">+</span>
+        </button>
         <img class="kenos-logo" width="6%" src="../img/logo.png">
     </div>
 
@@ -59,6 +57,7 @@ include("../Modals/modalEditarCrisis.php");
             <label for="both">Ambos</label>
         </div>
 
+        <!--
         <div class="filter-group">
             <label for="statusType" class="form-label">Filtrar por Estado</label><br>
             <input type="radio" id="activo" name="statusType" value="1">
@@ -70,7 +69,7 @@ include("../Modals/modalEditarCrisis.php");
             <input type="radio" id="ambosStatus" name="statusType" value="Todos">
             <label for="ambosStatus">Todos</label>
         </div>
-
+        -->
         <!-- Botón de eliminar filtros con imagen -->
         <div class="filter-group-btn">
             <button type="button" id="resetFiltersBtn">
@@ -80,7 +79,7 @@ include("../Modals/modalEditarCrisis.php");
     </div>
 
     <div class="card-body">
-        <table id="crisisTable" class="table table-striped table-bordered table-hover">
+        <table id="crisisTable" class="table-custom table table-striped table-bordered table-hover">
             <thead class="table-light">
                 <tr>
                     <th>ID</th>

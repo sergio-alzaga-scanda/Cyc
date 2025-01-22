@@ -4,7 +4,7 @@ $serverName = "localhost\SQLEXPRESS";  // Nombre del servidor o IP de la base de
 $connectionOptions = array(
     "Database" => "contingencias", // Nombre de la base de datos
     "Uid" => "dev",             // Nombre de usuario
-    "PWD" => ""           // Contraseña del usuario
+    "PWD" => "Ser132gio."           // Contraseña del usuario
 );
 
 try {
