@@ -45,6 +45,7 @@ switch ($accion) {
             $ubicacion = $_POST['ubicacion'] ?? '';
             $ivr_texto = $_POST['ivr'] ?? '';
             $redaccion_canales = $_POST['redaccion_canales'] ?? '';
+            $proyecto = $_POST['proyecto'] ?? '';
             
             $canales = $_POST['canal'] ?? []; // Array
             $bots = $_POST['bot'] ?? []; // Array
@@ -98,7 +99,8 @@ switch ($accion) {
                             status_cyc,
                             fecha_programacion,
                             id_usuario,
-                            redaccion_canales
+                            redaccion_canales,
+                            proyecto
                         ) VALUES (
                             :nombre,
                             :no_ticket,
@@ -113,7 +115,8 @@ switch ($accion) {
                             :status_cyc,
                             :fecha_programacion,
                             :id_usuario,
-                            :redaccion_canales
+                            :redaccion_canales,
+                            :proyecto
                         )
                     ";
 
@@ -134,6 +137,7 @@ switch ($accion) {
                     $stmt->bindParam(':fecha_programacion', $fecha_programacion);
                     $stmt->bindParam(':redaccion_canales', $redaccion_canales);
                     $stmt->bindParam(':id_usuario', $id_usuario, PDO::PARAM_INT);
+                    $stmt->bindParam(':proyecto', $proyecto);
 
                     // Ejecutar la consulta
                     if ($stmt->execute()) {
@@ -161,39 +165,41 @@ switch ($accion) {
             break;
         }
     
-    case 2: 
+case 2:
     $DtosTbl = array();
 
     try {
         // Definir la nueva consulta
         $queryTbl = "
         SELECT 
-    c.id_cyc,
-    c.no_ticket,
-    c.status_cyc,
-    cc.nombre_crisis AS categoria_nombre,
-    CASE 
-        WHEN c.tipo_cyc = 1 THEN 'Crisis'
-        WHEN c.tipo_cyc = 2 THEN 'Contingencia'
-        ELSE 'Desconocido'
-    END AS tipo_cyc,
-    c.ubicacion_cyc,
-    ui.nombre_ubicacion_ivr AS nombre_ubicacion,  -- Columna adicional para el nombre de la ubicación
-    CASE 
-        WHEN c.fecha_programacion > c.fecha_registro_cyc THEN c.fecha_programacion
-        ELSE c.fecha_registro_cyc
-    END AS fecha_activacion
-FROM 
-    cyc AS c
-JOIN 
-    cat_crisis AS cc ON c.categoria_cyc = cc.id
-LEFT JOIN 
-    ubicacion_ivr AS ui ON c.ubicacion_cyc = ui.id_ubicacion_ivr  -- Relacionar con la tabla de ubicaciones
-WHERE 
-    c.status_cyc > 0
-ORDER BY 
-    c.fecha_registro_cyc DESC;
-
+            c.id_cyc,
+            c.no_ticket,
+            c.status_cyc,
+            cc.nombre_crisis AS categoria_nombre,
+            CASE 
+                WHEN c.tipo_cyc = 1 THEN 'Crisis'
+                WHEN c.tipo_cyc = 2 THEN 'Contingencia'
+                ELSE 'Desconocido'
+            END AS tipo_cyc,
+            c.ubicacion_cyc,
+            ui.nombre_ubicacion_ivr AS nombre_ubicacion,  -- Columna adicional para el nombre de la ubicación
+            CASE 
+                WHEN c.fecha_programacion > c.fecha_registro_cyc THEN c.fecha_programacion
+                ELSE c.fecha_registro_cyc
+            END AS fecha_activacion,
+            p.nombre_proyecto  -- Nueva columna para el nombre del proyecto
+        FROM 
+            cyc AS c
+        JOIN 
+            cat_crisis AS cc ON c.categoria_cyc = cc.id
+        LEFT JOIN 
+            ubicacion_ivr AS ui ON c.ubicacion_cyc = ui.id_ubicacion_ivr  -- Relacionar con la tabla de ubicaciones
+        LEFT JOIN 
+            cat_proyectos AS p ON c.proyecto = p.id_proyecto  -- Relacionar con la tabla de proyectos
+        WHERE 
+            c.status_cyc > 0
+        ORDER BY 
+            c.fecha_registro_cyc DESC;
         ";
 
         // Ejecutar la consulta usando PDO
@@ -230,6 +236,7 @@ ORDER BY
                 'nombre_ubicacion' => $rowTbl['nombre_ubicacion'],
                 'ubicacion_cyc' => $rowTbl['ubicacion_cyc'],
                 'fecha_activacion' => $rowTbl['fecha_activacion'],  
+                'nombre_proyecto' => $rowTbl['nombre_proyecto'],  // Agregar el nombre del proyecto
             );
         }
 
@@ -250,32 +257,37 @@ ORDER BY
     $crisisDetails->bindParam(':id', $id, PDO::PARAM_INT);
 
     if ($crisisDetails->execute()) {
-        $crisisData = $crisisDetails->fetch(PDO::FETCH_ASSOC);
+    $crisisData = $crisisDetails->fetch(PDO::FETCH_ASSOC);
 
-        // Decodificar JSON de los campos `canal_cyc` y `bot_cyc`
-        $crisisData['canal_cyc'] = json_decode($crisisData['canal_cyc'], true);
-        $crisisData['bot_cyc'] = json_decode($crisisData['bot_cyc'], true);
+    // Decodificar JSON de los campos `canal_cyc` y `bot_cyc`
+    $crisisData['canal_cyc'] = json_decode($crisisData['canal_cyc'], true);
+    $crisisData['bot_cyc'] = json_decode($crisisData['bot_cyc'], true);
 
-        // Formatear la fecha `fecha_programacion` para datetime-local
-        if ($crisisData['fecha_programacion']) {
-            // Quitar la parte de los milisegundos
-            $fechaSinMilisegundos = substr($crisisData['fecha_programacion'], 0, 19); // '2025-01-21 16:55:00'
+    // Formatear la fecha `fecha_programacion` para datetime-local
+    if ($crisisData['fecha_programacion']) {
+        // Quitar la parte de los milisegundos
+        $fechaSinMilisegundos = substr($crisisData['fecha_programacion'], 0, 19); // '2025-01-21 16:55:00'
 
-            // Intentar crear el objeto DateTime con el formato adecuado
-            $date = DateTime::createFromFormat('Y-m-d H:i:s', $fechaSinMilisegundos);
-            if ($date) {
-                $crisisData['fecha_programacion'] = $date->format('d/m/Y H:i'); // Formato para datetime-local
-            } else {
-                // Si el formato es inválido
-                $crisisData['fecha_programacion'] = 'Fecha inválida';
-            }
+        // Intentar crear el objeto DateTime con el formato adecuado
+        $date = DateTime::createFromFormat('Y-m-d H:i:s', $fechaSinMilisegundos);
+        if ($date) {
+            $crisisData['fecha_programacion'] = $date->format('d/m/Y H:i'); // Formato para datetime-local
+        } else {
+            // Si el formato es inválido
+            $crisisData['fecha_programacion'] = 'Fecha inválida';
         }
-
-        // Enviar los datos en formato JSON al frontend
-        echo json_encode($crisisData);
-    } else {
-        echo json_encode(['error' => 'Error al obtener los detalles de la crisis']);
     }
+    
+    // Obtener el proyecto relacionado, si es necesario (esto depende de tu base de datos)
+    // Aquí asumimos que `proyecto` es un campo relacionado en la base de datos
+    $crisisData['proyecto'] = $crisisData['proyecto'] ?? null;  // Añadir el dato del proyecto al array
+
+    // Enviar los datos en formato JSON al frontend
+    echo json_encode($crisisData);
+} else {
+    echo json_encode(['error' => 'Error al obtener los detalles de la crisis']);
+}
+
     break;
         case 4:
          $id_cyc = $_GET['id'];
@@ -330,7 +342,7 @@ ORDER BY
             $canal_cyc = isset($_POST['canal_edit']) ? implode(',', $_POST['canal_edit']) : null;
             $bot_cyc = isset($_POST['bot_edit']) ? implode(',', $_POST['bot_edit']) : null;
             $redaccion_canales = $_POST['redaccion_canales_edit'];
-
+            $edit_proyecto = $_POST['edit_proyecto'];
             // Convertir fecha al formato SQL Server
             if ($fecha_programacion) {
                 $fecha_programacion = str_replace('T', ' ', $fecha_programacion) . ':00';
@@ -349,7 +361,8 @@ ORDER BY
                               ubicacion_cyc = :ubicacion_cyc,
                               redaccion_cyc = :redaccion_cyc,
                               fecha_programacion = :fecha_programacion,
-                              redaccion_canales = :redaccion_canales
+                              redaccion_canales = :redaccion_canales,
+                              proyecto = :edit_proyecto
                           WHERE id_cyc = :id_cyc";
 
                 $stmt = $conn->prepare($query);
@@ -361,6 +374,7 @@ ORDER BY
                     ':redaccion_cyc' => $redaccion_cyc,
                     ':fecha_programacion' => $fecha_programacion,
                     ':redaccion_canales' => $redaccion_canales,
+                    ':edit_proyecto' => $edit_proyecto,
                     ':id_cyc' => $id_cyc
                 ]);
 

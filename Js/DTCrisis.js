@@ -3,13 +3,14 @@ $(document).ready(function() {
         "ajax": {
             "url": "../Controllers/crisis.php",  
             "method": "POST",  
-            "data": {
-                "accion": 2
+            "data": function(d) {
+                // Aquí se agrega el filtro de proyecto
+                d.accion = 2;
+                d.proyecto = $('#proyecto').val();  // Agrega el valor seleccionado del proyecto
             },
             "dataSrc": function (json) {
                 var rows = [];
                 $.each(json, function (index, item) {
-                    // Se utiliza 'status_cyc' del backend para determinar la imagen
                     var iconoStatus = item.status_cyc === '1' ? 
                         `<img src="../iconos/activo.png" alt="Activo" style="width: 50px; height: 25px;" data-status="1" data-id="${item.id_cyc}" onclick="toggleStatus(${item.id_cyc}, this, ${item.status_cyc})">` : 
                         `<img src="../iconos/desactivo.png" alt="Desactivado" style="width: 50px; height: 25px;" data-status="0" data-id="${item.id_cyc}" onclick="toggleStatus(${item.id_cyc}, this, ${item.status_cyc})">`;
@@ -17,9 +18,10 @@ $(document).ready(function() {
                     rows.push([  
                         item.id_cyc,
                         item.no_ticket,
+                        item.nombre_proyecto,
                         item.categoria_nombre,  
                         item.tipo_cyc,  
-                        item.ubicacion_cyc,  
+                        item.nombre_ubicacion,  
                         item.fecha_activacion,  
                         `  
                             <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal" data-id="${item.id_cyc}" style="background: transparent; border: none;">
@@ -35,9 +37,9 @@ $(document).ready(function() {
                 return rows;
             }
         },
-        "processing": true,  // Activa el procesamiento
+        "processing": true, 
         "language": {
-            "processing": "<div class='loading-overlay'><div class='loader'></div></div>",  // Agrega un indicador de carga
+            "processing": "<div class='loading-overlay'><div class='loader'></div></div>",  
             "search": "Buscar:",
             "lengthMenu": "Mostrar _MENU_ registros",
             "info": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
@@ -51,10 +53,6 @@ $(document).ready(function() {
                 "previous": "Anterior",
                 "next": "Siguiente",
                 "last": "Último"
-            },
-            "aria": {
-                "sortAscending": ": activar para ordenar la columna de manera ascendente",
-                "sortDescending": ": activar para ordenar la columna de manera descendente"
             }
         },
         "dom": 'iptlr',
@@ -63,16 +61,13 @@ $(document).ready(function() {
         "pageLength": 10 
     });
 
-    // Filtros
-    $('input[name="statusType"]').on('change', function() {
-        table.ajax.reload(); 
-    });
+    
 
     // Filtrar por fecha
     $('#filterDate').on('change', function() {
         var selectedDate = $(this).val();
         var formattedDate = selectedDate.split('-').reverse().join('-');
-        table.column(5).search(formattedDate).draw();  // Asegúrate de que la fecha está en la columna correcta
+        table.column(5).search(formattedDate).draw();
     });
 
     // Filtrar por texto de búsqueda
@@ -84,9 +79,9 @@ $(document).ready(function() {
     $('input[name="contingencyType"]').on('change', function() {
         var filterValue = this.value;
         if (filterValue === "ambos") {
-            table.column(3).search('').draw();  // Limpiar el filtro de tipo
+            table.column(4).search('').draw();  // Limpiar el filtro de tipo
         } else {
-            table.column(3).search(filterValue).draw();
+            table.column(4).search(filterValue).draw();
         }
     });
 
@@ -94,8 +89,8 @@ $(document).ready(function() {
     $('#resetFiltersBtn').on('click', function() {
         $('#filterDate').val('');
         $('#searchText').val('');
+        $('#proyecto').val('');  // Limpiar el filtro de proyecto
         $('input[name="contingencyType"]').prop('checked', false);
-        $('input[name="statusType"]').prop('checked', false);
         table.search('').column(5).search('').column(3).search('').column(6).search('').draw();  // Limpia todos los filtros
     });
 });
@@ -107,6 +102,7 @@ function cargarDatosCrisis(crisisData) {
     document.querySelector('#ubicacion_edit').value = crisisData.ubicacion_cyc || '';
     document.querySelector('#ivr_edit').value = crisisData.redaccion_cyc || '';
     document.querySelector('#redaccion_canales_edit').value = crisisData.redaccion_canales || '';
+    document.querySelector('#proyecto').value = crisisData.proyecto || '';
 
     const checkboxProgramas = document.querySelector('#programar_edit');
     if (crisisData.fecha_programacion) {

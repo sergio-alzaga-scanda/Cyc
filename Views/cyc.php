@@ -56,7 +56,7 @@ include("../Modals/modalEditarCrisis.php");
             <input type="radio" id="both" name="contingencyType" value="ambos">
             <label for="both">Ambos</label>
         </div>
-
+       
         <!--
         <div class="filter-group">
             <label for="statusType" class="form-label">Filtrar por Estado</label><br>
@@ -84,6 +84,7 @@ include("../Modals/modalEditarCrisis.php");
                 <tr>
                     <th>ID</th>
                     <th>No. Ticket</th>
+                    <th>Proyecto</th>
                     <th>Categoría</th>
                     <th>Tipo</th>
                     <th>Ubicación</th>

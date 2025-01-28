@@ -76,6 +76,8 @@ include("../Modals/modalNuevoBot.php");
 include("../Modals/modalEditarBot.php");
 include("../Modals/modalNuevoUbiIVR.php");
 include("../Modals/modalEditarUbiIVR.php");
+include("../Modals/modalNuevoProyecto.php");
+include("../Modals/modalEditarProyecto.php");
 ?>
 
 <div class="content">
@@ -107,7 +109,7 @@ include("../Modals/modalEditarUbiIVR.php");
 
         <!-- Tabla Canales Digitales -->
         <h3 class="section-title">Canales Digitales</h3>
-        <button type="button" class="btn btn-primary btn-agregar" data-bs-toggle="modal" data-bs-target="#NuevoCanal">
+        <button type="button" class=" btn-agregar" data-bs-toggle="modal" data-bs-target="#NuevoCanal">
             Agregar Canal Digital
         </button>
         <table id="table-canales" class="tabla-cat">
@@ -125,7 +127,7 @@ include("../Modals/modalEditarUbiIVR.php");
 
         <!-- Tabla Bots -->
         <h3 class="section-title">Bots</h3>
-        <button type="button" class="btn btn-primary btn-agregar" data-bs-toggle="modal" data-bs-target="#modalNuevoBot">
+        <button type="button" class=" btn-agregar" data-bs-toggle="modal" data-bs-target="#modalNuevoBot">
             Agregar Bot
         </button>
         <table id="table-bots" class="tabla-cat">
@@ -143,7 +145,7 @@ include("../Modals/modalEditarUbiIVR.php");
 
         <!-- Tabla Ubicaciones IVR -->
         <h3 class="section-title">Ubicaciones IVR</h3>
-        <button type="button" class="btn btn-primary btn-agregar" data-bs-toggle="modal" data-bs-target="#NuevaUbicacion">
+        <button type="button" class="btn-agregar" data-bs-toggle="modal" data-bs-target="#NuevaUbicacion">
             Agregar Ubicación IVR
         </button>
         <table id="table-ubicaciones" class="tabla-cat">
@@ -157,6 +159,23 @@ include("../Modals/modalEditarUbiIVR.php");
             <tbody>
                 <!-- Filas dinámicas -->
             </tbody>
+            </table> 
+        <h3 class="section-title">Proyectos</h3>
+        <button type="button" class="btn-agregar" data-bs-toggle="modal" data-bs-target="#modalNuevoProyecto">
+            Agregar Proyecto
+        </button>    
+        <table id="table-proyectos" class="tabla-cat">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Filas dinámicas -->
+            </tbody>
+        
         </table>
     </div>
 </div>
@@ -165,6 +184,7 @@ include("../Modals/modalEditarUbiIVR.php");
 <script src="../js/DTCatCyC.js"></script>
 <script src="../js/DTCanales.js"></script>
 <script src="../js/DTBot.js"></script>
+<script src="../js/DTProyectos.js"></script>
 <script src="../js/DTUbicaciones.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>

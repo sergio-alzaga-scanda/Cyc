@@ -2,7 +2,7 @@
 include("../Controllers/bd.php");
 
 // Obtener las crisis
-$queryCrisis = "SELECT * FROM cat_crisis ORDER BY nombre_crisis ASC";
+$queryCrisis = "SELECT * FROM cat_crisis WHERE status > 0 ORDER BY nombre_crisis ASC";
 $crisis_data = $conn->prepare($queryCrisis);
 
 if ($crisis_data->execute()) {
@@ -12,8 +12,7 @@ if ($crisis_data->execute()) {
 }
 
 // Obtener las ubicaciones
-$queryUbicaciones = "SELECT * FROM ubicacion_ivr;
-";
+$queryUbicaciones = "SELECT * FROM ubicacion_ivr WHERE status > 0";
 $ubicacion = $conn->prepare($queryUbicaciones);
 
 if ($ubicacion->execute()) {
@@ -23,13 +22,23 @@ if ($ubicacion->execute()) {
 }
 
 // Obtener los canales
-$queryCanales = "SELECT * FROM canal_digital ORDER BY nombre_canal ASC";
+$queryCanales = "SELECT * FROM canal_digital WHERE status > 0 ORDER BY nombre_canal ASC";
 $canal = $conn->prepare($queryCanales);
 
 if ($canal->execute()) {
     $canales = $canal->fetchAll(PDO::FETCH_ASSOC); // Obtener todos los registros
 } else {
     echo "Error al obtener los canales";
+}
+
+// Obtener los proyectos
+$queryProyecto = "SELECT * FROM cat_proyectos WHERE status > 0 ORDER BY nombre_proyecto ASC";
+$proyecto = $conn->prepare($queryProyecto);
+
+if ($proyecto->execute()) {
+    $proyectos = $proyecto->fetchAll(PDO::FETCH_ASSOC); // Obtener todos los registros
+} else {
+    echo "Error al obtener los proyectos";
 }
 
 // Obtener los bots
@@ -78,38 +87,50 @@ if ($bot->execute()) {
 
           <!-- Sección 1 -->
           <div class="mb-4">
-            <div class="row g-3 mt-3">
-              <div class="col-md-3">
-                <select class="form-select" name="criticidad" required id="categoria">
-                  <option selected disabled class="d-none">Criticidad</option>
-                  <?php
-                    foreach ($crisis as $row) {
-                        echo '<option value="' . $row['id'] . '" data-criticidad="' . $row['criticidad'] . '">' . $row['nombre_crisis'] . '</option>';
-                    }
-                  ?>
-                </select>
-              </div>
-              <div class="col-md-3">
-                <label for="criticidad" id="criticidad-label" style="text-align: center;" class="form-label"></label>
-              </div>
-              <div class="col-md-3">
-                <select class="form-select" required name="tipo" id="tipo">
-                  <option selected disabled class="d-none">Tipo</option>
-                  <option  value="1">Contingencia</option>
-                  <option  value="2">Crisis</option>
-                </select>
-              </div>
-              <div class="col-md-3">
-                <select class="form-select" required name="ubicacion" id="ubicacion">
-                  <option selected disabled class="d-none">Ubicación de CoC</option>
-                  <?php
-                    foreach ($ubicaciones as $row) {
-                        echo '<option value="' . $row['id_ubicacion_ivr'] . '">' . $row['nombre_ubicacion_ivr'] . '</option>';
-                    }
-                  ?>
-                </select>
-              </div>
-            </div>
+           <div class="row g-3 mb-3">
+  <div class="col-md-2">
+    <select class="form-select" name="criticidad" required id="categoria">
+      <option selected disabled class="d-none">Criticidad</option>
+      <?php
+        foreach ($crisis as $row) {
+            echo '<option value="' . $row['id'] . '" data-criticidad="' . $row['criticidad'] . '">' . $row['nombre_crisis'] . '</option>';
+        }
+      ?>
+    </select>
+  </div>
+  <div class="col-md-2">
+    <label for="criticidad" id="criticidad-label" style="text-align: center;" class="form-label"></label>
+  </div>
+  <div class="col-md-2">
+    <select class="form-select" required name="tipo" id="tipo">
+      <option selected disabled class="d-none">Tipo</option>
+      <option value="1">Contingencia</option>
+      <option value="2">Crisis</option>
+    </select>
+  </div>
+  <div class="col-md-2">
+    <select class="form-select" required name="ubicacion" id="ubicacion">
+      <option selected disabled class="d-none">Ubicación de CoC</option>
+      <?php
+        foreach ($ubicaciones as $row) {
+            echo '<option value="' . $row['id_ubicacion_ivr'] . '">' . $row['nombre_ubicacion_ivr'] . '</option>';
+        }
+      ?>
+    </select>
+  </div>
+  <!-- Nuevo combo agregado para 'Prioridad' -->
+  <div class="col-md-2">
+    <select class="form-select" required name="proyecto" id="proyecto">
+      <option selected disabled class="d-none">Proyecto</option>
+      <?php
+        foreach ($proyectos as $row_proyecto) {
+            echo '<option value="' . $row_proyecto['id_proyecto'] . '">' . $row_proyecto['nombre_proyecto'] . '</option>';
+        }
+      ?>
+    </select>
+  </div>
+</div>
+
             <div class="mt-3">
               <label for="ivr" class="form-label fw-bold">Redacción para grabación en IVR</label>
               <textarea required class="form-control" name="ivr" id="ivr" rows="3"></textarea>
@@ -211,6 +232,20 @@ document.getElementById('fecha_programacion').addEventListener('change', functio
         this.value = '';
     }
 });
+
+// Función para copiar el texto del campo ivr a redaccion_canales
+document.getElementById('mismo-canal').addEventListener('change', function() {
+    const ivrText = document.getElementById('ivr').value; // Obtén el contenido del text area de ivr
+    const redaccionCanales = document.getElementById('redaccion_canales'); // Obtén el text area de redaccion_canales
+
+    if (this.checked) {
+        // Si el checkbox está marcado, copia el texto de ivr a redaccion_canales
+        redaccionCanales.value = ivrText;
+    } else {
+        // Si el checkbox está desmarcado, limpia el campo de redaccion_canales
+        redaccionCanales.value = '';
+    }
+});
 </script>
 
 <style>
@@ -250,5 +285,4 @@ document.getElementById('fecha_programacion').addEventListener('change', functio
     height: 24px; /* Tamaño de la imagen */
     width: 24px;
 }
-
 </style>
