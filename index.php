@@ -24,7 +24,7 @@
         <div style="padding-bottom: 25%;" class="row d-flex justify-content-center align-items-center vh-100">
             <div class="col-md-6 d-flex justify-content-start align-items-center">
                 <div class="login-panel bg-white p-5 w-75">
-                    <form action="controllers/sesion.php" method="POST" onsubmit="return validarCorreo()">
+                    <form action="Controllers/sesion.php" method="POST" onsubmit="return validarCorreo()">
                         <div class="form-group">
                             <div class="input-group">
                                 <div class="input-group-prepend" >
