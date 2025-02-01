@@ -62,7 +62,7 @@ if ($bot->execute()) {
       </div>
       <div class="modal-body">
         <!-- Formulario -->
-        <form action="../controllers/crisis.php" method="POST" id="form-cyc">
+        <form action="../Controllers/crisis.php" method="POST" id="form-cyc">
           <input type="text" name="accion" id="accion" hidden value="1">
           <div class="row g-3 mb-3">
             <div class="col-md-3">
