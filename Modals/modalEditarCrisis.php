@@ -12,7 +12,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <form action="../controllers/crisis.php" method="POST" id="form-cyc">
+        <form action="../Controllers/crisis.php" method="POST" id="form-cyc">
           <input type="text" name="accion" id="accion" hidden value="5">
           <input type="text" name="id" id="id" hidden>
 

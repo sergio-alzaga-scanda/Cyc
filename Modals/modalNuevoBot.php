@@ -9,7 +9,7 @@
       </div>
       <div class="modal-body">
         <!-- Formulario -->
-        <form action="../controllers/catBot.php" method="POST" id="form-usuario">
+        <form action="../Controllers/catBot.php" method="POST" id="form-usuario">
           <input type="text" name="accion" id="accion" hidden value="1">
 
           <div class="mb-3">

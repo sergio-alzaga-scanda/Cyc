@@ -125,7 +125,7 @@ if ($stmt->execute()) {
         </a>
     <?php } ?>
 
-    <a href="../controllers/cerrar-sesion.php" style="text-decoration: none; color: inherit;">
+    <a href="../Controllers/cerrar-sesion.php" style="text-decoration: none; color: inherit;">
         <li>
             <img src="../iconos/Vector-6.png"> &nbsp;&nbsp;
             Cerrar sesión

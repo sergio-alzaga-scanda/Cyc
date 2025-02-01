@@ -8,7 +8,7 @@
       </div>
       <div class="modal-body">
         <!-- Formulario -->
-        <form action="../controllers/catCyC.php" method="POST" id="form-usuario">
+        <form action="../Controllers/catCyC.php" method="POST" id="form-usuario">
           <input type="text" name="accion" id="accion" hidden value="3"> <!-- Acción de edición -->
 
           <div class="mb-3">

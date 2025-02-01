@@ -8,7 +8,7 @@
       </div>
       <div class="modal-body">
         <!-- Formulario de edición -->
-        <form action="../controllers/catProyectos.php" method="POST" id="form-editar-bot">
+        <form action="../Controllers/catProyectos.php" method="POST" id="form-editar-bot">
           <input type="text" name="accion" id="accion_editar" hidden value="3"> <!-- Acción para editar bot -->
           <input name="edit_id_proyecto" hidden id="edit_id_proyecto"> <!-- ID del bot a editar -->
 

@@ -8,7 +8,7 @@
       </div>
       <div class="modal-body">
         <!-- Formulario de edición -->
-        <form action="../controllers/catUbicaciones.php" method="POST" id="form-editar-ubicacion-ivr">
+        <form action="../Controllers/catUbicaciones.php" method="POST" id="form-editar-ubicacion-ivr">
           <input type="text" name="accion" id="accion_editar" hidden value="3"> <!-- Acción para editar ubicación IVR -->
           <input name="edit_id_ubicacion_ivr" hidden id="edit_id_ubicacion_ivr"> <!-- ID de la ubicación IVR a editar -->
 

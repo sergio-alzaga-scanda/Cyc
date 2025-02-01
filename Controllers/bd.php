@@ -1,16 +1,16 @@
 <?php
 // Datos de conexión
 $serverName = "localhost\SQLEXPRESS";  // Nombre del servidor o IP de la base de datos
-//$connectionOptions = array(
-//    "Database" => "contingencias", // Nombre de la base de datos
-//    "Uid" => "dev",             // Nombre de usuario
-//    "PWD" => "Ser132gio."           // Contraseña del usuario
-//);
 $connectionOptions = array(
     "Database" => "contingencias", // Nombre de la base de datos
-    "Uid" => "Crisisyco",             // Nombre de usuario
-    "PWD" => "Crisis@2025!"           // Contraseña del usuario
+    "Uid" => "dev",             // Nombre de usuario
+    "PWD" => "Ser132gio."           // Contraseña del usuario
 );
+//$connectionOptions = array(
+//    "Database" => "contingencias", // Nombre de la base de datos
+//    "Uid" => "Crisisyco",             // Nombre de usuario
+//    "PWD" => "Crisis@2025!"           // Contraseña del usuario
+//);
 try {
     
     $conn = new PDO("sqlsrv:server=$serverName;Database=" . $connectionOptions['Database'], 

@@ -8,7 +8,7 @@
       </div>
       <div class="modal-body">
         <!-- Formulario -->
-        <form action="../controllers/usuarios.php" method="POST" id="form-usuario">
+        <form action="../Controllers/usuarios.php" method="POST" id="form-usuario">
           <input type="text" name="accion" id="accion" hidden value="3"> <!-- Cambiar acción a 'editar' -->
           <input type="text" name="id_usuario" id="edit_id_usuario" hidden> <!-- Campo para el ID del usuario cuando se edita -->
 
