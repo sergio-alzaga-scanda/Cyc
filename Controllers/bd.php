@@ -1,4 +1,4 @@
-GNU nano 7.2                                                                                                                         bd.php                                                                                                                                  <?php
+                                                                                                                       bd.php                                                                                                                                  <?php
 // Datos de conexión
 $serverName = "localhost";  // Docker SQL Server
 $connectionOptions = array(
