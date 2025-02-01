@@ -180,12 +180,12 @@ include("../Modals/modalEditarProyecto.php");
     </div>
 </div>
 
-<script src="../js/catalogos.js"></script>
-<script src="../js/DTCatCyC.js"></script>
-<script src="../js/DTCanales.js"></script>
-<script src="../js/DTBot.js"></script>
-<script src="../js/DTProyectos.js"></script>
-<script src="../js/DTUbicaciones.js"></script>
+<script src="../Js/catalogos.js"></script>
+<script src="../Js/DTCatCyC.js"></script>
+<script src="../Js/DTCanales.js"></script>
+<script src="../Js/DTBot.js"></script>
+<script src="../Js/DTProyectos.js"></script>
+<script src="../Js/DTUbicaciones.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
