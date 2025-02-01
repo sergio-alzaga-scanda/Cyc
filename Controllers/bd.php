@@ -1,4 +1,4 @@
-                                                                                                                       bd.php                                                                                                                                  <?php
+<?php
 // Datos de conexión
 $serverName = "localhost";  // Docker SQL Server
 $connectionOptions = array(
