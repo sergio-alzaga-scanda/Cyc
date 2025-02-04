@@ -15,6 +15,28 @@ body {
   background-position: center; /* Centra la imagen */
   background-attachment: fixed; /* Fija la imagen de fondo al hacer scroll */
 }
+/* Contenedor para la imagen de fondo */
+.background-container {
+    position: fixed;  /* Se mantiene en la pantalla */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -10;  /* Asegura que quede detrás de todo */
+}
+
+/* Imagen de fondo */
+.bg-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;  /* Mantiene el aspecto sin deformar */
+}
+
+/* Contenido principal (formulario y logo) */
+.container-fluid {
+    position: relative;
+    z-index: 10;  /* Asegura que el contenido esté por encima del fondo */
+}
 
 /* También puedes aplicar la fuente a otros elementos específicos si es necesario */
 h1, h2, h3, p {
