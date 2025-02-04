@@ -8,7 +8,12 @@
     <link rel="stylesheet" href="css/style_login.css">
 </head>
 <body>
+    <body>
+    <div class="background-container">
+        <img src="img/login.png" class="bg-image" alt="Fondo">
+    </div>
     <div class="container-fluid">
+
         <!-- Cabecera con logo e identificación -->
         <div class="row align-items-center header">
             <div class="col-2 d-flex justify-content-start align-items-center">
