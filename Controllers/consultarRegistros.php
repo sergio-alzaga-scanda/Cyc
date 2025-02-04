@@ -2,8 +2,6 @@
 include("../Controllers/bd.php");
 header('Content-Type: application/json');
 
-
-
 // Validar autenticación básica
 $valid_user = "Admin_fanafesa";
 $valid_password = "F4n4f3s4_2025";
@@ -16,11 +14,13 @@ if ($_SERVER['PHP_AUTH_USER'] !== $valid_user || $_SERVER['PHP_AUTH_PW'] !== $va
 
 // Validar los parámetros "proyecto" y "ubicacion"
 if (!isset($_GET['proyecto']) || !is_numeric($_GET['proyecto'])) {
+    header('HTTP/1.0 400');
     echo json_encode(["error" => "El parámetro 'proyecto' es obligatorio y debe ser un número."]);
     exit;
 }
 
 if (!isset($_GET['ubicacion']) || !is_numeric($_GET['ubicacion'])) {
+    header('HTTP/1.0 400');
     echo json_encode(["error" => "El parámetro 'ubicacion' es obligatorio y debe ser un número."]);
     exit;
 }
@@ -34,7 +34,6 @@ SELECT
     cyc.id_cyc,
     cyc.nombre,
     cyc.no_ticket,
-    cyc.categoria_cyc,
     cat_crisis.nombre_crisis,
     cat_crisis.criticidad,
     CASE cyc.tipo_cyc 
@@ -47,9 +46,14 @@ SELECT
     cyc.canal_cyc,
     cyc.bot_cyc,
     cyc.fecha_registro_cyc,
-    cyc.status_cyc,
+    CASE cyc.status_cyc
+        WHEN 1 THEN 'Activo'
+        WHEN 2 THEN 'Desactivado'
+        ELSE 'Desconocido'
+    END AS status_cyc,
     cyc.fecha_programacion,
     cyc.id_usuario,
+    usuarios.nombre_usuario, -- Nombre del usuario obtenido de la tabla usuarios
     cyc.redaccion_canales,
     cyc.proyecto
 FROM [contingencias].[dbo].[cyc] AS cyc
@@ -57,8 +61,10 @@ LEFT JOIN [contingencias].[dbo].[cat_crisis] AS cat_crisis
     ON cyc.categoria_cyc = cat_crisis.id
 LEFT JOIN [contingencias].[dbo].[ubicacion_ivr] AS ubicaciones
     ON cyc.ubicacion_cyc = ubicaciones.id_ubicacion_ivr
+LEFT JOIN [contingencias].[dbo].[usuarios] AS usuarios -- Unir la tabla usuarios
+    ON cyc.id_usuario = usuarios.idUsuarios
 WHERE cyc.proyecto = ? AND cyc.ubicacion_cyc = ?
-AND cyc.status_cyc = 1
+AND cyc.status_cyc = 1;
 ";
 
 try {
@@ -68,9 +74,16 @@ try {
     // Construir el resultado
     $resultado = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Retornar la respuesta en formato JSON
-    echo json_encode($resultado, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    // Verificar si se encontraron registros
+    if (empty($resultado)) {
+        header('HTTP/1.0 404 Not Found');
+        echo json_encode(["respuesta" => "No se encontraron registros."]);
+    } else {
+        // Retornar la respuesta en formato JSON
+        echo json_encode($resultado, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    }
 } catch (PDOException $e) {
+    header('HTTP/1.0 500 Internal Server Error');
     echo json_encode(["error" => "Error al ejecutar la consulta.", "details" => $e->getMessage()]);
 }
 
