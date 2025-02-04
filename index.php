@@ -9,7 +9,7 @@
 </head>
 <body>
     <div class="background-container">
-        <img src="img/login.png" class="bg-image" alt="Fondo">
+        <img src="img/Login.png" class="bg-image" alt="Fondo">
     </div>
     <div class="container-fluid">
 
