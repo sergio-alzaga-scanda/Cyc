@@ -1,168 +1,173 @@
 @font-face {
-    font-family: 'League Spartan';
-    src: url('LeagueSpartan-VariableFont_wght.ttf') format('truetype');
-    font-weight: 100 900; /* Ajusta el rango de pesos si es necesario */
-    font-style: normal;
+  font-family: "League Spartan";
+  src: url("LeagueSpartan-VariableFont_wght.ttf") format("truetype");
+  font-weight: 100 900; /* Ajusta el rango de pesos si es necesario */
+  font-style: normal;
 }
 .bold-text {
   font-weight: bold; /* Esto hace que el texto sea más grueso */
 }
 /* Aplica la fuente a todo el cuerpo de la página */
 body {
-    font-family: 'League Spartan', sans-serif;
-     background-image: url('../img/Login.png');
+  font-family: "League Spartan", sans-serif;
+  background-image: url("../img/Login.png");
   background-size: cover; /* Asegura que la imagen cubra toda el área */
   background-position: center; /* Centra la imagen */
   background-attachment: fixed; /* Fija la imagen de fondo al hacer scroll */
 }
+
 /* Contenedor para la imagen de fondo */
 .background-container {
-    position: fixed;  /* Se mantiene en la pantalla */
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -10;  /* Asegura que quede detrás de todo */
+  position: fixed; /* Se mantiene en la pantalla */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -10; /* Asegura que quede detrás de todo */
 }
 
 /* Imagen de fondo */
 .bg-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;  /* Mantiene el aspecto sin deformar */
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Mantiene el aspecto sin deformar */
 }
 
 /* Contenido principal (formulario y logo) */
 .container-fluid {
-    position: relative;
-    z-index: 10;  /* Asegura que el contenido esté por encima del fondo */
+  position: relative;
+  z-index: 10; /* Asegura que el contenido esté por encima del fondo */
 }
 
 /* También puedes aplicar la fuente a otros elementos específicos si es necesario */
-h1, h2, h3, p {
-    font-family: 'League Spartan', sans-serif;
+h1,
+h2,
+h3,
+p {
+  font-family: "League Spartan", sans-serif;
 }
 background-image
 /* Estilo básico para los inputs */
 input.form-control {
-    border: none; /* Elimina el borde */
-    border-radius: 0; /* Elimina los bordes redondeados */
-    box-shadow: none; /* Elimina el sombreado */
-    outline: none; /* Elimina el contorno al hacer clic */
-    border-bottom: 2px solid transparent; /* Hace que la línea sea invisible al principio */
-    transition: border-bottom 0.3s ease; /* Animación de transición cuando cambia la línea */
+  border: none; /* Elimina el borde */
+  border-radius: 0; /* Elimina los bordes redondeados */
+  box-shadow: none; /* Elimina el sombreado */
+  outline: none; /* Elimina el contorno al hacer clic */
+  border-bottom: 2px solid transparent; /* Hace que la línea sea invisible al principio */
+  transition: border-bottom 0.3s ease; /* Animación de transición cuando cambia la línea */
 }
 /* Estilo básico para los inputs */
 input.form-control {
-    border: none; /* Elimina el borde */
-    border-radius: 0; /* Elimina los bordes redondeados */
-    box-shadow: none; /* Elimina el sombreado */
-    outline: none; /* Elimina el contorno al hacer clic */
-    border-bottom: 2px solid transparent; /* Hace que la línea sea invisible al principio */
-    transition: border-bottom 0.3s ease; /* Animación de transición cuando cambia la línea */
-    margin-bottom: 20px; /* Añade espacio entre los inputs */
+  border: none; /* Elimina el borde */
+  border-radius: 0; /* Elimina los bordes redondeados */
+  box-shadow: none; /* Elimina el sombreado */
+  outline: none; /* Elimina el contorno al hacer clic */
+  border-bottom: 2px solid transparent; /* Hace que la línea sea invisible al principio */
+  transition: border-bottom 0.3s ease; /* Animación de transición cuando cambia la línea */
+  margin-bottom: 20px; /* Añade espacio entre los inputs */
 }
 
 /* Cuando el input tiene texto, mantiene la línea inferior visible */
 input.form-control:not(:placeholder-shown) {
-    border-bottom: 2px solid #007bff; /* Mantén la línea visible cuando hay texto */
+  border-bottom: 2px solid #007bff; /* Mantén la línea visible cuando hay texto */
 }
 
 /* Estilo al hacer clic (cuando el input tiene foco) */
 input.form-control:focus {
-    border-bottom: 2px solid #007bff; /* La línea aparece en azul cuando el input recibe foco */
-    animation: line-appear 0.5s forwards; /* Llama a la animación "line-appear" */
+  border-bottom: 2px solid #007bff; /* La línea aparece en azul cuando el input recibe foco */
+  animation: line-appear 0.5s forwards; /* Llama a la animación "line-appear" */
 }
 
 /* Animación que hace aparecer la línea */
 @keyframes line-appear {
-    0% {
-        border-bottom-color: transparent; /* Comienza sin la línea */
-    }
-    100% {
-        border-bottom-color: #007bff; /* La línea aparece en azul */
-    }
+  0% {
+    border-bottom-color: transparent; /* Comienza sin la línea */
+  }
+  100% {
+    border-bottom-color: #007bff; /* La línea aparece en azul */
+  }
 }
 /* Fondo de la página con la imagen */
 .fondo {
-    background-image: url('img/fondo.png'); /* Asegúrate de que la imagen esté en la carpeta img */
-    background-size: cover; /* La imagen cubre toda la pantalla */
-    background-position: center; /* La imagen se centra */
-    background-attachment: fixed; /* Hace que la imagen de fondo se quede fija cuando se hace scroll */
-    position: absolute; /* La imagen de fondo no afectará el flujo del diseño */
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+  background-image: url("img/fondo.png"); /* Asegúrate de que la imagen esté en la carpeta img */
+  background-size: cover; /* La imagen cubre toda la pantalla */
+  background-position: center; /* La imagen se centra */
+  background-attachment: fixed; /* Hace que la imagen de fondo se quede fija cuando se hace scroll */
+  position: absolute; /* La imagen de fondo no afectará el flujo del diseño */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
 
 /* Estilo básico para los inputs */
 input.form-control {
-    border: none; /* Elimina el borde */
-    border-radius: 0; /* Elimina los bordes redondeados */
-    box-shadow: none; /* Elimina el sombreado */
-    outline: none; /* Elimina el contorno al hacer clic */
-    border-bottom: 2px solid transparent; /* Hace que la línea sea invisible al principio */
-    transition: border-bottom 0.3s ease; /* Animación de transición cuando cambia la línea */
-    margin-bottom: 20px; /* Añade espacio entre los inputs */
+  border: none; /* Elimina el borde */
+  border-radius: 0; /* Elimina los bordes redondeados */
+  box-shadow: none; /* Elimina el sombreado */
+  outline: none; /* Elimina el contorno al hacer clic */
+  border-bottom: 2px solid transparent; /* Hace que la línea sea invisible al principio */
+  transition: border-bottom 0.3s ease; /* Animación de transición cuando cambia la línea */
+  margin-bottom: 20px; /* Añade espacio entre los inputs */
 }
 
 /* Cuando el input tiene texto, mantiene la línea inferior visible */
 input.form-control:not(:placeholder-shown) {
-    border-bottom: 2px solid #007bff; /* Mantén la línea visible cuando hay texto */
+  border-bottom: 2px solid #007bff; /* Mantén la línea visible cuando hay texto */
 }
 
 /* Estilo al hacer clic (cuando el input tiene foco) */
 input.form-control:focus {
-    border-bottom: 2px solid #007bff; /* La línea aparece en azul cuando el input recibe foco */
-    animation: line-appear 0.5s forwards; /* Llama a la animación "line-appear" */
+  border-bottom: 2px solid #007bff; /* La línea aparece en azul cuando el input recibe foco */
+  animation: line-appear 0.5s forwards; /* Llama a la animación "line-appear" */
 }
 
 /* Animación que hace aparecer la línea */
 @keyframes line-appear {
-    0% {
-        border-bottom-color: transparent; /* Comienza sin la línea */
-    }
-    100% {
-        border-bottom-color: #007bff; /* La línea aparece en azul */
-    }
+  0% {
+    border-bottom-color: transparent; /* Comienza sin la línea */
+  }
+  100% {
+    border-bottom-color: #007bff; /* La línea aparece en azul */
+  }
 }
 
 /* Estilo para el botón */
 button[type="submit"] {
-    background-color: #4B4A4B; /* Color de fondo del botón */
-    color: white; /* Color del texto */
-    border: none; /* Elimina el borde */
-    padding: 10px 20px; /* Añade relleno para mayor tamaño */
-    border-radius: 5px; /* Bordes redondeados para el botón */
-    font-weight: bold; /* Fuente en negrita */
-    transition: background-color 0.3s ease; /* Transición suave para el color de fondo */
-    width: 100%; /* Hace que el botón ocupe todo el ancho disponible */
+  background-color: #4b4a4b; /* Color de fondo del botón */
+  color: white; /* Color del texto */
+  border: none; /* Elimina el borde */
+  padding: 10px 20px; /* Añade relleno para mayor tamaño */
+  border-radius: 5px; /* Bordes redondeados para el botón */
+  font-weight: bold; /* Fuente en negrita */
+  transition: background-color 0.3s ease; /* Transición suave para el color de fondo */
+  width: 100%; /* Hace que el botón ocupe todo el ancho disponible */
 }
 
 /* Estilo cuando el botón está en foco o se pasa el cursor */
 button[type="submit"]:hover,
 button[type="submit"]:focus {
-    background-color: #3a393a; /* Color de fondo más oscuro al pasar el mouse o recibir foco */
-    cursor: pointer; /* Cambia el cursor a puntero */
+  background-color: #3a393a; /* Color de fondo más oscuro al pasar el mouse o recibir foco */
+  cursor: pointer; /* Cambia el cursor a puntero */
 }
 
 /* Estilo para los iconos dentro del input */
 .input-group-text {
-    border: none; /* Elimina el borde del icono */
-    background-color: transparent; /* El fondo del icono será transparente */
+  border: none; /* Elimina el borde del icono */
+  background-color: transparent; /* El fondo del icono será transparente */
 }
 
 .input-group-prepend {
-    margin-right: 0; /* Ajusta la posición del icono */
+  margin-right: 0; /* Ajusta la posición del icono */
 }
 
 /* Para asegurar que la imagen de fondo no mueva los elementos */
-html, body {
-    height: 100%; /* Asegura que el contenedor tenga altura completa */
-    margin: 0; /* Elimina márgenes por defecto */
-    padding: 0; /* Elimina relleno por defecto */
-    overflow: hidden; /* Evita desplazamiento del contenido */
+html,
+body {
+  height: 100%; /* Asegura que el contenedor tenga altura completa */
+  margin: 0; /* Elimina márgenes por defecto */
+  padding: 0; /* Elimina relleno por defecto */
+  overflow: hidden; /* Evita desplazamiento del contenido */
 }
 .boton-formateado {
   max-width: 100%;
@@ -170,7 +175,7 @@ html, body {
   padding: 0 23px;
   border-radius: 5px;
   border: none;
-  background-color: #4B4A4B;
+  background-color: #4b4a4b;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
@@ -187,5 +192,5 @@ html, body {
   color: #fff;
   font-size: 30px;
   margin-right: 10px;
-  background-color: #4B4A4B;
+  background-color: #4b4a4b;
 }

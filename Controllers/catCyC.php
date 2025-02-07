@@ -183,7 +183,7 @@ case 3:
     $id_cyc = $_GET['id'];
     try {
         // Actualiza el estado de la crisis a '0' (eliminada/desactivada)
-        $query = "UPDATE [contingencias].[dbo].[cat_crisis] 
+        $query = "UPDATE [contingencias].[dbo].[cat_crisis]
                   SET status = 0
                   WHERE id = :id_cyc";
 
