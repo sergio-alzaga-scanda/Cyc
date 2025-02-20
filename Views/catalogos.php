@@ -55,6 +55,24 @@ $menu = 8;
             margin-top: 40px;
             font-weight: bold;
         }
+        /* Personalización de la cabecera del acordeón */
+.accordion-button {
+    background-color: #000 !important;  /* Fondo negro */
+    color: #fff !important;  /* Texto blanco */
+    border: 1px solid #000;  /* Bordes negros */
+}
+
+/* Cambiar color al hacer hover */
+.accordion-button:not(.collapsed) {
+    background-color: #333 !important;  /* Fondo gris oscuro cuando está expandido */
+    color: #fff !important;  /* Mantener texto blanco */
+}
+
+/* Opcional: cambiar color de la cabecera del acordeón al estar colapsado */
+.accordion-button.collapsed {
+    background-color: #000 !important;  /* Fondo negro cuando está colapsado */
+    color: #fff !important;  /* Texto blanco */
+}
     </style>
 </head>
 
@@ -88,95 +106,157 @@ include("../Modals/modalEditarProyecto.php");
     <div class="container mt-4">
         <h2>MENÚ DE CATÁLOGOS</h2>
 
-        <!-- Tabla CyC's -->
-        <h3 class="section-title">CyC's</h3>
-        <button type="button" class=" btn-agregar" data-bs-toggle="modal" data-bs-target="#NuevoCatCoC">
-            Agregar CyC
-        </button>
-        <table id="tabla_cycs_data" class="tabla-cat">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre de Crisis</th>
-                    <th>Criticidad</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Filas dinámicas -->
-            </tbody>
-        </table>
+        <!-- CyC's -->
+        <div class="accordion" id="accordionCyC">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingCyC">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCyC" aria-expanded="true" aria-controls="collapseCyC">
+                      <b>  CyC's </b>
+                    </button>
+                </h2>
+                <div id="collapseCyC" class="accordion-collapse collapse show" aria-labelledby="headingCyC" data-bs-parent="#accordionCyC">
+                    <div class="accordion-body">
+                        <button type="button" class=" btn-agregar" data-bs-toggle="modal" data-bs-target="#NuevoCatCoC">
+                            Agregar &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span class="icono-plus">+</span>
+                        </button>
+                        <table id="tabla_cycs_data" class="tabla-cat">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre de Crisis</th>
+                                    <th>Criticidad</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Filas dinámicas -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        <!-- Tabla Canales Digitales -->
-        <h3 class="section-title">Canales Digitales</h3>
-        <button type="button" class=" btn-agregar" data-bs-toggle="modal" data-bs-target="#NuevoCanal">
-            Agregar Canal Digital
-        </button>
-        <table id="table-canales" class="tabla-cat">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Filas dinámicas -->
-            </tbody>
-        </table>
+        <!-- Canales Digitales -->
+        <div class="accordion" id="accordionCanales">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingCanales">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCanales" aria-expanded="true" aria-controls="collapseCanales">
+                       <b> Canales Digitales </b>
+                    </button>
+                </h2>
+                <div id="collapseCanales" class="accordion-collapse collapse " aria-labelledby="headingCanales" data-bs-parent="#accordionCanales">
+                    <div class="accordion-body">
+                        <button type="button" class=" btn-agregar" data-bs-toggle="modal" data-bs-target="#NuevoCanal">
+                            Agregar &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span class="icono-plus">+</span>
+                        </button>
+                        <table id="table-canales" class="tabla-cat">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Filas dinámicas -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        <!-- Tabla Bots -->
-        <h3 class="section-title">Bots</h3>
-        <button type="button" class=" btn-agregar" data-bs-toggle="modal" data-bs-target="#modalNuevoBot">
-            Agregar Bot
-        </button>
-        <table id="table-bots" class="tabla-cat">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Filas dinámicas -->
-            </tbody>
-        </table>
+        <!-- Bots -->
+        <div class="accordion" id="accordionBots">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingBots">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBots" aria-expanded="true" aria-controls="collapseBots">
+                       <b> Bots </b>
+                    </button>
+                </h2>
+                <div id="collapseBots" class="accordion-collapse collapse " aria-labelledby="headingBots" data-bs-parent="#accordionBots">
+                    <div class="accordion-body">
+                        <button type="button" class=" btn-agregar" data-bs-toggle="modal" data-bs-target="#modalNuevoBot">
+                            Agregar &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span class="icono-plus">+</span>
+                        </button>
+                        <table id="table-bots" class="tabla-cat">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Filas dinámicas -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        <!-- Tabla Ubicaciones IVR -->
-        <h3 class="section-title">Ubicaciones IVR</h3>
-        <button type="button" class="btn-agregar" data-bs-toggle="modal" data-bs-target="#NuevaUbicacion">
-            Agregar Ubicación IVR
-        </button>
-        <table id="table-ubicaciones" class="tabla-cat">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Filas dinámicas -->
-            </tbody>
-            </table> 
-        <h3 class="section-title">Proyectos</h3>
-        <button type="button" class="btn-agregar" data-bs-toggle="modal" data-bs-target="#modalNuevoProyecto">
-            Agregar Proyecto
-        </button>    
-        <table id="table-proyectos" class="tabla-cat">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Filas dinámicas -->
-            </tbody>
-        
-        </table>
+        <!-- Ubicaciones IVR -->
+        <div class="accordion" id="accordionUbicaciones">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingUbicaciones">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUbicaciones" aria-expanded="true" aria-controls="collapseUbicaciones">
+                       <b> Ubicaciones IVR </b>
+                    </button>
+                </h2>
+                <div id="collapseUbicaciones" class="accordion-collapse collapse " aria-labelledby="headingUbicaciones" data-bs-parent="#accordionUbicaciones">
+                    <div class="accordion-body">
+                        <button type="button" class="btn-agregar" data-bs-toggle="modal" data-bs-target="#NuevaUbicacion">
+                            Agregar &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span class="icono-plus">+</span>
+                        </button>
+                        <table id="table-ubicaciones" class="tabla-cat">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Filas dinámicas -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Proyectos -->
+        <div class="accordion" id="accordionProyectos">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingProyectos">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseProyectos" aria-expanded="true" aria-controls="collapseProyectos">
+                       <b> Proyectos </b>
+                    </button>
+                </h2>
+                <div id="collapseProyectos" class="accordion-collapse collapse " aria-labelledby="headingProyectos" data-bs-parent="#accordionProyectos">
+                    <div class="accordion-body">
+                        <button type="button" class="btn-agregar" data-bs-toggle="modal" data-bs-target="#modalNuevoProyecto">
+                            Agregar &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span class="icono-plus">+</span>
+                        </button>
+                        <table id="table-proyectos" class="tabla-cat">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Filas dinámicas -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -196,14 +276,6 @@ include("../Modals/modalEditarProyecto.php");
     window.onload = function() {
         document.getElementById('splash').style.display = 'none';
     };
-
-    // Mostrar tabla según selección en combo
-    document.getElementById('combo-tablas').addEventListener('change', function() {
-        const tablas = document.querySelectorAll('.tabla-container');
-        tablas.forEach(tabla => tabla.style.display = 'none');
-        const seleccion = this.value;
-        document.getElementById(seleccion).style.display = 'block';
-    });
 </script>
 
 </body>

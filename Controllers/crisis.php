@@ -15,7 +15,6 @@ $fechaHoraActual = $fechaActual;
 $accion = $_POST['accion'] ?? $_GET['accion'] ?? null;
 
 
-
 switch ($accion) {
     case 1:
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -431,33 +430,50 @@ case 2:
                     ':id_cyc' => $id_cyc
                 ]);
                 if ($status_inicial === '1') {
-                    echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                              <script type='text/javascript'>
-                                window.onload = function() {
-                                    Swal.fire({
-                                        title: 'Éxito',
-                                        text: 'Se desactivo la crisis/contingencia.',
-                                        icon: 'info',
-                                        confirmButtonText: 'Aceptar'
-                                    }).then(function() {
-                                        window.location.href = '../Views/cyc.php'; // Redirige a la página de éxito
-                                    });
-                                }
-                              </script>";
+                   echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+      <script type='text/javascript'>
+        window.onload = function() {
+            Swal.fire({
+                title: 'Éxito',
+                text: 'La grabación ha sido deshabilitada exitosamente.',
+                icon: 'success',
+                confirmButtonText: 'Aceptar',
+                confirmButtonColor: '#4B4A4B', // Color del botón
+                customClass: {
+                    confirmButton: 'swal2-bold-button' // Clase personalizada para el texto en negrita
+                },
+                didOpen: () => {
+                    // Cambiar icono de confirmación
+                   
+                }
+            }).then(function() {
+                window.location.href = '../Views/cyc.php'; // Redirige a la página de éxito
+            });
+        }
+      </script>";
+
             }else{
                  echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                              <script type='text/javascript'>
-                                window.onload = function() {
-                                    Swal.fire({
-                                        title: 'Éxito',
-                                        text: 'Se activo la crisis/contingencia.',
-                                        icon: 'info',
-                                        confirmButtonText: 'Aceptar'
-                                    }).then(function() {
-                                        window.location.href = '../Views/cyc.php'; // Redirige a la página de éxito
-                                    });
-                                }
-                              </script>";
+      <script type='text/javascript'>
+        window.onload = function() {
+            Swal.fire({
+                title: 'Éxito',
+                text: 'La grabación ha sido habilitada exitosamente.',
+                icon: 'success',
+                confirmButtonText: 'Aceptar',
+                confirmButtonColor: '#4B4A4B', // Color del botón
+                customClass: {
+                    confirmButton: 'swal2-bold-button' // Clase personalizada para el texto en negrita
+                },
+                didOpen: () => {
+                    // Cambiar icono de confirmación
+                    
+                }
+            }).then(function() {
+                window.location.href = '../Views/cyc.php'; // Redirige a la página de éxito
+            });
+        }
+      </script>";
             }
                 
                

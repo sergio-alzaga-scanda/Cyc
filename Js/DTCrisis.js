@@ -63,12 +63,44 @@ $(document).ready(function() {
 
     
 
-    // Filtrar por fecha
-    $('#filterDate').on('change', function() {
-        var selectedDate = $(this).val();
-        var formattedDate = selectedDate.split('-').reverse().join('-');
-        table.column(5).search(formattedDate).draw();
-    });
+$('#startDate, #endDate').on('change', function() {
+    var startDate = $('#startDate').val();
+    var endDate = $('#endDate').val();
+
+    // Asegurarnos de que ambas fechas están seleccionadas
+    if (startDate && endDate) {
+        // Convertir las fechas de inicio y fin a objetos Date con hora completa
+        var start = new Date(startDate + "T00:00:00"); // Fecha de inicio con hora a las 00:00
+        var end = new Date(endDate + "T23:59:59"); // Fecha de fin con hora a las 23:59:59
+
+        console.log("Start Date: ", start);
+        console.log("End Date: ", end);
+
+        // Filtrar las filas en la columna de fecha según el rango
+        table.column(6).search(function(data, rowIndex) {
+            // El formato de la fecha en los datos es "dd-mm-yyyy HH:MM"
+            var rowDateParts = data.split(" "); // Separar la fecha de la hora
+            var rowDate = rowDateParts[0]; // Fecha en formato "dd-mm-yyyy"
+            var rowTime = rowDateParts[1]; // Hora en formato "HH:MM"
+
+            // Convertir "dd-mm-yyyy" a "yyyy-mm-dd" para crear un objeto Date
+            var dateParts = rowDate.split("-"); // Separar en [dd, mm, yyyy]
+            var formattedDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0], rowTime.split(":")[0], rowTime.split(":")[1]);
+
+            console.log("Row Date: ", formattedDate);
+
+            // Verificar si la fecha está dentro del rango
+            return formattedDate >= start && formattedDate <= end;
+        }).draw();
+    } else {
+        // Si no hay un rango de fechas válido, mostrar todas las filas
+        table.column(6).search('').draw();
+    }
+});
+
+
+
+
 
     // Filtrar por texto de búsqueda
     $('#searchText').on('keyup', function() {
@@ -85,9 +117,21 @@ $(document).ready(function() {
         }
     });
 
+    // Filtrar por tipo de Estado
+    $('input[name="statusType"]').on('change', function() {
+        var filterValue = this.value;
+        if (filterValue === "ambos") {
+            table.column(4).search('').draw();  // Limpiar el filtro de tipo
+        } else {
+            table.column(4).search(filterValue).draw();
+        }
+    });
+
     // Restablecer filtros
     $('#resetFiltersBtn').on('click', function() {
-        $('#filterDate').val('');
+        //$('#filterDate').val('');
+        $('#endDate').val('');
+        $('#startDate').val('');
         $('#searchText').val('');
         $('#proyecto').val('');  // Limpiar el filtro de proyecto
         $('input[name="contingencyType"]').prop('checked', false);
@@ -159,27 +203,60 @@ function deleteCrisis(id) {
         }
     });
 }
-
-// Función para activar/desactivar una crisis
 function toggleStatus(id, imgElement, status_cyc) {
-    // Si el estatus es '1' (activo), desactivamos; de lo contrario, activamos.
-    var status = (status_cyc === '1') ? 0 : 1;  // 1 = activar, cualquier otro valor = desactivar
-    // Actualiza el ícono visualmente
-    imgElement.setAttribute('data-status', status);
-    imgElement.src = (status === 1) ? "../iconos/activo.png" : "../iconos/desactivo.png";
-    
-    // Mostrar carga mientras se actualiza el estado
+    // Preguntar al usuario si está seguro de cambiar el estado
     Swal.fire({
-        title: 'Actualizando estado...',
-        text: 'Por favor espera',
-        icon: 'info',
-        showConfirmButton: false,
-        allowOutsideClick: false,
+        title: '¿Estás seguro?',
+        text: (status_cyc === '1') ? '¿Estás seguro que deseas deshabilitar la grabación? Esto será eliminado inmediatamente de Five9' 
+        : '¿Estás seguro que deseas habilitar la grabación? Esto será publicado inmediatamente en Five9',
+        icon: 'info', // Cambiado a 'info' para usar el icono de info
+        showCancelButton: true,
+        confirmButtonText: 'Confirmar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#4B4A4B', // Color del botón Confirmar
+        cancelButtonColor: '#4B4A4B', // Color del botón Cancelar
+        customClass: {
+            confirmButton: 'swal2-bold-button', // Clase personalizada para el texto en negrita
+            cancelButton: 'swal2-bold-button' // Clase personalizada para el texto en negrita
+        },
         didOpen: () => {
-            Swal.showLoading();
+            // Cambiar icono de confirmación y cancelación, el texto va primero
+            document.querySelector('.swal2-confirm').innerHTML = `Confirmar <img src="../iconos/Group-4.svg" alt="info icon" style="width: 20px; height: 20px; margin-left: 8px;">`;
+            document.querySelector('.swal2-cancel').innerHTML = `Cancelar <img src="../iconos/cancelar.png" alt="cancel icon" style="width: 20px; height: 20px; margin-left: 8px;">`;
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Si el usuario confirma, actualizamos el estado
+            var status = (status_cyc === '1') ? 0 : 1;  // 1 = activar, cualquier otro valor = desactivar
+            
+            // Actualiza el ícono visualmente
+            imgElement.setAttribute('data-status', status);
+            imgElement.src = (status === 1) ? "../iconos/activo.png" : "../iconos/desactivo.png";
+            
+            // Mostrar carga mientras se actualiza el estado
+            Swal.fire({
+                title: 'Actualizando estado...',
+                text: 'Por favor espera',
+                icon: 'info',
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Realiza la actualización en el backend (sin promesas, directamente)
+            window.location.href = `../Controllers/crisis.php?accion=6&id=${id}&status=${status_cyc}`;
         }
     });
 
-    // Realiza la actualización en el backend (sin promesas, directamente)
-    window.location.href = `../Controllers/crisis.php?accion=6&id=${id}&status=${status_cyc}`;
+    // Asegúrate de incluir una regla CSS para el estilo de los botones
+    document.head.insertAdjacentHTML('beforeend', `
+        <style>
+            .swal2-bold-button {
+                font-weight: bold;
+                color: white !important;
+            }
+        </style>
+    `);
 }

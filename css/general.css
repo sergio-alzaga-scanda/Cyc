@@ -61,7 +61,9 @@
     align-items: center;
     justify-content: flex-start;
     padding-left: 20px;
+    border-radius: 10px; /* Redondeo de bordes */
 }
+
 
 .btn-agregar .icono-plus {
     font-size: 24px;

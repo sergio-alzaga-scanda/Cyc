@@ -89,46 +89,50 @@ if ($bot->execute()) {
           <div class="mb-4">
            <div class="row g-3 mb-3">
   <div class="col-md-2">
-    <select class="form-select" name="criticidad" required id="categoria">
-      <option selected disabled class="d-none">Criticidad</option>
-      <?php
-        foreach ($crisis as $row) {
-            echo '<option value="' . $row['id'] . '" data-criticidad="' . $row['criticidad'] . '">' . $row['nombre_crisis'] . '</option>';
-        }
-      ?>
-    </select>
-  </div>
-  <div class="col-md-2">
+  <label for="categoria" class="form-label">Categoria</label>
+  <select class="form-select" name="criticidad" required id="categoria">
+    <?php
+      foreach ($crisis as $row) {
+          echo '<option value="' . $row['id'] . '" data-criticidad="' . $row['criticidad'] . '">' . $row['nombre_crisis'] . '</option>';
+      }
+    ?>
+  </select>
+</div>
+<div class="col-md-2">
+    <label for="tipo" class="form-label">Criticidad</label><br>
     <label for="criticidad" id="criticidad-label" style="text-align: center;" class="form-label"></label>
   </div>
-  <div class="col-md-2">
-    <select class="form-select" required name="tipo" id="tipo">
-      <option selected disabled class="d-none">Tipo</option>
-      <option value="1">Contingencia</option>
-      <option value="2">Crisis</option>
-    </select>
-  </div>
-  <div class="col-md-2">
-    <select class="form-select" required name="ubicacion" id="ubicacion">
-      <option selected disabled class="d-none">Ubicación de CoC</option>
-      <?php
-        foreach ($ubicaciones as $row) {
-            echo '<option value="' . $row['id_ubicacion_ivr'] . '">' . $row['nombre_ubicacion_ivr'] . '</option>';
-        }
-      ?>
-    </select>
-  </div>
-  <!-- Nuevo combo agregado para 'Prioridad' -->
-  <div class="col-md-2">
-    <select class="form-select" required name="proyecto" id="proyecto">
-      <option selected disabled class="d-none">Proyecto</option>
-      <?php
-        foreach ($proyectos as $row_proyecto) {
-            echo '<option value="' . $row_proyecto['id_proyecto'] . '">' . $row_proyecto['nombre_proyecto'] . '</option>';
-        }
-      ?>
-    </select>
-  </div>
+<div class="col-md-2">
+  <label for="tipo" class="form-label">Tipo</label>
+  <select class="form-select" required  name="tipo" id="tipo">
+    <option value="1">Contingencia</option>
+    <option value="2">Crisis</option>
+  </select>
+</div>
+
+<div class="col-md-2">
+  <label for="ubicacion" class="form-label">Ubicación de CoC</label>
+  <select class="form-select" required  name="ubicacion" id="ubicacion">
+    <?php
+      foreach ($ubicaciones as $row) {
+          echo '<option value="' . $row['id_ubicacion_ivr'] . '">' . $row['nombre_ubicacion_ivr'] . '</option>';
+      }
+    ?>
+  </select>
+</div>
+
+<!-- Nuevo combo agregado para 'Prioridad' -->
+<div class="col-md-2">
+  <label for="proyecto" class="form-label">Proyecto</label>
+  <select class="form-select"  name="proyecto" id="proyecto">
+    <?php
+      foreach ($proyectos as $row_proyecto) {
+          echo '<option value="' . $row_proyecto['id_proyecto'] . '">' . $row_proyecto['nombre_proyecto'] . ' </option>';
+      }
+    ?>
+  </select>
+</div>
+
 </div>
 
             <div class="mt-3">
@@ -179,15 +183,15 @@ if ($bot->execute()) {
           <!-- Botones -->
       </div>
       <div class="modal-footer d-flex justify-content-center">
-    <div class="btn-container">
+     <div class="btn-container">
         <!-- Botón Guardar y habilitar -->
-        <button type="submit" class="btn-icon">
+        <button type="button" class="btn-icon" style="border-radius: 15px;" id="btn-submit">
             <span>Guardar y habilitar</span>
             <img src="../iconos/guardar.png" alt="Guardar">
         </button>
 
         <!-- Botón Cancelar -->
-        <button type="button" class="btn-icon" data-bs-dismiss="modal">
+        <button type="button" class="btn-icon" style="border-radius: 15px;" data-bs-dismiss="modal">
             <span>Cancelar</span>
             <img src="../iconos/cancelar.png" alt="Cancelar">
         </button>
@@ -202,6 +206,73 @@ if ($bot->execute()) {
 
 <!-- Enlace al archivo JS -->
 <script src="../js/nuevoCyC.js"></script>
+
+
+<!-- Script de SweetAlert -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  document.getElementById('btn-submit').addEventListener('click', function (e) {
+    e.preventDefault();  // Prevenir el envío inmediato del formulario
+
+    // Limpiar estilos previos (si hay bordes rojos por campos incompletos)
+    const inputs = document.querySelectorAll('#form-cyc input[required], #form-cyc select[required], #form-cyc textarea[required]');
+    inputs.forEach(input => {
+      input.style.borderColor = '';  // Limpiar cualquier borde rojo previo
+    });
+
+    let isValid = true;
+    let missingFields = [];
+
+    // Validar los campos requeridos
+    inputs.forEach(input => {
+      let value = input.value.trim(); // Usar el valor "limpio"
+
+      // Validación para SELECT (si no se selecciona una opción válida)
+      if (input.tagName === 'SELECT' && (value === "" || input.selectedIndex === 0)) {
+        isValid = false;
+        missingFields.push(input);
+        input.style.borderColor = 'red';  // Resaltar con borde rojo
+      }
+      // Validación para INPUT y TEXTAREA (si está vacío)
+      else if ((input.tagName === 'INPUT' || input.tagName === 'TEXTAREA') && !value) {
+        isValid = false;
+        missingFields.push(input);
+        input.style.borderColor = 'red';  // Resaltar con borde rojo
+      }
+    });
+
+    // Si hay campos faltantes, mostrar el SweetAlert de error
+    if (!isValid) {
+      Swal.fire({
+        title: '¡Faltan campos por llenar!',
+        text: 'Por favor, completa todos los campos obligatorios.',
+        icon: 'error',
+        confirmButtonText: 'Entendido'
+      });
+    } else {
+      // Si todos los campos están completos, mostrar SweetAlert de confirmación
+      Swal.fire({
+        title: '¿Estás seguro de generar el registro?',
+        text: "¡Este registro será definitivo!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, guardar',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Si el usuario confirma, envía el formulario
+          document.getElementById('form-cyc').submit();
+        } else {
+          // Si el usuario cancela, no hace nada
+          Swal.fire('Cancelado', 'No se ha realizado el registro', 'error');
+        }
+      });
+    }
+  });
+</script>
+
+
 
 <script>
 // Mostrar/ocultar el campo de fecha_programacion
@@ -246,7 +317,18 @@ document.getElementById('mismo-canal').addEventListener('change', function() {
         redaccionCanales.value = '';
     }
 });
+
+// Limpiar los campos del formulario al cerrar el modal
+document.getElementById('loginModal').addEventListener('hidden.bs.modal', function () {
+    // Limpiar todos los campos del formulario
+    document.getElementById('form-cyc').reset();
+
+    // Si hay algún campo específico que quieras limpiar después de cerrar, lo puedes hacer aquí
+    document.getElementById('fecha-bloque').style.display = 'none';  
+    document.getElementById('contenido-canal-digital').style.display = 'none'; 
+});
 </script>
+
 
 <style>
     .modal-footer {

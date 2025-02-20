@@ -139,24 +139,58 @@ function deleteUsuario(id) {
         }
     });
 }
-
 // Función para activar/desactivar un usuario
 function toggleStatus(id, imgElement, status) {
-    var newStatus = (status === '1') ? 0 : 1;
-    imgElement.setAttribute('data-status', newStatus);
-    imgElement.src = (newStatus === 1) ? "../iconos/activo.png" : "../iconos/desactivo.png";
-
-    // Mostrar carga mientras se actualiza el estado
+    // Preguntar al usuario si está seguro de cambiar el estado
     Swal.fire({
-        title: 'Actualizando estado...',
-        text: 'Por favor espera',
-        icon: 'info',
-        showConfirmButton: false,
-        allowOutsideClick: false,
+        title: '¿Estás seguro?',
+        text: (status === '1') ? '¿Estás seguro que deseas deshabilitar este usuario?' 
+        : '¿Estás seguro que deseas habilitar este usuario?',
+        icon: 'info', // Cambiado a 'info' para usar el icono de info
+        showCancelButton: true,
+        confirmButtonText: 'Confirmar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#4B4A4B', // Color del botón Confirmar
+        cancelButtonColor: '#4B4A4B', // Color del botón Cancelar
+        customClass: {
+            confirmButton: 'swal2-bold-button', // Clase personalizada para el texto en negrita
+            cancelButton: 'swal2-bold-button' // Clase personalizada para el texto en negrita
+        },
         didOpen: () => {
-            Swal.showLoading();
+            // Cambiar icono de confirmación y cancelación, el texto va primero
+            document.querySelector('.swal2-confirm').innerHTML = `Confirmar <img src="../iconos/Group-4.svg" alt="info icon" style="width: 20px; height: 20px; margin-left: 8px;">`;
+            document.querySelector('.swal2-cancel').innerHTML = `Cancelar <img src="../iconos/cancelar.png" alt="cancel icon" style="width: 20px; height: 20px; margin-left: 8px;">`;
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            var newStatus = (status === '1') ? 0 : 1;
+            imgElement.setAttribute('data-status', newStatus);
+            imgElement.src = (newStatus === 1) ? "../iconos/activo.png" : "../iconos/desactivo.png";
+
+            // Mostrar carga mientras se actualiza el estado
+            Swal.fire({
+                title: 'Actualizando estado...',
+                text: 'Por favor espera',
+                icon: 'info',
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Realiza la actualización en el backend (sin promesas, directamente)
+            window.location.href = `../Controllers/usuarios.php?accion=5&id=${id}&status=${status}`;
         }
     });
 
-    window.location.href = `../Controllers/usuarios.php?accion=5&id=${id}&status=${status}`;
+    // Asegúrate de incluir una regla CSS para el estilo de los botones
+    document.head.insertAdjacentHTML('beforeend', `
+        <style>
+            .swal2-bold-button {
+                font-weight: bold;
+                color: white !important;
+            }
+        </style>
+    `);
 }

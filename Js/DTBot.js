@@ -32,7 +32,7 @@ $(document).ready(function() {
             "processing": "<div class='loading-overlay'><div class='loader'></div></div>",  
             "search": "Buscar:",
             "lengthMenu": "Mostrar _MENU_ registros",
-            "info": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+           
             "infoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
             "infoFiltered": "(filtrado de un total de _MAX_ registros)",
             "loadingRecords": "Cargando...",
@@ -49,7 +49,7 @@ $(document).ready(function() {
                 "sortDescending": ": activar para ordenar la columna de manera descendente"
             }
         },
-        "dom": 'iptlr',
+        "dom": 'ptlr',
         "searching": true,
         "lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "Todos"] ],
         "pageLength": 10 

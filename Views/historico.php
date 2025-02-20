@@ -31,9 +31,7 @@ include("menu.php");
         <p>Por favor, vuelve más tarde.</p>
 
         <div class="mt-4">
-            <button type="button" class="btn btn-primary" onclick="window.location.href='index.php'">
-                Volver al Inicio
-            </button>
+           
         </div>
     </div>
 </div>

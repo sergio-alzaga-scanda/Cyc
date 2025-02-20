@@ -37,15 +37,22 @@ include("../Modals/modalEditarCrisis.php");
 
     <!-- Filtros en columna (vertical) -->
     <div class="filters-container mb-3">
-        <div style="padding-right: 15%;" >
+        <div style="padding-right: 5%;" >
             <label for="searchText" class="form-label">Buscar</label>
             <input type="text" id="searchText" size="50" class="form-control" placeholder="Buscar...">
         </div>
 
-        <div class="filter-group">
-            <label for="filterDate" class="form-label">Filtrar por fecha</label>
-            <input type="date" id="filterDate" class="form-control">
-        </div>
+    <div class="filter-group">
+    <label for="startDate" class="form-label">Filtrar por fecha de inicio</label>
+    <input type="date" id="startDate" class="form-control">
+</div>
+<div class="filter-group">
+    <label for="endDate" class="form-label">Filtrar por fecha de fin</label>
+    <input type="date" id="endDate" class="form-control">
+</div>
+
+
+
 
         <div class="filter-group">
             <label for="contingencyStatus" class="form-label">Filtrar por Tipo</label><br>
@@ -57,19 +64,19 @@ include("../Modals/modalEditarCrisis.php");
             <label for="both">Ambos</label>
         </div>
        
-        <!--
+        
         <div class="filter-group">
             <label for="statusType" class="form-label">Filtrar por Estado</label><br>
             <input type="radio" id="activo" name="statusType" value="1">
-            <label for="activo">Activo</label><br>
+            <label for="1">Activo</label><br>
             <input type="radio" id="programado" name="statusType" value="3">
             <label for="programado">Programado</label><br>
             <input type="radio" id="inactivo" name="statusType" value="2">
-            <label for="inactivo">Inactivo</label><br>
+            <label for="2">Inactivo</label><br>
             <input type="radio" id="ambosStatus" name="statusType" value="Todos">
             <label for="ambosStatus">Todos</label>
         </div>
-        -->
+        
         <!-- Botón de eliminar filtros con imagen -->
         <div class="filter-group-btn">
             <button type="button" id="resetFiltersBtn">

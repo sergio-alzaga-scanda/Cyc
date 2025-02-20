@@ -4,9 +4,11 @@
   font-weight: 100 900; /* Ajusta el rango de pesos si es necesario */
   font-style: normal;
 }
+
 .bold-text {
   font-weight: bold; /* Esto hace que el texto sea más grueso */
 }
+
 /* Aplica la fuente a todo el cuerpo de la página */
 body {
   font-family: "League Spartan", sans-serif;
@@ -40,29 +42,17 @@ body {
 }
 
 /* También puedes aplicar la fuente a otros elementos específicos si es necesario */
-h1,
-h2,
-h3,
-p {
+h1, h2, h3, p {
   font-family: "League Spartan", sans-serif;
 }
-background-image
+
 /* Estilo básico para los inputs */
 input.form-control {
-  border: none; /* Elimina el borde */
+  border-top: none; /* Elimina el borde */
   border-radius: 0; /* Elimina los bordes redondeados */
   box-shadow: none; /* Elimina el sombreado */
   outline: none; /* Elimina el contorno al hacer clic */
-  border-bottom: 2px solid transparent; /* Hace que la línea sea invisible al principio */
-  transition: border-bottom 0.3s ease; /* Animación de transición cuando cambia la línea */
-}
-/* Estilo básico para los inputs */
-input.form-control {
-  border: none; /* Elimina el borde */
-  border-radius: 0; /* Elimina los bordes redondeados */
-  box-shadow: none; /* Elimina el sombreado */
-  outline: none; /* Elimina el contorno al hacer clic */
-  border-bottom: 2px solid transparent; /* Hace que la línea sea invisible al principio */
+  border-bottom: 2px solid #ccc; /* Muestra una línea gris por defecto */
   transition: border-bottom 0.3s ease; /* Animación de transición cuando cambia la línea */
   margin-bottom: 20px; /* Añade espacio entre los inputs */
 }
@@ -87,6 +77,7 @@ input.form-control:focus {
     border-bottom-color: #007bff; /* La línea aparece en azul */
   }
 }
+
 /* Fondo de la página con la imagen */
 .fondo {
   background-image: url("img/fondo.png"); /* Asegúrate de que la imagen esté en la carpeta img */
@@ -98,38 +89,6 @@ input.form-control:focus {
   left: 0;
   width: 100%;
   height: 100%;
-}
-
-/* Estilo básico para los inputs */
-input.form-control {
-  border: none; /* Elimina el borde */
-  border-radius: 0; /* Elimina los bordes redondeados */
-  box-shadow: none; /* Elimina el sombreado */
-  outline: none; /* Elimina el contorno al hacer clic */
-  border-bottom: 2px solid transparent; /* Hace que la línea sea invisible al principio */
-  transition: border-bottom 0.3s ease; /* Animación de transición cuando cambia la línea */
-  margin-bottom: 20px; /* Añade espacio entre los inputs */
-}
-
-/* Cuando el input tiene texto, mantiene la línea inferior visible */
-input.form-control:not(:placeholder-shown) {
-  border-bottom: 2px solid #007bff; /* Mantén la línea visible cuando hay texto */
-}
-
-/* Estilo al hacer clic (cuando el input tiene foco) */
-input.form-control:focus {
-  border-bottom: 2px solid #007bff; /* La línea aparece en azul cuando el input recibe foco */
-  animation: line-appear 0.5s forwards; /* Llama a la animación "line-appear" */
-}
-
-/* Animación que hace aparecer la línea */
-@keyframes line-appear {
-  0% {
-    border-bottom-color: transparent; /* Comienza sin la línea */
-  }
-  100% {
-    border-bottom-color: #007bff; /* La línea aparece en azul */
-  }
 }
 
 /* Estilo para el botón */
@@ -162,13 +121,13 @@ button[type="submit"]:focus {
 }
 
 /* Para asegurar que la imagen de fondo no mueva los elementos */
-html,
-body {
+html, body {
   height: 100%; /* Asegura que el contenedor tenga altura completa */
   margin: 0; /* Elimina márgenes por defecto */
   padding: 0; /* Elimina relleno por defecto */
   overflow: hidden; /* Evita desplazamiento del contenido */
 }
+
 .boton-formateado {
   max-width: 100%;
   max-height: 58px;

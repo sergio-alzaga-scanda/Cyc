@@ -39,29 +39,32 @@ if ($stmt->execute()) {
 
 }
 ?>
-    <div class="sidebar">
-        <div class="profile" style="text-align: center; padding-left: 20%;">
-            <a style="text-decoration: none; color:inherit;" href=perfil_usuario.php>
-                <img src="../iconos/Vector-1.svg">
-                <br>
-                <span><?php echo $nombre_usuario; ?></span>
-                <br>
-                <span style="font-size: 14px;">Mi perfil</span>
-            </a>
-            
-        </div>
-        <a href=""></a>
-    <b>
-        <ul>
-    <?php if ($dashboard == 1) { ?>
-        <a href="inicio.php" style="text-decoration: none; color: inherit;">
-            <li <?php if ($menu === 1) { echo 'class="active"'; } ?> >
-                <img src="../iconos/Vector-2.svg"> &nbsp;&nbsp;
-                Dashboard
-            </li>
-        </a>
-    <?php } ?>
+<!-- Botón para activar el menú -->
+<button id="menu-toggle" aria-label="Toggle menu">
+    &#9776; <!-- Esto es el símbolo de la hamburguesa -->
+</button>
 
+<div class="sidebar">
+    <div class="profile" style="text-align: center; padding-left: 20%;">
+        <a style="text-decoration: none; color: inherit;" href="perfil_usuario.php">
+            <img src="../iconos/Vector-1.svg">
+            <br>
+            <span><?php echo $nombre_usuario; ?></span>
+            <br>
+            <span style="font-size: 14px;">Mi perfil</span>
+        </a>
+    </div>
+    <b>
+    <ul>
+        <?php if ($dashboard == 1) { ?>
+            <a href="inicio.php" style="text-decoration: none; color: inherit;">
+                <li <?php if ($menu === 1) { echo 'class="active"'; } ?> >
+                    <img src="../iconos/Vector-2.svg"> &nbsp;&nbsp;
+                    Dashboard
+                </li>
+            </a>
+      
+        <?php } ?>
     <?php if ($CyC == 1) { ?>
         <a href="cyc.php" style="text-decoration: none; color: inherit;">
             <li <?php if ($menu === 2) { echo 'class="active"'; } ?> >
@@ -111,7 +114,7 @@ if ($stmt->execute()) {
         <a href="actividad.php" style="text-decoration: none; color: inherit;">
             <li <?php if ($menu === 7) { echo 'class="active"'; } ?> >
                 <img src="../iconos/Group 7.svg"> &nbsp;&nbsp;
-                 Actividad
+                 <b>Actividad</b>
             </li>
         </a>
     <?php } ?>
@@ -120,7 +123,7 @@ if ($stmt->execute()) {
         <a href="catalogos.php" style="text-decoration: none; color: inherit;">
             <li <?php if ($menu === 8) { echo 'class="active"'; } ?> >
                 <img src="../iconos/catalogos.png"> &nbsp;&nbsp;
-            Catálogos
+            <b>Catálogos</b>
             </li>
         </a>
     <?php } ?>
@@ -135,3 +138,10 @@ if ($stmt->execute()) {
 
     </b>
     </div>
+
+<script type="text/javascript">
+    // JavaScript para alternar la clase 'active' en la barra lateral
+    document.getElementById('menu-toggle').addEventListener('click', function() {
+        document.querySelector('.sidebar').classList.toggle('active');
+    });
+</script>

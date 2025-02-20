@@ -20,13 +20,13 @@
           <div class="modal-footer d-flex justify-content-center">
     <div class="btn-container">
         <!-- Botón Guardar y habilitar -->
-        <button type="submit" class="btn-icon">
-            <span>Guardar y habilitar</span>
-            <img src="../iconos/guardar.png" alt="Guardar">
+        <button type="submit" class="btn-icon btn-agregar">
+            <span>Guardar</span>
+            <img src="../iconos/Group-4.svg" alt="Guardar">
         </button>
 
         <!-- Botón Cancelar -->
-        <button type="button" class="btn-icon" data-bs-dismiss="modal">
+        <button type="button" class="btn-icon" style="border-radius: 15px;" data-bs-dismiss="modal">
             <span>Cancelar</span>
             <img src="../iconos/cancelar.png" alt="Cancelar">
         </button>
