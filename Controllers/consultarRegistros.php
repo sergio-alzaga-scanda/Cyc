@@ -12,21 +12,24 @@ if ($_SERVER['PHP_AUTH_USER'] !== $valid_user || $_SERVER['PHP_AUTH_PW'] !== $va
     exit;
 }
 
-// Validar los parámetros "proyecto" y "ubicacion" en la solicitud POST
-if (!isset($_POST['proyecto']) || !is_numeric($_POST['proyecto'])) {
+// Leer los datos del cuerpo de la solicitud (JSON)
+$data = json_decode(file_get_contents('php://input'), true);
+
+// Validar los parámetros "proyecto" y "ubicacion"
+if (!isset($data['proyecto']) || !is_numeric($data['proyecto'])) {
     header('HTTP/1.0 400 Bad Request');
     echo json_encode(["error" => "El parámetro 'proyecto' es obligatorio y debe ser un número."]);
     exit;
 }
 
-if (!isset($_POST['ubicacion']) || !is_numeric($_POST['ubicacion'])) {
+if (!isset($data['ubicacion']) || !is_numeric($data['ubicacion'])) {
     header('HTTP/1.0 400 Bad Request');
     echo json_encode(["error" => "El parámetro 'ubicacion' es obligatorio y debe ser un número."]);
     exit;
 }
 
-$proyecto = intval($_POST['proyecto']);
-$ubicacion = intval($_POST['ubicacion']);
+$proyecto = intval($data['proyecto']);
+$ubicacion = intval($data['ubicacion']);
 
 // Consulta SQL con los joins
 $sql = "
