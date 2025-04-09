@@ -4,12 +4,13 @@ if (!$_SESSION['usuario']) {
     header("Location: ../index.php");
 }
 include("../Controllers/bd.php");
-$id_usuario = $_SESSION['usuario'];
+$id_usuario           = $_SESSION['usuario'];
+$nombre_usuario_login = $_SESSION['nombre_usuario'];
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-$fechaActual = date("Y-m-d H:i:s");
+$fechaActual     = date("Y-m-d H:i:s");
 $fechaHoraActual = $fechaActual;
 
 $accion = $_POST['accion'] ?? $_GET['accion'] ?? null;
@@ -35,6 +36,17 @@ switch ($accion) {
             
             // Ejecutar la consulta
             if ($stmt->execute()) {
+
+                // Insertar en la tabla logs 
+                $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+                             VALUES (GETDATE(), :user_id, :name_user, :description)";
+                $stmtLog = $conn->prepare($queryLog);
+                $stmtLog->bindParam(':user_id', $id_usuario);
+                $stmtLog->bindParam(':name_user', $nombre_usuario_login);
+                $descripcion = 'Ha creado un Bot de nombre: ' . $nombre ;
+                $stmtLog->bindParam(':description', $descripcion);
+                $stmtLog->execute();
+
                 echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
                       <script type='text/javascript'>
                         window.onload = function() {
@@ -89,9 +101,9 @@ switch ($accion) {
             while ($rowTbl = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 // Preparar los datos para la respuesta
                 $DtosTbl[] = array(
-                    'id' => $rowTbl['id_bot'],
+                    'id'         => $rowTbl['id_bot'],
                     'nombre_bot' => $rowTbl['nombre_bot'],
-                    'status' => $rowTbl['status'] // Incluimos el campo status
+                    'status'     => $rowTbl['status'] // Incluimos el campo status
                 );
             }
 
@@ -110,7 +122,7 @@ switch ($accion) {
 
     case 3:
         // Obtener los datos del formulario
-        $idBot = $_POST['edit_id_bot']; // ID del bot
+        $idBot     = $_POST['edit_id_bot']; // ID del bot
         $nombreBot = $_POST['nombre']; // Nombre del bot
 
         try {
@@ -128,6 +140,16 @@ switch ($accion) {
 
             // Ejecutar la actualización
             $stmt->execute();
+
+            // Insertar en la tabla logs 
+            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+                         VALUES (GETDATE(), :user_id, :name_user, :description)";
+            $stmtLog = $conn->prepare($queryLog);
+            $stmtLog->bindParam(':user_id', $id_usuario);
+            $stmtLog->bindParam(':name_user', $nombre_usuario_login);
+            $descripcion = 'Ha editado un Bot de nombre: ' . $nombreBot . ' ID: ' . $idBot ;
+            $stmtLog->bindParam(':description', $descripcion);
+            $stmtLog->execute();
 
             // Mostrar alerta de éxito
             echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
@@ -174,6 +196,16 @@ switch ($accion) {
                 ':id_bot' => $id_bot
             ]);
 
+            // Insertar en la tabla logs 
+            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+                         VALUES (GETDATE(), :user_id, :name_user, :description)";
+            $stmtLog = $conn->prepare($queryLog);
+            $stmtLog->bindParam(':user_id', $id_usuario);
+            $stmtLog->bindParam(':name_user', $nombre_usuario_login);
+            $descripcion = 'Ha elimiado un Bot con ID: ' . $id_bot ;
+            $stmtLog->bindParam(':description', $descripcion);
+            $stmtLog->execute();
+
             echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
                   <script type='text/javascript'>
                     window.onload = function() {
@@ -205,7 +237,7 @@ switch ($accion) {
         break;
 
     case 5:
-        $id_bot = $_GET['id'];
+        $id_bot         = $_GET['id'];
         $status_inicial = $_GET['status'];
 
         try {

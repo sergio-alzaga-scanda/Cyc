@@ -18,7 +18,7 @@
 
           <div class="row g-3 mb-3">
             <div class="col-md-3">
-              <input type="text" name="no_ticket" disabled id="no_ticket_edit" required class="form-control" placeholder="No. de ticket" aria-label="No. de ticket">
+              <input type="text" name="no_ticket" readonly id="no_ticket_edit" required class="form-control" placeholder="Numero de ticket" aria-label="Numero de ticket">
             </div>
             <div class="col-md-9">
               <input type="text" name="nombre" id="nombre_edit" required class="form-control" placeholder="Nombre" aria-label="Nombre">
@@ -273,6 +273,7 @@ $(document).on('click', '.btn-warning', function() {
         data: {accion: 3, id: crisisId},  // Trae los datos de la crisis
         success: function(data) {
             const crisisData = JSON.parse(data);
+            console.log(crisisData);
             $('#id').val(crisisData.id_cyc);
             $('#no_ticket_edit').val(crisisData.no_ticket);
             $('#nombre_edit').val(crisisData.nombre);

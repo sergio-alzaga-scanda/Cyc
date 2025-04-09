@@ -3,7 +3,7 @@ include("../Controllers/bd.php");
 header('Content-Type: application/json');
 
 // Validar autenticación básica
-$valid_user = "Admin_fanafesa";
+$valid_user     = "Admin_fanafesa";
 $valid_password = "F4n4f3s4_2025";
 
 if ($_SERVER['PHP_AUTH_USER'] !== $valid_user || $_SERVER['PHP_AUTH_PW'] !== $valid_password) {
@@ -12,38 +12,57 @@ if ($_SERVER['PHP_AUTH_USER'] !== $valid_user || $_SERVER['PHP_AUTH_PW'] !== $va
     exit;
 }
 
-// Leer los datos del cuerpo de la solicitud (JSON)
-$data = json_decode(file_get_contents('php://input'), true);
-
 // Validar los parámetros "proyecto" y "ubicacion"
-if (!isset($data['proyecto']) || !is_numeric($data['proyecto'])) {
-    header('HTTP/1.0 400 Bad Request');
+if (!isset($_GET['proyecto']) || !is_numeric($_GET['proyecto'])) {
+    header('HTTP/1.0 400');
     echo json_encode(["error" => "El parámetro 'proyecto' es obligatorio y debe ser un número."]);
     exit;
 }
 
-if (!isset($data['ubicacion']) || !is_numeric($data['ubicacion'])) {
-    header('HTTP/1.0 400 Bad Request');
+if (!isset($_GET['ubicacion']) || !is_numeric($_GET['ubicacion'])) {
+    header('HTTP/1.0 400');
     echo json_encode(["error" => "El parámetro 'ubicacion' es obligatorio y debe ser un número."]);
     exit;
 }
 
-$proyecto = intval($data['proyecto']);
-$ubicacion = intval($data['ubicacion']);
+$proyecto  = intval($_GET['proyecto']);
+$ubicacion = intval($_GET['ubicacion']);
 
 // Consulta SQL con los joins
 $sql = "
 SELECT
     cyc.id_cyc,
+    cyc.nombre,
+    cyc.no_ticket,
+    cat_crisis.nombre_crisis,
+    cat_crisis.criticidad,
     CASE cyc.tipo_cyc 
         WHEN 1 THEN 'Crisis'
         WHEN 2 THEN 'Contingencia'
         ELSE 'Desconocido'
     END AS tipo_cyc,
-    cyc.nombre,
-    cyc.no_ticket,
-    cyc.redaccion_cyc as grabacion
+    ubicaciones.nombre_ubicacion_ivr AS ubicacion_cyc,
+    cyc.redaccion_cyc,
+    cyc.canal_cyc,
+    cyc.bot_cyc,
+    cyc.fecha_registro_cyc,
+    CASE cyc.status_cyc
+        WHEN 1 THEN 'Activo'
+        WHEN 2 THEN 'Desactivado'
+        ELSE 'Desconocido'
+    END AS status_cyc,
+    cyc.fecha_programacion,
+    cyc.id_usuario,
+    usuarios.nombre_usuario, -- Nombre del usuario obtenido de la tabla usuarios
+    cyc.redaccion_canales,
+    cyc.proyecto
 FROM [contingencias].[dbo].[cyc] AS cyc
+LEFT JOIN [contingencias].[dbo].[cat_crisis] AS cat_crisis
+    ON cyc.categoria_cyc = cat_crisis.id
+LEFT JOIN [contingencias].[dbo].[ubicacion_ivr] AS ubicaciones
+    ON cyc.ubicacion_cyc = ubicaciones.id_ubicacion_ivr
+LEFT JOIN [contingencias].[dbo].[usuarios] AS usuarios -- Unir la tabla usuarios
+    ON cyc.id_usuario = usuarios.idUsuarios
 WHERE cyc.proyecto = ? AND cyc.ubicacion_cyc = ?
 AND cyc.status_cyc = 1;
 ";
@@ -60,24 +79,8 @@ try {
         header('HTTP/1.0 404 Not Found');
         echo json_encode(["respuesta" => "No se encontraron registros."]);
     } else {
-        $messages = [];
-        
-        // Concatenar los mensajes para cada registro
-        foreach ($resultado as $row) {
-            $message = $row['tipo_cyc']. ' Registrada '. $row['grabacion'] .' '.$row['nombre']. " con el numero de ticket " . $row['no_ticket'];
-            $messages[] = $message;
-        }
-        
-        // Si hay más de un registro, agregar "y" antes del último
-        if (count($messages) > 1) {
-            $lastMessage = array_pop($messages); // Eliminar el último mensaje
-            $result = implode(", ", $messages) . " y " . $lastMessage;
-        } else {
-            $result = $messages[0]; // Solo un mensaje
-        }
-
         // Retornar la respuesta en formato JSON
-        echo json_encode(["respuesta" => $result]);
+        echo json_encode($resultado, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     }
 } catch (PDOException $e) {
     header('HTTP/1.0 500 Internal Server Error');
@@ -86,4 +89,3 @@ try {
 
 // Cerrar la conexión
 $conn = null;
-?>

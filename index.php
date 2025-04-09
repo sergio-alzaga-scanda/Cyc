@@ -6,6 +6,8 @@
     <title>Gestión de Crisis y Contingencias</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/style_login.css">
+    <link rel="shortcut icon" href="../img/logo.png">
+    <link rel="icon" href="../img/logo.png" >
 </head>
 <body>
     <div class="background-container">

@@ -4,7 +4,8 @@ if (!$_SESSION['usuario']) {
     header("Location: ../index.php");
 }
 include("../Controllers/bd.php");
-$id_usuario = $_SESSION['usuario'];
+$id_usuario           = $_SESSION['usuario'];
+$nombre_usuario_login = $_SESSION['nombre_usuario'];
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -36,6 +37,17 @@ switch ($accion) {
 
             // Ejecutar la consulta
             if ($stmt->execute()) {
+
+                // Insertar en la tabla logs 
+                $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+                             VALUES (GETDATE(), :user_id, :name_user, :description)";
+                $stmtLog = $conn->prepare($queryLog);
+                $stmtLog->bindParam(':user_id', $id_usuario);
+                $stmtLog->bindParam(':name_user', $nombre_usuario_login);
+                $descripcion = 'Ha creado un Canal Digital de nombre: ' . $nombre ;
+                $stmtLog->bindParam(':description', $descripcion);
+                $stmtLog->execute();
+
                 echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
                       <script type='text/javascript'>
                         window.onload = function() {
@@ -90,10 +102,10 @@ switch ($accion) {
             while ($rowTbl = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 // Preparar los datos para la respuesta
                 $DtosTbl[] = array(
-                    'id' => $rowTbl['id_canal_digital'],
-                    'nombre_canal' => $rowTbl['nombre_canal'],
-                    'status' => $rowTbl['status'], // Incluimos el campo status
-                    'fecha_registro' => $rowTbl['fecha_registro'],
+                    'id'                  => $rowTbl['id_canal_digital'],
+                    'nombre_canal'        => $rowTbl['nombre_canal'],
+                    'status'              => $rowTbl['status'], // Incluimos el campo status
+                    'fecha_registro'      => $rowTbl['fecha_registro'],
                     'fecha_actualizacion' => $rowTbl['fecha_actualizacion']
                 );
             }
@@ -113,7 +125,7 @@ switch ($accion) {
 
     case 3:
         // Obtener los datos del formulario
-        $idCanal = $_POST['edit_id_canal']; // ID del canal
+        $idCanal     = $_POST['edit_id_canal']; // ID del canal
         $nombreCanal = $_POST['nombre']; // Nombre del canal
 
         try {
@@ -131,6 +143,16 @@ switch ($accion) {
 
             // Ejecutar la actualización
             $stmt->execute();
+
+            // Insertar en la tabla logs 
+            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+                         VALUES (GETDATE(), :user_id, :name_user, :description)";
+            $stmtLog = $conn->prepare($queryLog);
+            $stmtLog->bindParam(':user_id', $id_usuario);
+            $stmtLog->bindParam(':name_user', $nombre_usuario_login);
+            $descripcion = 'Ha editado un Canal Digital de nombre: ' . $nombreCanal . ' ID: ' . $idCanal ;
+            $stmtLog->bindParam(':description', $descripcion);
+            $stmtLog->execute();
 
             // Mostrar alerta de éxito
             echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
@@ -177,6 +199,16 @@ switch ($accion) {
                 ':id_canal' => $id_canal
             ]);
 
+            // Insertar en la tabla logs 
+            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+                         VALUES (GETDATE(), :user_id, :name_user, :description)";
+            $stmtLog = $conn->prepare($queryLog);
+            $stmtLog->bindParam(':user_id', $id_usuario);
+            $stmtLog->bindParam(':name_user', $nombre_usuario_login);
+            $descripcion = 'Ha eliminado un Canal Digital con ID: ' . $id_canal ;
+            $stmtLog->bindParam(':description', $descripcion);
+            $stmtLog->execute();
+
             echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
                   <script type='text/javascript'>
                     window.onload = function() {
@@ -208,7 +240,7 @@ switch ($accion) {
         break;
 
     case 5:
-        $id_canal = $_GET['id'];
+        $id_canal       = $_GET['id'];
         $status_inicial = $_GET['status'];
 
         try {
@@ -228,7 +260,7 @@ switch ($accion) {
             $stmt = $conn->prepare($query);
             $stmt->execute([
                 ':nuevo_status' => $nuevo_status,
-                ':id_canal' => $id_canal
+                ':id_canal'     => $id_canal
             ]);
 
             // Mensajes de éxito dependiendo del nuevo estado

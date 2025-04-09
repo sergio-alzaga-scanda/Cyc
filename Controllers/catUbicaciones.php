@@ -4,12 +4,13 @@ if (!$_SESSION['usuario']) {
     header("Location: ../index.php");
 }
 include("../Controllers/bd.php");
-$id_usuario = $_SESSION['usuario'];
+$id_usuario           = $_SESSION['usuario'];
+$nombre_usuario_login = $_SESSION['nombre_usuario'];
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-$fechaActual = date("Y-m-d H:i:s");
+$fechaActual     = date("Y-m-d H:i:s");
 $fechaHoraActual = $fechaActual;
 
 $accion = $_POST['accion'] ?? $_GET['accion'] ?? null;
@@ -35,6 +36,17 @@ switch ($accion) {
             
             // Ejecutar la consulta
             if ($stmt->execute()) {
+
+                // Insertar en la tabla logs 
+                $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+                             VALUES (GETDATE(), :user_id, :name_user, :description)";
+                $stmtLog = $conn->prepare($queryLog);
+                $stmtLog->bindParam(':user_id', $id_usuario);
+                $stmtLog->bindParam(':name_user', $nombre_usuario_login);
+                $descripcion = 'Ha creado una Ubicación IVR de nombre: ' . $nombre ;
+                $stmtLog->bindParam(':description', $descripcion);
+                $stmtLog->execute();
+
                 echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
                       <script type='text/javascript'>
                         window.onload = function() {
@@ -89,9 +101,9 @@ switch ($accion) {
             while ($rowTbl = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 // Preparar los datos para la respuesta
                 $DtosTbl[] = array(
-                    'id' => $rowTbl['id_ubicacion_ivr'],
+                    'id'                   => $rowTbl['id_ubicacion_ivr'],
                     'nombre_ubicacion_ivr' => $rowTbl['nombre_ubicacion_ivr'],
-                    'status' => $rowTbl['status'] // Incluimos el campo status
+                    'status'               => $rowTbl['status'] // Incluimos el campo status
                 );
             }
 
@@ -110,7 +122,7 @@ switch ($accion) {
 
     case 3:
         // Obtener los datos del formulario
-        $idUbicacion = $_POST['edit_id_ubicacion_ivr']; // ID de la ubicación IVR
+        $idUbicacion     = $_POST['edit_id_ubicacion_ivr']; // ID de la ubicación IVR
         $nombreUbicacion = $_POST['nombre']; // Nombre de la ubicación IVR
 
         try {
@@ -128,6 +140,16 @@ switch ($accion) {
 
             // Ejecutar la actualización
             $stmt->execute();
+
+            // Insertar en la tabla logs 
+            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+                         VALUES (GETDATE(), :user_id, :name_user, :description)";
+            $stmtLog = $conn->prepare($queryLog);
+            $stmtLog->bindParam(':user_id', $id_usuario);
+            $stmtLog->bindParam(':name_user', $nombre_usuario_login);
+            $descripcion = 'Ha editado una Ubicación IVR de nombre: ' . $nombreUbicacion . ' con ID: ' . $idUbicacion ;
+            $stmtLog->bindParam(':description', $descripcion);
+            $stmtLog->execute();
 
             // Mostrar alerta de éxito
             echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
@@ -166,13 +188,24 @@ switch ($accion) {
         try {
             // Actualiza el estado de la ubicación IVR a '0' (eliminado/desactivado)
             $query = "UPDATE [contingencias].[dbo].[ubicacion_ivr] 
-                      SET status = 0
-                      WHERE id_ubicacion_ivr = :id_ubicacion_ivr";
+                      SET [status] = 0
+                      WHERE [id_ubicacion_ivr] = :id_ubicacion_ivr;
+                      ";
 
             $stmt = $conn->prepare($query);
             $stmt->execute([
                 ':id_ubicacion_ivr' => $id_ubicacion_ivr
             ]);
+
+            // Insertar en la tabla logs 
+            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+                         VALUES (GETDATE(), :user_id, :name_user, :description)";
+            $stmtLog = $conn->prepare($queryLog);
+            $stmtLog->bindParam(':user_id', $id_usuario);
+            $stmtLog->bindParam(':name_user', $nombre_usuario_login);
+            $descripcion = 'Ha eliminado una Ubicación IVR con ID: ' . $id_ubicacion_ivr ;
+            $stmtLog->bindParam(':description', $descripcion);
+            $stmtLog->execute();
 
             echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
                   <script type='text/javascript'>
@@ -206,7 +239,7 @@ switch ($accion) {
 
     case 5:
         $id_ubicacion_ivr = $_GET['id'];
-        $status_inicial = $_GET['status'];
+        $status_inicial   = $_GET['status'];
 
         try {
             // Cambia el estado de la ubicación IVR

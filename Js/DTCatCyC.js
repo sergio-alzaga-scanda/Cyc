@@ -18,7 +18,7 @@ $(document).ready(function() {
                             <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditarCatCYC" data-id="${item.id}" data-nombre="${item.nombre_crisis}" data-criticidad="${item.criticidad}" data-status="${item.status}" style="background: transparent; border: none;">
                                 <img src="../iconos/edit.png" alt="Editar" style="width: 20px; height: 20px;">
                             </button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteCrisisCat(${item.id})" style="background: transparent; border: none;">
+                            <button class="btn btn-danger btn-sm" onclick="deleteCrisisCatCyC(${item.id})" style="background: transparent; border: none;">
                                 <img src="../iconos/delete.png" alt="Eliminar" style="width: 20px; height: 20px;">
                             </button>
                         ` // Ya no incluimos el icono de estado
@@ -79,7 +79,7 @@ function cargarDatosCrisis(crisisData) {
 }
 
 // Función para eliminar una crisis
-function deleteCrisisCat(id) {
+function deleteCrisisCatCyC(id) {
     Swal.fire({
         title: '¿Estás seguro?',
         text: '¿Quieres eliminar esta categoría?',

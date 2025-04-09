@@ -4,7 +4,8 @@ if (!$_SESSION['usuario']) {
     header("Location: ../index.php");
 }
 include("../Controllers/bd.php");
-$id_usuario = $_SESSION['usuario'];
+$id_usuario           = $_SESSION['usuario'];
+$nombre_usuario_login = $_SESSION['nombre_usuario'];
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -35,6 +36,17 @@ switch ($accion) {
             
             // Ejecutar la consulta
             if ($stmt->execute()) {
+
+                // Insertar en la tabla logs 
+                $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+                             VALUES (GETDATE(), :user_id, :name_user, :description)";
+                $stmtLog = $conn->prepare($queryLog);
+                $stmtLog->bindParam(':user_id', $id_usuario);
+                $stmtLog->bindParam(':name_user', $nombre_usuario_login);
+                $descripcion = 'Ha creado un Proyecto de nombre: ' . $nombre ;
+                $stmtLog->bindParam(':description', $descripcion);
+                $stmtLog->execute();
+
                 echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
                       <script type='text/javascript'>
                         window.onload = function() {
@@ -89,9 +101,9 @@ switch ($accion) {
             while ($rowTbl = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 // Preparar los datos para la respuesta
                 $DtosTbl[] = array(
-                    'id' => $rowTbl['id_proyecto'],
+                    'id'              => $rowTbl['id_proyecto'],
                     'nombre_proyecto' => $rowTbl['nombre_proyecto'],
-                    'status' => $rowTbl['status'] // Incluimos el campo status
+                    'status'          => $rowTbl['status'] // Incluimos el campo status
                 );
             }
 
@@ -110,7 +122,7 @@ switch ($accion) {
 
     case 3:
         // Obtener los datos del formulario
-        $idProyecto = $_POST['edit_id_proyecto']; // ID del proyecto
+        $idProyecto     = $_POST['edit_id_proyecto']; // ID del proyecto
         $nombreProyecto = $_POST['nombre']; // Nombre del proyecto
 
         try {
@@ -128,6 +140,16 @@ switch ($accion) {
 
             // Ejecutar la actualización
             $stmt->execute();
+
+            // Insertar en la tabla logs 
+            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+                         VALUES (GETDATE(), :user_id, :name_user, :description)";
+            $stmtLog = $conn->prepare($queryLog);
+            $stmtLog->bindParam(':user_id', $id_usuario);
+            $stmtLog->bindParam(':name_user', $nombre_usuario_login);
+            $descripcion = 'Ha editado un Proyecto de nombre: ' . $nombreProyecto . ' ID: ' . $idProyecto ;
+            $stmtLog->bindParam(':description', $descripcion);
+            $stmtLog->execute();
 
             // Mostrar alerta de éxito
             echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
@@ -174,6 +196,16 @@ switch ($accion) {
                 ':id_proyecto' => $id_proyecto
             ]);
 
+            // Insertar en la tabla logs 
+            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+                         VALUES (GETDATE(), :user_id, :name_user, :description)";
+            $stmtLog = $conn->prepare($queryLog);
+            $stmtLog->bindParam(':user_id', $id_usuario);
+            $stmtLog->bindParam(':name_user', $nombre_usuario_login);
+            $descripcion = 'Ha eliminado un Proyecto con ID: ' . $id_proyecto ;
+            $stmtLog->bindParam(':description', $descripcion);
+            $stmtLog->execute();
+
             echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
                   <script type='text/javascript'>
                     window.onload = function() {
@@ -205,7 +237,7 @@ switch ($accion) {
         break;
 
     case 5:
-        $id_proyecto = $_GET['id'];
+        $id_proyecto    = $_GET['id'];
         $status_inicial = $_GET['status'];
 
         try {

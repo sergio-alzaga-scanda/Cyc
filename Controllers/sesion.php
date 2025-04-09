@@ -15,7 +15,7 @@ include("bd.php");
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Obtener los datos del formulario
     $correo_usuario = $_POST['correo'];
-    $pass = $_POST['pass'];
+    $pass           = $_POST['pass'];
     
     // Realizar la consulta usando PDO (para evitar inyección SQL)
     $queryTbl = "SELECT * FROM usuarios WHERE correo_usuario = :correo_usuario AND pass = :pass";
@@ -26,19 +26,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->bindParam(':pass', $pass);
     
    if ($stmt->execute()) {
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ($user) {
-        $id_usuario = $user['idUsuarios'];
-        $nombre_usuario = $user['nombre_usuario'];
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($user) {
+            $id_usuario     = $user['idUsuarios'];
+            $nombre_usuario = $user['nombre_usuario'];
+        }
     }
-}
 
     
     if ($user) {
         session_start();
-        $_SESSION['usuario'] = $id_usuario;
-    	$_SESSION['nombre_usuario'] = $nombre_usuario;
-        header("Location: ../Views/inicio.php");
+        $_SESSION['usuario']        = $id_usuario;
+        $_SESSION['nombre_usuario'] = $nombre_usuario;
+
+        // Insertar registro en la tabla logs
+        $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+                     VALUES (GETDATE(), :user_id, :name_user, :description)";
+        $stmtLog = $conn->prepare($queryLog);
+        $descripcion = 'Inicio sesión';
+
+        $stmtLog->bindParam(':user_id', $id_usuario, PDO::PARAM_INT);
+        $stmtLog->bindParam(':name_user', $nombre_usuario, PDO::PARAM_STR);
+        $stmtLog->bindParam(':description', $descripcion, PDO::PARAM_STR);
+        $stmtLog->execute();
+
+
+
+        header("Location: ../Views/dashboard.php");
 		exit();
     } else {
         // Si los datos son incorrectos, mostrar mensaje de error y regresar al login

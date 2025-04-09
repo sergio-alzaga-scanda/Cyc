@@ -4,7 +4,8 @@ if (!$_SESSION['usuario']) {
     header("Location: ../index.php"); 
 }
 include("../Controllers/bd.php");
-$id_usuario = $_SESSION['usuario'];
+$id_usuario           = $_SESSION['usuario'];
+$nombre_usuario_login = $_SESSION['nombre_usuario'];
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -22,9 +23,9 @@ switch ($accion) {
        // Verificar que se ha enviado el formulario
  if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Capturar los datos del formulario
-        $nombre = $_POST['nombre'];
+        $nombre     = $_POST['nombre'];
         $criticidad = $_POST['criticidad'];
-        $status = 1; // El status que deseas asignar, por ejemplo 1 para "activo"
+        $status     = 1; // El status que deseas asignar, por ejemplo 1 para "activo"
 
         // Preparar la consulta de inserción
         $sql = "INSERT INTO cat_crisis (nombre_crisis, criticidad, status) 
@@ -40,6 +41,17 @@ switch ($accion) {
 
         // Ejecutar la consulta
         if ($stmt->execute()) {
+
+            // Insertar en la tabla logs 
+            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+                         VALUES (GETDATE(), :user_id, :name_user, :description)";
+            $stmtLog = $conn->prepare($queryLog);
+            $stmtLog->bindParam(':user_id', $id_usuario);
+            $stmtLog->bindParam(':name_user', $nombre_usuario_login);
+            $descripcion = 'Ha creado una CyCs de nombre: ' . $nombre . ' y Criticidad: ' . $criticidad ;
+            $stmtLog->bindParam(':description', $descripcion);
+            $stmtLog->execute();
+
             echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
               <script type='text/javascript'>
                 window.onload = function() {
@@ -95,10 +107,10 @@ try {
     while ($rowTbl = $stmt->fetch(PDO::FETCH_ASSOC)) {
         // Preparar los datos para la respuesta
         $DtosTbl[] = array(
-            'id' => $rowTbl['id'],
+            'id'            => $rowTbl['id'],
             'nombre_crisis' => $rowTbl['nombre_crisis'],
-            'criticidad' => $rowTbl['criticidad'],
-            'status' => $rowTbl['status']  // Incluimos el campo status
+            'criticidad'    => $rowTbl['criticidad'],
+            'status'        => $rowTbl['status']  // Incluimos el campo status
         );
     }
 
@@ -120,19 +132,19 @@ break;
 
 case 3:
     // Obtener los datos del formulario
-    $idCrisis = $_POST['id']; // ID de la crisis
+    $idCrisis     = $_POST['id']; // ID de la crisis
     $nombreCrisis = $_POST['nombre']; // Nombre de la crisis
-    $criticidad = $_POST['criticidad']; // Criticidad
-    $status = $_POST['status']; // Estado
+    $criticidad   = $_POST['criticidad']; // Criticidad
+    $status       = $_POST['status']; // Estado
 
     try {
         // Consulta SQL para actualizar la categoría de crisis
         $query = "
             UPDATE [contingencias].[dbo].[cat_crisis]
             SET 
-                [nombre_crisis] = :nombre_crisis,
-                [criticidad] = :criticidad,
-                [status] = :status,
+                [nombre_crisis]      = :nombre_crisis,
+                [criticidad]         = :criticidad,
+                [status]             = :status,
                 [fecha_modificacion] = GETDATE() -- Fecha de la última modificación
             WHERE [id] = :idCrisis;
         ";
@@ -145,6 +157,16 @@ case 3:
 
         // Ejecutar la actualización
         $stmt->execute();
+
+        // Insertar en la tabla logs 
+        $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+                     VALUES (GETDATE(), :user_id, :name_user, :description)";
+        $stmtLog = $conn->prepare($queryLog);
+        $stmtLog->bindParam(':user_id', $id_usuario);
+        $stmtLog->bindParam(':name_user', $nombre_usuario_login);
+        $descripcion = 'Ha editado una CyCs de nombre: ' . $nombreCrisis . ' y Criticidad: ' . $criticidad . ' ID: ' . $idCrisis ;
+        $stmtLog->bindParam(':description', $descripcion);
+        $stmtLog->execute();
 
         // Mostrar alerta de éxito
         echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
@@ -192,6 +214,16 @@ case 3:
             ':id_cyc' => $id_cyc
         ]);
 
+        // Insertar en la tabla logs 
+        $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+                     VALUES (GETDATE(), :user_id, :name_user, :description)";
+        $stmtLog = $conn->prepare($queryLog);
+        $stmtLog->bindParam(':user_id', $id_usuario);
+        $stmtLog->bindParam(':name_user', $nombre_usuario_login);
+        $descripcion = 'Ha eliminado una CyCs con ID: ' . $id_cyc;
+        $stmtLog->bindParam(':description', $descripcion);
+        $stmtLog->execute();
+
         echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
               <script type='text/javascript'>
                 window.onload = function() {
@@ -223,7 +255,7 @@ case 3:
     break;
 
         case 5:
-    $id_cyc = $_GET['id'];
+    $id_cyc         = $_GET['id'];
     $status_inicial = $_GET['status'];
 
     try {

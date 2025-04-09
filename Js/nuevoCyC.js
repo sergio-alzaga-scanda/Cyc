@@ -1,9 +1,9 @@
 //Fecha y hora para programar 
 
 document.addEventListener("DOMContentLoaded", function () {
-  const checkbox = document.getElementById("programar");
+  const checkbox    = document.getElementById("programar");
   const fechaBloque = document.getElementById("fecha-bloque");
-  const fechaInput = document.getElementById("fecha");
+  const fechaInput  = document.getElementById("fecha");
 
   checkbox.addEventListener("change", function () {
     if (checkbox.checked) {
@@ -17,12 +17,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
 //Mostrar menu para canales 
 document.addEventListener("DOMContentLoaded", function () {
-  const checkboxCanalDigital = document.getElementById("habilitar-canal-digital");
+  const checkboxCanalDigital  = document.getElementById("habilitar-canal-digital");
   const contenidoCanalDigital = document.getElementById("contenido-canal-digital");
-  const canalSelect = document.getElementById("canal");
-  const botSelect = document.getElementById("bot");
-  const mismoCanalCheckbox = document.getElementById("mismo-canal");
-  const canalDigitalTexto = document.getElementById("canal-digital-texto");
+  const canalSelect           = document.getElementById("canal");
+  const botSelect             = document.getElementById("bot");
+  const mismoCanalCheckbox    = document.getElementById("mismo-canal");
+  const canalDigitalTexto     = document.getElementById("canal-digital-texto");
 
   checkboxCanalDigital.addEventListener("change", function () {
     if (checkboxCanalDigital.checked) {
@@ -30,10 +30,10 @@ document.addEventListener("DOMContentLoaded", function () {
     } else {
       contenidoCanalDigital.style.display = "none"; // Ocultar el contenido
       // Limpiar los valores de los campos
-      canalSelect.value = "";
-      botSelect.value = "";
+      canalSelect.value          = "";
+      botSelect.value            = "";
       mismoCanalCheckbox.checked = false;
-      canalDigitalTexto.value = "";
+      canalDigitalTexto.value    = "";
     }
   });
 });
@@ -41,8 +41,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
 //Replicar texto 
 document.addEventListener("DOMContentLoaded", function() {
-  const ivrTextArea = document.getElementById("ivr");
-  const canalTextoArea = document.getElementById("canal-digital-texto");
+  const ivrTextArea     = document.getElementById("ivr");
+  const canalTextoArea  = document.getElementById("canal-digital-texto");
   const mismoCanalCheck = document.getElementById("mismo-canal");
 
   // Función para copiar el texto de IVR a Canal Digital y deshabilitar el campo
@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 document.getElementById('categoria').addEventListener('change', function() {
   var selectedOption = this.options[this.selectedIndex]; // Obtener la opción seleccionada
-  var criticidad = selectedOption.getAttribute('data-criticidad'); // Obtener la criticidad asociada
+  var criticidad     = selectedOption.getAttribute('data-criticidad'); // Obtener la criticidad asociada
 
   // Actualizar el texto del label
   document.getElementById('criticidad-label').textContent =criticidad;
@@ -76,29 +76,29 @@ document.getElementById('categoria').addEventListener('change', function() {
 
 document.getElementById('categoria').addEventListener('change', function() {
     var selectedOption = this.options[this.selectedIndex]; // Obtener la opción seleccionada
-    var criticidad = selectedOption.getAttribute('data-criticidad'); // Obtener la criticidad asociada
+    var criticidad     = selectedOption.getAttribute('data-criticidad'); // Obtener la criticidad asociada
 
     // Actualizar el texto del label
     document.getElementById('criticidad-label').textContent = criticidad;
 
     function cambiarColorCriticidad(select) {
-  const selectedValue = select.value;
-  const selectedOption = select.options[select.selectedIndex];
-  const categoria = selectedOption.dataset.nombre;
-  const criticidadSelect = document.getElementById('categoria');
+      const selectedValue    = select.value;
+      const selectedOption   = select.options[select.selectedIndex];
+      const categoria        = selectedOption.dataset.nombre;
+      const criticidadSelect = document.getElementById('categoria');
 
-  // Cambiar color de fondo según la criticidad
-  if (categoria === 'Alta') {
-    criticidadSelect.classList.remove('bg-warning', 'bg-success');
-    criticidadSelect.classList.add('bg-danger');
-  } else if (categoria === 'Media') {
-    criticidadSelect.classList.remove('bg-danger', 'bg-success');
-    criticidadSelect.classList.add('bg-warning');
-  } else if (categoria === 'Baja') {
-    criticidadSelect.classList.remove('bg-danger', 'bg-warning');
-    criticidadSelect.classList.add('bg-success');
-  }
-}
+        // Cambiar color de fondo según la criticidad
+        if (categoria === 'Alta') {
+          criticidadSelect.classList.remove('bg-warning', 'bg-success');
+          criticidadSelect.classList.add('bg-danger');
+        } else if (categoria === 'Media') {
+          criticidadSelect.classList.remove('bg-danger', 'bg-success');
+          criticidadSelect.classList.add('bg-warning');
+        } else if (categoria === 'Baja') {
+          criticidadSelect.classList.remove('bg-danger', 'bg-warning');
+          criticidadSelect.classList.add('bg-success');
+        }
+      }
   });
 
 
