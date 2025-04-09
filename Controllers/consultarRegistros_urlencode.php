@@ -56,7 +56,7 @@ SELECT
     cyc.proyecto
 FROM [contingencias].[dbo].[cyc] AS cyc
 INNER JOIN [usuarios] AS u ON cyc.id_usuario = u.idUsuarios
-WHERE cyc.proyecto = ? AND cyc.ubicacion_cyc = ?
+WHERE cyc.proyecto = ? AND cyc.ubicacion_cyc = $ubicacion
 AND cyc.status_cyc = 1;
 ";
 
