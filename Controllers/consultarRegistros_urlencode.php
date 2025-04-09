@@ -69,8 +69,9 @@ try {
 
     // Verificar si se encontraron registros
     if (empty($resultado)) {
-        header('HTTP/1.0 404 Not Found');
-        echo json_encode(["respuesta" => "No se encontraron registros."]);
+        // header('HTTP/1.0 404 Not Found');
+        header('HTTP/1.0 200 Ok');
+        echo json_encode(["status_cyc" => "Inactivo"]);
     } else {
         $messages = [];
         
