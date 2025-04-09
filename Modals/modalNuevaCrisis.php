@@ -211,65 +211,7 @@ if ($bot->execute()) {
 <!-- Script de SweetAlert -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-  document.getElementById('btn-submit').addEventListener('click', function (e) {
-    e.preventDefault();  // Prevenir el envío inmediato del formulario
-
-    // Limpiar estilos previos (si hay bordes rojos por campos incompletos)
-    const inputs = document.querySelectorAll('#form-cyc input[required], #form-cyc select[required], #form-cyc textarea[required]');
-    inputs.forEach(input => {
-      input.style.borderColor = '';  // Limpiar cualquier borde rojo previo
-    });
-
-    let isValid = true;
-    let missingFields = [];
-
-    // Validar los campos requeridos
-    inputs.forEach(input => {
-      let value = input.value.trim(); // Usar el valor "limpio"
-
-      // Validación para SELECT (si no se selecciona una opción válida)
-      if (input.tagName === 'SELECT' && (value === "" || input.selectedIndex === 0)) {
-        isValid = false;
-        missingFields.push(input);
-        input.style.borderColor = 'red';  // Resaltar con borde rojo
-      }
-      // Validación para INPUT y TEXTAREA (si está vacío)
-      else if ((input.tagName === 'INPUT' || input.tagName === 'TEXTAREA') && !value) {
-        isValid = false;
-        missingFields.push(input);
-        input.style.borderColor = 'red';  // Resaltar con borde rojo
-      }
-    });
-
-    // Si hay campos faltantes, mostrar el SweetAlert de error
-    if (!isValid) {
-      Swal.fire({
-        title: '¡Faltan campos por llenar!',
-        text: 'Por favor, completa todos los campos obligatorios.',
-        icon: 'error',
-        confirmButtonText: 'Entendido'
-      });
-    } else {
-      // Si todos los campos están completos, mostrar SweetAlert de confirmación
-      Swal.fire({
-        title: '¿Estás seguro de generar el registro?',
-        text: "¡Este registro será definitivo!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Sí, guardar',
-        cancelButtonText: 'Cancelar',
-        reverseButtons: true
-      }).then((result) => {
-        if (result.isConfirmed) {
-          // Si el usuario confirma, envía el formulario
-          document.getElementById('form-cyc').submit();
-        } else {
-          // Si el usuario cancela, no hace nada
-          Swal.fire('Cancelado', 'No se ha realizado el registro', 'error');
-        }
-      });
-    }
-  });
+ 
 </script>
 
 
