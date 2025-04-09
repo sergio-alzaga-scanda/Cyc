@@ -103,7 +103,7 @@ try {
         }
 
         // Retornar la respuesta en formato JSON
-        echo json_encode($messages);
+        echo json_encode($record);
     }
 } catch (PDOException $e) {
     header('HTTP/1.0 500 Internal Server Error');
