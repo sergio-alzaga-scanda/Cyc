@@ -48,7 +48,7 @@ SELECT
     cyc.fecha_registro_cyc,
     cyc.status_cyc,
     cyc.fecha_programacion,
-    cyc.id_usuario,
+   
     u.nombre_usuario,
     cyc.redaccion_canales,
     cyc.proyecto
@@ -92,7 +92,7 @@ try {
                 "fecha_registro_cyc" => $row['fecha_registro_cyc'],
                 "status_cyc" => $row['status_cyc'],
                 "fecha_programacion" => $row['fecha_programacion'],
-                "id_usuario" => $row['id_usuario'],
+               
                 "nombre_usuario" => $row['nombre_usuario'],
                 "redaccion_canales" => $row['redaccion_canales'],
                 "proyecto" => $row['proyecto']
