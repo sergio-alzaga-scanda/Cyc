@@ -48,7 +48,7 @@ SELECT
         WHEN '1' THEN 'Activo'
         WHEN '0' THEN 'Desactivado'
         ELSE 'Desconocido'
-    END AS tipo_cyc,
+    END AS status_cyc,
    
     cyc.fecha_programacion,
     u.nombre_usuario,
