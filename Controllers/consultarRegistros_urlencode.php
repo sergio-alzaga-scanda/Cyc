@@ -44,7 +44,12 @@ SELECT
     cyc.canal_cyc,
     cyc.bot_cyc,
     cyc.fecha_registro_cyc,
-    cyc.status_cyc,
+    CASE cyc.status_cyc 
+        WHEN 1 THEN 'Activo'
+        WHEN 0 THEN 'Desactivado'
+        ELSE 'Desconocido'
+    END AS tipo_cyc,
+   
     cyc.fecha_programacion,
     u.nombre_usuario,
     cyc.redaccion_canales,
