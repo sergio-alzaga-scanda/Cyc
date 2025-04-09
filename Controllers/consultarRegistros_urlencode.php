@@ -88,7 +88,7 @@ try {
                 "criticidad" => $row['criticidad'],
                 "tipo_cyc" => $row['tipo_cyc'],
                 "ubicacion_cyc" => $row['ubicacion_cyc'],
-                "redaccion_cyc" => $message, // Cambiar el valor de redaccion_cyc
+                "grabacion" => $message, // Cambiar el valor de redaccion_cyc
                 "canal_cyc" => json_decode($row['canal_cyc'], true),  // Asegurar que esté en formato de array
                 "bot_cyc" => json_decode($row['bot_cyc'], true),  // Asegurar que esté en formato de array
                 "fecha_registro_cyc" => $row['fecha_registro_cyc'],
