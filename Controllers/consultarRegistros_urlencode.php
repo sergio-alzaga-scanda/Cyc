@@ -34,8 +34,6 @@ SELECT
     cyc.id_cyc,
     cyc.nombre,
     cyc.no_ticket,
-    cyc.nombre_crisis,
-    cyc.criticidad,
     CASE cyc.tipo_cyc 
         WHEN 1 THEN 'Crisis'
         WHEN 2 THEN 'Contingencia'
@@ -48,12 +46,11 @@ SELECT
     cyc.fecha_registro_cyc,
     cyc.status_cyc,
     cyc.fecha_programacion,
-   
     u.nombre_usuario,
     cyc.redaccion_canales,
     cyc.proyecto
 FROM [contingencias].[dbo].[cyc] AS cyc
-INNER JOIN [usuarios] AS u ON cyc.id_usuario = u.id_usuario
+INNER JOIN [usuarios] AS u ON cyc.id_usuario = u.idUsuarios
 WHERE cyc.proyecto = ? AND cyc.ubicacion_cyc = ?
 AND cyc.status_cyc = 1;
 ";
@@ -82,7 +79,7 @@ try {
                 "id_cyc" => $row['id_cyc'],
                 "nombre" => $row['nombre'],
                 "no_ticket" => $row['no_ticket'],
-                "nombre_crisis" => $row['nombre_crisis'],
+                "nombre_crisis" => $row['nombre'],
                 "criticidad" => $row['criticidad'],
                 "tipo_cyc" => $row['tipo_cyc'],
                 "ubicacion_cyc" => $row['ubicacion_cyc'],
@@ -92,7 +89,6 @@ try {
                 "fecha_registro_cyc" => $row['fecha_registro_cyc'],
                 "status_cyc" => $row['status_cyc'],
                 "fecha_programacion" => $row['fecha_programacion'],
-               
                 "nombre_usuario" => $row['nombre_usuario'],
                 "redaccion_canales" => $row['redaccion_canales'],
                 "proyecto" => $row['proyecto']
