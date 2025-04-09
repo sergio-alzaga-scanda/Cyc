@@ -45,8 +45,8 @@ SELECT
     cyc.bot_cyc,
     cyc.fecha_registro_cyc,
     CASE cyc.status_cyc 
-        WHEN 1 THEN 'Activo'
-        WHEN 0 THEN 'Desactivado'
+        WHEN '1' THEN 'Activo'
+        WHEN '0' THEN 'Desactivado'
         ELSE 'Desconocido'
     END AS tipo_cyc,
    
