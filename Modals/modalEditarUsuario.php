@@ -25,6 +25,9 @@
             <input type="text" name="telefono_usuario" id="edit_telefono_usuario" required class="form-control form-input" placeholder="Teléfono" aria-label="Teléfono">
           </div>
           <div class="mb-3">
+            <input type="text" name="password_usuario" id="password_usuario" required class="form-control form-input" placeholder="password_usuario" aria-label="password_usuario">
+          </div>
+          <div class="mb-3">
     <select class="form-select form-input" required name="perfil_usuario" id="edit_perfil_usuario">
         <option selected disabled class="d-none">Perfil de usuario</option>
         <?php
