@@ -159,7 +159,7 @@ if ($stmt->execute()) {
     <b>
     <br>
     <ul>
-       
+        <?php if ($dashboard == 1) { ?>
             <a href="dashboard.php" style="text-decoration: none; color: inherit;">
                 <li <?php if ($menu === 1) { echo 'class="active"'; } ?> >
                     <img src="../iconos/Vector-2.svg"> &nbsp;&nbsp;
@@ -167,70 +167,70 @@ if ($stmt->execute()) {
                 </li>
             </a>
       
-       
+        <?php } ?>
 
-          
+            <?php if ($CyC == 1) { ?>
                 <a href="cyc.php" style="text-decoration: none; color: inherit;">
                     <li <?php if ($menu === 2) { echo 'class="active"'; } ?> >
                         <img src="../iconos/Vector-3.svg"> &nbsp;&nbsp;
                          CyC's
                      </li>
                 </a>
-           
+            <?php } ?>
 
-           
+            <?php if ($Actividad == 1) { ?>
                 <a href="historico.php" style="text-decoration: none; color: inherit;">
                     <li <?php if ($menu === 3) { echo 'class="active"'; } ?> >
                         <img src="../iconos/entypo_archive.svg"> &nbsp;&nbsp;
                          Histórico
                     </li>
                 </a>
-           
+            <?php } ?>
 
-           
+            <?php if ($Usuarios == 1) { ?>
                 <a href="usuarios.php" style="text-decoration: none; color: inherit;">
                     <li <?php if ($menu === 4) { echo 'class="active"'; } ?> >
                         <img src="../iconos/Vector-4.svg"> &nbsp;&nbsp;
                          Usuarios
                     </li>
                 </a>
-           
+            <?php } ?>
 
-         
+            <?php if ($Perfiles == 1) { ?>
                 <a href="perfiles.php" style="text-decoration: none; color: inherit;">
                     <li <?php if ($menu === 5) { echo 'class="active"'; } ?> >
                         <img src="../iconos/Vector-5.svg"> &nbsp;&nbsp;
          				Perfiles
                     </li>
                 </a>
-            
+            <?php } ?>
 
-           
+            <?php if ($Avisos == 1) { ?>
                 <a href="avisos.php" style="text-decoration: none; color: inherit;">
                     <li <?php if ($menu === 6) { echo 'class="active"'; } ?> >
                        <img src="../iconos/Group.svg"> &nbsp;&nbsp;
                        Avisos
                     </li>
                 </a>
-           
+            <?php } ?>
 
-            
+            <?php if ($Actividad == 1) { ?>
                 <a href="actividad.php" style="text-decoration: none; color: inherit;">
                     <li <?php if ($menu === 7) { echo 'class="active"'; } ?> >
                         <img src="../iconos/Group 7.svg"> &nbsp;&nbsp;
                          <b>Actividad</b>
                     </li>
                 </a>
-           
+            <?php } ?>
 
-            
+            <?php if ($Catalogos) { ?>
                 <a href="catalogos.php" style="text-decoration: none; color: inherit;">
                     <li <?php if ($menu === 8) { echo 'class="active"'; } ?> >
                         <img src="../iconos/catalogos.png"> &nbsp;&nbsp;
                     <b>Catálogos</b>
                     </li>
                 </a>
-            
+            <?php } ?>
 
             <a href="../Controllers/cerrar-sesion.php" style="text-decoration: none; color: inherit;">
                 <li>
