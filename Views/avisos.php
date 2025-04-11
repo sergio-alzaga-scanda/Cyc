@@ -1,8 +1,8 @@
 <?php
-session_start();
-if (!$_SESSION['usuario']) {
-    header("Location: ../index.php"); 
-}
+// session_start();
+// if (!$_SESSION['usuario']) {
+//     header("Location: ../index.php"); 
+// }
 $menu = 6;
 ?>
 <!DOCTYPE html>
