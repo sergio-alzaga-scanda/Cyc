@@ -38,15 +38,15 @@ switch ($accion) {
             // Ejecutar la consulta
             if ($stmt->execute()) {
 
-                // Insertar en la tabla logs 
-                $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-                             VALUES (GETDATE(), :user_id, :name_user, :description)";
-                $stmtLog = $conn->prepare($queryLog);
-                $stmtLog->bindParam(':user_id', $id_usuario);
-                $stmtLog->bindParam(':name_user', $nombre_usuario_login);
-                $descripcion = 'Ha creado un Canal Digital de nombre: ' . $nombre ;
-                $stmtLog->bindParam(':description', $descripcion);
-                $stmtLog->execute();
+                // // Insertar en la tabla logs 
+                // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+                //              VALUES (GETDATE(), :user_id, :name_user, :description)";
+                // $stmtLog = $conn->prepare($queryLog);
+                // $stmtLog->bindParam(':user_id', $id_usuario);
+                // $stmtLog->bindParam(':name_user', $nombre_usuario_login);
+                // $descripcion = 'Ha creado un Canal Digital de nombre: ' . $nombre ;
+                // $stmtLog->bindParam(':description', $descripcion);
+                // $stmtLog->execute();
 
                 echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
                       <script type='text/javascript'>
@@ -144,15 +144,15 @@ switch ($accion) {
             // Ejecutar la actualización
             $stmt->execute();
 
-            // Insertar en la tabla logs 
-            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-                         VALUES (GETDATE(), :user_id, :name_user, :description)";
-            $stmtLog = $conn->prepare($queryLog);
-            $stmtLog->bindParam(':user_id', $id_usuario);
-            $stmtLog->bindParam(':name_user', $nombre_usuario_login);
-            $descripcion = 'Ha editado un Canal Digital de nombre: ' . $nombreCanal . ' ID: ' . $idCanal ;
-            $stmtLog->bindParam(':description', $descripcion);
-            $stmtLog->execute();
+            // // Insertar en la tabla logs 
+            // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+            //              VALUES (GETDATE(), :user_id, :name_user, :description)";
+            // $stmtLog = $conn->prepare($queryLog);
+            // $stmtLog->bindParam(':user_id', $id_usuario);
+            // $stmtLog->bindParam(':name_user', $nombre_usuario_login);
+            // $descripcion = 'Ha editado un Canal Digital de nombre: ' . $nombreCanal . ' ID: ' . $idCanal ;
+            // $stmtLog->bindParam(':description', $descripcion);
+            // $stmtLog->execute();
 
             // Mostrar alerta de éxito
             echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
@@ -199,15 +199,15 @@ switch ($accion) {
                 ':id_canal' => $id_canal
             ]);
 
-            // Insertar en la tabla logs 
-            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-                         VALUES (GETDATE(), :user_id, :name_user, :description)";
-            $stmtLog = $conn->prepare($queryLog);
-            $stmtLog->bindParam(':user_id', $id_usuario);
-            $stmtLog->bindParam(':name_user', $nombre_usuario_login);
-            $descripcion = 'Ha eliminado un Canal Digital con ID: ' . $id_canal ;
-            $stmtLog->bindParam(':description', $descripcion);
-            $stmtLog->execute();
+            // // Insertar en la tabla logs 
+            // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+            //              VALUES (GETDATE(), :user_id, :name_user, :description)";
+            // $stmtLog = $conn->prepare($queryLog);
+            // $stmtLog->bindParam(':user_id', $id_usuario);
+            // $stmtLog->bindParam(':name_user', $nombre_usuario_login);
+            // $descripcion = 'Ha eliminado un Canal Digital con ID: ' . $id_canal ;
+            // $stmtLog->bindParam(':description', $descripcion);
+            // $stmtLog->execute();
 
             echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
                   <script type='text/javascript'>

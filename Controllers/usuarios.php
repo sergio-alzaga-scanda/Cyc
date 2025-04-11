@@ -233,15 +233,15 @@ case 3:
         // Ejecutar la actualización
         $stmt->execute();
 
-        // Insertar en la tabla logs 
-        $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-                     VALUES (GETDATE(), :user_id, :name_user, :description)";
-        $stmtLog = $conn->prepare($queryLog);
-        $stmtLog->bindParam(':user_id', $id_usuario);
-        $stmtLog->bindParam(':name_user', $nombre_usuario_login);
-        $descripcion = 'Ha editado al usuario: ' . $nombreUsuario . ' con correo: ' . $correoUsuario . ' ID: ' . $idUsuario ;
-        $stmtLog->bindParam(':description', $descripcion);
-        $stmtLog->execute();
+        // // Insertar en la tabla logs 
+        // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+        //              VALUES (GETDATE(), :user_id, :name_user, :description)";
+        // $stmtLog = $conn->prepare($queryLog);
+        // $stmtLog->bindParam(':user_id', $id_usuario);
+        // $stmtLog->bindParam(':name_user', $nombre_usuario_login);
+        // $descripcion = 'Ha editado al usuario: ' . $nombreUsuario . ' con correo: ' . $correoUsuario . ' ID: ' . $idUsuario ;
+        // $stmtLog->bindParam(':description', $descripcion);
+        // $stmtLog->execute();
 
         // Mostrar alerta de éxito
         echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
@@ -297,15 +297,15 @@ case 3:
                 if ($stmtGetPass->execute()) {
                     $stmtGetData = $stmtGetPass->fetch(PDO::FETCH_ASSOC);
 
-                    // Insertar en la tabla logs 
-                    $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-                                 VALUES (GETDATE(), :user_id, :name_user, :description)";
-                    $stmtLog = $conn->prepare($queryLog);
-                    $stmtLog->bindParam(':user_id', $id_usuario);
-                    $stmtLog->bindParam(':name_user', $nombre_usuario_login);
-                    $descripcion = 'Eliminò el usuario ' . $stmtGetData['nombre_usuario'] . ' con correo: ' .  $stmtGetData['correo_usuario'] . ' ID: ' . $stmtGetData['idUsuarios'] ;
-                    $stmtLog->bindParam(':description', $descripcion);
-                    $stmtLog->execute();
+                    // // Insertar en la tabla logs 
+                    // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+                    //              VALUES (GETDATE(), :user_id, :name_user, :description)";
+                    // $stmtLog = $conn->prepare($queryLog);
+                    // $stmtLog->bindParam(':user_id', $id_usuario);
+                    // $stmtLog->bindParam(':name_user', $nombre_usuario_login);
+                    // $descripcion = 'Eliminò el usuario ' . $stmtGetData['nombre_usuario'] . ' con correo: ' .  $stmtGetData['correo_usuario'] . ' ID: ' . $stmtGetData['idUsuarios'] ;
+                    // $stmtLog->bindParam(':description', $descripcion);
+                    // $stmtLog->execute();
                 }
 
                 echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>

@@ -37,15 +37,15 @@ switch ($accion) {
             // Ejecutar la consulta
             if ($stmt->execute()) {
 
-                // Insertar en la tabla logs 
-                $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-                             VALUES (GETDATE(), :user_id, :name_user, :description)";
-                $stmtLog = $conn->prepare($queryLog);
-                $stmtLog->bindParam(':user_id', $id_usuario);
-                $stmtLog->bindParam(':name_user', $nombre_usuario_login);
-                $descripcion = 'Ha creado un Bot de nombre: ' . $nombre ;
-                $stmtLog->bindParam(':description', $descripcion);
-                $stmtLog->execute();
+                // // Insertar en la tabla logs 
+                // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+                //              VALUES (GETDATE(), :user_id, :name_user, :description)";
+                // $stmtLog = $conn->prepare($queryLog);
+                // $stmtLog->bindParam(':user_id', $id_usuario);
+                // $stmtLog->bindParam(':name_user', $nombre_usuario_login);
+                // $descripcion = 'Ha creado un Bot de nombre: ' . $nombre ;
+                // $stmtLog->bindParam(':description', $descripcion);
+                // $stmtLog->execute();
 
                 echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
                       <script type='text/javascript'>
@@ -141,15 +141,15 @@ switch ($accion) {
             // Ejecutar la actualización
             $stmt->execute();
 
-            // Insertar en la tabla logs 
-            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-                         VALUES (GETDATE(), :user_id, :name_user, :description)";
-            $stmtLog = $conn->prepare($queryLog);
-            $stmtLog->bindParam(':user_id', $id_usuario);
-            $stmtLog->bindParam(':name_user', $nombre_usuario_login);
-            $descripcion = 'Ha editado un Bot de nombre: ' . $nombreBot . ' ID: ' . $idBot ;
-            $stmtLog->bindParam(':description', $descripcion);
-            $stmtLog->execute();
+            // // Insertar en la tabla logs 
+            // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+            //              VALUES (GETDATE(), :user_id, :name_user, :description)";
+            // $stmtLog = $conn->prepare($queryLog);
+            // $stmtLog->bindParam(':user_id', $id_usuario);
+            // $stmtLog->bindParam(':name_user', $nombre_usuario_login);
+            // $descripcion = 'Ha editado un Bot de nombre: ' . $nombreBot . ' ID: ' . $idBot ;
+            // $stmtLog->bindParam(':description', $descripcion);
+            // $stmtLog->execute();
 
             // Mostrar alerta de éxito
             echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
@@ -196,15 +196,15 @@ switch ($accion) {
                 ':id_bot' => $id_bot
             ]);
 
-            // Insertar en la tabla logs 
-            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-                         VALUES (GETDATE(), :user_id, :name_user, :description)";
-            $stmtLog = $conn->prepare($queryLog);
-            $stmtLog->bindParam(':user_id', $id_usuario);
-            $stmtLog->bindParam(':name_user', $nombre_usuario_login);
-            $descripcion = 'Ha elimiado un Bot con ID: ' . $id_bot ;
-            $stmtLog->bindParam(':description', $descripcion);
-            $stmtLog->execute();
+            // // Insertar en la tabla logs 
+            // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+            //              VALUES (GETDATE(), :user_id, :name_user, :description)";
+            // $stmtLog = $conn->prepare($queryLog);
+            // $stmtLog->bindParam(':user_id', $id_usuario);
+            // $stmtLog->bindParam(':name_user', $nombre_usuario_login);
+            // $descripcion = 'Ha elimiado un Bot con ID: ' . $id_bot ;
+            // $stmtLog->bindParam(':description', $descripcion);
+            // $stmtLog->execute();
 
             echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
                   <script type='text/javascript'>

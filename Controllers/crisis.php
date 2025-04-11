@@ -156,15 +156,15 @@ switch ($accion) {
                                 }
                               </script>";
 
-                        // Insertar en la tabla logs 
-                        $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-                                     VALUES (GETDATE(), :user_id, :name_user, :description)";
-                        $stmtLog = $conn->prepare($queryLog);
-                        $stmtLog->bindParam(':user_id', $id_usuario);
-                        $stmtLog->bindParam(':name_user', $nombre_usuario);
-                        $descripcion = 'El ticket se ha registrado correctamente, numero de ticket: ' . $no_ticket ;
-                        $stmtLog->bindParam(':description', $descripcion);
-                        $stmtLog->execute();
+                        // // Insertar en la tabla logs 
+                        // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+                        //              VALUES (GETDATE(), :user_id, :name_user, :description)";
+                        // $stmtLog = $conn->prepare($queryLog);
+                        // $stmtLog->bindParam(':user_id', $id_usuario);
+                        // $stmtLog->bindParam(':name_user', $nombre_usuario);
+                        // $descripcion = 'El ticket se ha registrado correctamente, numero de ticket: ' . $no_ticket ;
+                        // $stmtLog->bindParam(':description', $descripcion);
+                        // $stmtLog->execute();
 
 
                     } else {
@@ -325,15 +325,15 @@ case 2:
                 if ($crisisDetails->execute()) {
                     $crisisData = $crisisDetails->fetch(PDO::FETCH_ASSOC);
 
-                    // Insertar en la tabla logs 
-                    $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-                                 VALUES (GETDATE(), :user_id, :name_user, :description)";
-                    $stmtLog = $conn->prepare($queryLog);
-                    $stmtLog->bindParam(':user_id', $id_usuario);
-                    $stmtLog->bindParam(':name_user', $nombre_usuario);
-                    $descripcion = 'Eliminò el número de ticket: ' . $crisisData['no_ticket'] ;
-                    $stmtLog->bindParam(':description', $descripcion);
-                    $stmtLog->execute();
+                    // // Insertar en la tabla logs 
+                    // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+                    //              VALUES (GETDATE(), :user_id, :name_user, :description)";
+                    // $stmtLog = $conn->prepare($queryLog);
+                    // $stmtLog->bindParam(':user_id', $id_usuario);
+                    // $stmtLog->bindParam(':name_user', $nombre_usuario);
+                    // $descripcion = 'Eliminò el número de ticket: ' . $crisisData['no_ticket'] ;
+                    // $stmtLog->bindParam(':description', $descripcion);
+                    // $stmtLog->execute();
                 }
 
                 echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
@@ -414,15 +414,15 @@ case 2:
                     ':id_cyc'             => $id_cyc
                 ]);
 
-                // Insertar en la tabla logs 
-                $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-                             VALUES (GETDATE(), :user_id, :name_user, :description)";
-                $stmtLog = $conn->prepare($queryLog);
-                $stmtLog->bindParam(':user_id', $id_usuario);
-                $stmtLog->bindParam(':name_user', $nombre_usuario);
-                $descripcion = 'El registro se editó correctamente, numero de ticket: ' . $no_ticket ;
-                $stmtLog->bindParam(':description', $descripcion);
-                $stmtLog->execute();
+                // // Insertar en la tabla logs 
+                // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+                //              VALUES (GETDATE(), :user_id, :name_user, :description)";
+                // $stmtLog = $conn->prepare($queryLog);
+                // $stmtLog->bindParam(':user_id', $id_usuario);
+                // $stmtLog->bindParam(':name_user', $nombre_usuario);
+                // $descripcion = 'El registro se editó correctamente, numero de ticket: ' . $no_ticket ;
+                // $stmtLog->bindParam(':description', $descripcion);
+                // $stmtLog->execute();
 
                 echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
                               <script type='text/javascript'>
@@ -487,15 +487,15 @@ case 2:
                     if ($crisisDetails->execute()) {
                         $crisisData = $crisisDetails->fetch(PDO::FETCH_ASSOC);
 
-                        // Insertar en la tabla logs 
-                        $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-                                     VALUES (GETDATE(), :user_id, :name_user, :description)";
-                        $stmtLog = $conn->prepare($queryLog);
-                        $stmtLog->bindParam(':user_id', $id_usuario);
-                        $stmtLog->bindParam(':name_user', $nombre_usuario);
-                        $descripcion = 'Desactivo la grabación con número de ticket: ' . $crisisData['no_ticket'] ;
-                        $stmtLog->bindParam(':description', $descripcion);
-                        $stmtLog->execute();
+                        // // Insertar en la tabla logs 
+                        // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+                        //              VALUES (GETDATE(), :user_id, :name_user, :description)";
+                        // $stmtLog = $conn->prepare($queryLog);
+                        // $stmtLog->bindParam(':user_id', $id_usuario);
+                        // $stmtLog->bindParam(':name_user', $nombre_usuario);
+                        // $descripcion = 'Desactivo la grabación con número de ticket: ' . $crisisData['no_ticket'] ;
+                        // $stmtLog->bindParam(':description', $descripcion);
+                        // $stmtLog->execute();
                     }
 
                    echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
@@ -529,15 +529,15 @@ case 2:
                 if ($crisisDetails->execute()) {
                     $crisisData = $crisisDetails->fetch(PDO::FETCH_ASSOC);
 
-                    // Insertar en la tabla logs 
-                    $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-                                 VALUES (GETDATE(), :user_id, :name_user, :description)";
-                    $stmtLog = $conn->prepare($queryLog);
-                    $stmtLog->bindParam(':user_id', $id_usuario);
-                    $stmtLog->bindParam(':name_user', $nombre_usuario);
-                    $descripcion = 'Activó la grabación con número de ticket: ' . $crisisData['no_ticket'] ;
-                    $stmtLog->bindParam(':description', $descripcion);
-                    $stmtLog->execute();
+                    // // Insertar en la tabla logs 
+                    // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
+                    //              VALUES (GETDATE(), :user_id, :name_user, :description)";
+                    // $stmtLog = $conn->prepare($queryLog);
+                    // $stmtLog->bindParam(':user_id', $id_usuario);
+                    // $stmtLog->bindParam(':name_user', $nombre_usuario);
+                    // $descripcion = 'Activó la grabación con número de ticket: ' . $crisisData['no_ticket'] ;
+                    // $stmtLog->bindParam(':description', $descripcion);
+                    // $stmtLog->execute();
                 }
 
                  echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
