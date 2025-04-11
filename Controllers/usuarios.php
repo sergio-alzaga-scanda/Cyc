@@ -45,7 +45,7 @@ switch ($accion) {
             ) VALUES (
                 :nombre_usuario, 
                 :correo_usuario, 
-                'contra12345'
+                'pass'
                 :puesto_usuario, 
                 :telefono_usuario, 
                 :perfil_usuario, 
@@ -59,7 +59,7 @@ switch ($accion) {
             // Enlazar los parámetros
             $stmt->bindParam(':nombre_usuario', $nombre_usuario);
             $stmt->bindParam(':correo_usuario', $correo_usuario);
-
+            $stmt->bindParam(':pass', 'contra12345');
             $stmt->bindParam(':puesto_usuario', $puesto_usuario);
             $stmt->bindParam(':telefono_usuario', $telefono_usuario);
             $stmt->bindParam(':perfil_usuario', $perfil_usuario);
