@@ -215,8 +215,8 @@ case 3:
                 puesto_usuario   = :puesto_usuario,
                 telefono_usuario = :telefono_usuario,
                 perfil_usuario   = :perfil_usuario,
-                status           = :status,
-                pass = :pass
+                status           = :status
+               
             WHERE idUsuarios = :idUsuario;
         ";
 
