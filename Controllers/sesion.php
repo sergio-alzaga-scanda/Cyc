@@ -40,7 +40,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['nombre_usuario'] = $nombre_usuario;
 
         // // Insertar registro en la tabla logs
-        // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description)
+        // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
         //              VALUES (GETDATE(), :user_id, :name_user, :description)";
         // $stmtLog = $conn->prepare($queryLog);
         // $descripcion = 'Inicio sesión';
@@ -52,7 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
 
-        header("Location: ../Views/inicio.php.php");
+        header("Location: ../Views/dashboard.php");
 		exit();
     } else {
         // Si los datos son incorrectos, mostrar mensaje de error y regresar al login
