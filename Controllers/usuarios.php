@@ -19,18 +19,17 @@ $accion = $_POST['accion'] ?? $_GET['accion'] ?? null;
 
 switch ($accion) {
     case 1:
-        
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Recibir datos del formulario
             $nombre_usuario   = $_POST['nombre_usuario'];
             $correo_usuario   = $_POST['correo_usuario'];
-            $pass = 'contra12345';
+            $pass             = 'contra12345'; // contraseña por defecto
             $puesto_usuario   = $_POST['puesto_usuario'];
             $telefono_usuario = $_POST['telefono_usuario'];
             $perfil_usuario   = $_POST['perfil_usuario'];
             $status           = $_POST['status'];
             $fecha_creacion   = $_POST['fecha_creacion'];
-
+    
             // Preparar la consulta de inserción
             $query = "
             INSERT INTO [contingencias].[dbo].[usuarios] (
@@ -41,21 +40,18 @@ switch ($accion) {
                 [telefono_usuario], 
                 [perfil_usuario], 
                 [status]
-                
             ) VALUES (
                 :nombre_usuario, 
                 :correo_usuario, 
-                'pass'
+                :pass,
                 :puesto_usuario, 
                 :telefono_usuario, 
                 :perfil_usuario, 
                 :status
-               
             )";
-
-            // Preparar la sentencia SQL
+    
             $stmt = $conn->prepare($query);
-
+    
             // Enlazar los parámetros
             $stmt->bindParam(':nombre_usuario', $nombre_usuario);
             $stmt->bindParam(':correo_usuario', $correo_usuario);
@@ -65,38 +61,42 @@ switch ($accion) {
             $stmt->bindParam(':perfil_usuario', $perfil_usuario);
             $stmt->bindParam(':status', $status);
     
-
-            // Ejecutar la consulta
             if ($stmt->execute()) {
-
-                // Insertar en la tabla logs 
+                // Obtener el ID del último usuario insertado
+                $id_usuario = $conn->lastInsertId();
+    
+                // Asumimos que tienes la variable $nombre_usuario_login desde sesión u otro lado
+                $nombre_usuario_login = $_SESSION['nombre_usuario'] ?? 'Admin';
+    
+                $descripcion = 'Ha registrado al usuario: ' . $nombre_usuario . ' con correo: ' . $correo_usuario;
+    
                 $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
                              VALUES (GETDATE(), :user_id, :name_user, :description)";
                 $stmtLog = $conn->prepare($queryLog);
                 $stmtLog->bindParam(':user_id', $id_usuario);
                 $stmtLog->bindParam(':name_user', $nombre_usuario_login);
-                $descripcion = 'Ha registrado al usuario: ' . $nombre_usuario . ' con correo: ' . $correo_usuario ;
                 $stmtLog->bindParam(':description', $descripcion);
                 $stmtLog->execute();
-
+    
                 echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                                      <script type='text/javascript'>
-                                        window.onload = function() {
-                                            Swal.fire({
-                                                title: 'Éxito',
-                                                text: 'El usuario se ha registrado correctamente.',
-                                                icon: 'success',
-                                                confirmButtonText: 'Aceptar'
-                                            }).then(function() {
-                                                window.location.href = '../Views/usuarios.php'; // 
-                                            });
-                                        }
-                                      </script>";
-    } else {
-        echo "Error al crear el usuario";
-    }
-}
-break;
+                      <script type='text/javascript'>
+                        window.onload = function() {
+                            Swal.fire({
+                                title: 'Éxito',
+                                text: 'El usuario se ha registrado correctamente.',
+                                icon: 'success',
+                                confirmButtonText: 'Aceptar'
+                            }).then(function() {
+                                window.location.href = '../Views/usuarios.php';
+                            });
+                        }
+                      </script>";
+            } else {
+                echo "Error al crear el usuario";
+            }
+        }
+        break;
+    
     
     case 2:
     $DtosTbl = array();
