@@ -36,7 +36,7 @@ switch ($accion) {
             INSERT INTO [contingencias].[dbo].[usuarios] (
                 [nombre_usuario], 
                 [correo_usuario], 
-                
+                [pass], 
                 [puesto_usuario], 
                 [telefono_usuario], 
                 [perfil_usuario], 
@@ -45,7 +45,7 @@ switch ($accion) {
             ) VALUES (
                 :nombre_usuario, 
                 :correo_usuario, 
-                
+                'contra12345'
                 :puesto_usuario, 
                 :telefono_usuario, 
                 :perfil_usuario, 
@@ -215,8 +215,8 @@ case 3:
                 puesto_usuario   = :puesto_usuario,
                 telefono_usuario = :telefono_usuario,
                 perfil_usuario   = :perfil_usuario,
-                status           = :status
-               
+                status           = :status,
+                pass = :pass
             WHERE idUsuarios = :idUsuario;
         ";
 
