@@ -24,7 +24,7 @@ switch ($accion) {
             // Recibir datos del formulario
             $nombre_usuario   = $_POST['nombre_usuario'];
             $correo_usuario   = $_POST['correo_usuario'];
-            
+            $pass = 'contra12345';
             $puesto_usuario   = $_POST['puesto_usuario'];
             $telefono_usuario = $_POST['telefono_usuario'];
             $perfil_usuario   = $_POST['perfil_usuario'];
@@ -59,7 +59,7 @@ switch ($accion) {
             // Enlazar los parámetros
             $stmt->bindParam(':nombre_usuario', $nombre_usuario);
             $stmt->bindParam(':correo_usuario', $correo_usuario);
-            $stmt->bindParam(':pass', 'contra12345');
+            $stmt->bindParam(':pass', $pass);
             $stmt->bindParam(':puesto_usuario', $puesto_usuario);
             $stmt->bindParam(':telefono_usuario', $telefono_usuario);
             $stmt->bindParam(':perfil_usuario', $perfil_usuario);
