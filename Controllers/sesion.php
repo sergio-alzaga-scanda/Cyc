@@ -39,20 +39,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['usuario']        = $id_usuario;
         $_SESSION['nombre_usuario'] = $nombre_usuario;
 
-        // Insertar registro en la tabla logs
-        $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-                     VALUES (GETDATE(), :user_id, :name_user, :description)";
-        $stmtLog = $conn->prepare($queryLog);
-        $descripcion = 'Inicio sesión';
+        // // Insertar registro en la tabla logs
+        // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description)
+        //              VALUES (GETDATE(), :user_id, :name_user, :description)";
+        // $stmtLog = $conn->prepare($queryLog);
+        // $descripcion = 'Inicio sesión';
 
-        $stmtLog->bindParam(':user_id', $id_usuario, PDO::PARAM_INT);
-        $stmtLog->bindParam(':name_user', $nombre_usuario, PDO::PARAM_STR);
-        $stmtLog->bindParam(':description', $descripcion, PDO::PARAM_STR);
-        $stmtLog->execute();
+        // $stmtLog->bindParam(':user_id', $id_usuario, PDO::PARAM_INT);
+        // $stmtLog->bindParam(':name_user', $nombre_usuario, PDO::PARAM_STR);
+        // $stmtLog->bindParam(':description', $descripcion, PDO::PARAM_STR);
+        // $stmtLog->execute();
 
 
 
-        header("Location: ../Views/dashboard.php");
+        header("Location: ../Views/inicio.php.php");
 		exit();
     } else {
         // Si los datos son incorrectos, mostrar mensaje de error y regresar al login
