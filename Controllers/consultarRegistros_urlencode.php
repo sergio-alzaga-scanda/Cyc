@@ -59,11 +59,10 @@ SELECT
     cyc.proyecto
 FROM `cyc` AS cyc
 INNER JOIN `usuarios` AS u ON cyc.id_usuario = u.idUsuarios
-WHERE cyc.proyecto = ? AND cyc.ubicacion_cyc = ? AND cyc.status_cyc = 1
+WHERE cyc.proyecto = 2 AND cyc.ubicacion_cyc = 2 AND cyc.status_cyc = 1
 ";
 
 if ($stmt = $conn->prepare($sql)) {
-    $stmt->bind_param('ii', $proyecto, $ubicacion);
     $stmt->execute();
     $result = $stmt->get_result();
 
