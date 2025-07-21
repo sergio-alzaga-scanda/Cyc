@@ -19,11 +19,13 @@ if (!isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) ||
 }
 
 // Validar parámetros
-if (!isset($_GET['proyecto']) || !is_numeric($_GET['proyecto'])) {
-    header('HTTP/1.0 400 Bad Request');
-    echo json_encode(["error" => "El parámetro 'proyecto' es obligatorio y debe ser un número."]);
-    exit;
-}
+// if (!isset($_GET['proyecto']) || !is_numeric($_GET['proyecto'])) {
+//     header('HTTP/1.0 400 Bad Request');
+//     echo json_encode(["error" => "El parámetro 'proyecto' es obligatorio y debe ser un número."]);
+//     exit;
+// }
+
+$proyecto = 2;
 
 if (!isset($_GET['ubicacion']) || !is_numeric($_GET['ubicacion'])) {
     header('HTTP/1.0 400 Bad Request');
@@ -84,7 +86,7 @@ echo "proyecto". $proyecto;
 echo "ubicacion". $ubicacion;
 while ($row = $result->fetch_assoc()) {
     $message = "{$row['tipo_cyc']} Registrada {$row['redaccion_cyc']} {$row['nombre']} con el número de ticket {$row['no_ticket']}";
-    $records[] = ["message" => $message];
+    $records[] = ["message" => $message, "status_cyc" => $row['status_cyc'], "id_cyc" => $row['id_cyc'], "ubicacion_cyc" => $row['ubicacion_cyc']];
 }
 
 echo json_encode($records);
