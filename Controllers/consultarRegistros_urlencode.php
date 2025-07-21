@@ -17,21 +17,21 @@ if (!isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) ||
     exit;
 }
 
-// Validar parámetros en POST (form-urlencoded)
-if (!isset($_POST['proyecto']) || !is_numeric($_POST['proyecto'])) {
+if (!isset($_GET['proyecto']) || !is_numeric($_GET['proyecto'])) {
     header('HTTP/1.0 400 Bad Request');
     echo json_encode(["error" => "El parámetro 'proyecto' es obligatorio y debe ser un número."]);
     exit;
 }
 
-if (!isset($_POST['ubicacion']) || !is_numeric($_POST['ubicacion'])) {
+if (!isset($_GET['ubicacion']) || !is_numeric($_GET['ubicacion'])) {
     header('HTTP/1.0 400 Bad Request');
     echo json_encode(["error" => "El parámetro 'ubicacion' es obligatorio y debe ser un número."]);
     exit;
 }
 
-$proyecto = intval($_POST['proyecto']);
-$ubicacion = intval($_POST['ubicacion']);
+$proyecto = intval($_GET['proyecto']);
+$ubicacion = intval($_GET['ubicacion']);
+
 
 // Cambié la consulta para usar placeholders y bind_param para evitar inyección SQL
 $sql = "
