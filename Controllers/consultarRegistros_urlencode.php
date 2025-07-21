@@ -99,7 +99,7 @@ if ($stmt = $conn->prepare($sql)) {
         $messages[] = $record;
     }
 
-    echo json_encode($record);
+    echo $record;
 
     $stmt->close();
 } else {
