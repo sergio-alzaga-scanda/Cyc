@@ -17,22 +17,23 @@ if (!isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) ||
     exit;
 }
 
-// Validar parámetros
-if (!isset($_GET['proyecto']) || !is_numeric($_GET['proyecto'])) {
+// Validar parámetros en POST (form-urlencoded)
+if (!isset($_POST['proyecto']) || !is_numeric($_POST['proyecto'])) {
     header('HTTP/1.0 400 Bad Request');
     echo json_encode(["error" => "El parámetro 'proyecto' es obligatorio y debe ser un número."]);
     exit;
 }
 
-if (!isset($_GET['ubicacion']) || !is_numeric($_GET['ubicacion'])) {
+if (!isset($_POST['ubicacion']) || !is_numeric($_POST['ubicacion'])) {
     header('HTTP/1.0 400 Bad Request');
     echo json_encode(["error" => "El parámetro 'ubicacion' es obligatorio y debe ser un número."]);
     exit;
 }
 
-$proyecto = intval($_GET['proyecto']);
-$ubicacion = intval($_GET['ubicacion']);
+$proyecto = intval($_POST['proyecto']);
+$ubicacion = intval($_POST['ubicacion']);
 
+// Cambié la consulta para usar placeholders y bind_param para evitar inyección SQL
 $sql = "
 SELECT
     cyc.id_cyc,
@@ -59,10 +60,11 @@ SELECT
     cyc.proyecto
 FROM `cyc` AS cyc
 INNER JOIN `usuarios` AS u ON cyc.id_usuario = u.idUsuarios
-WHERE cyc.proyecto = 2 AND cyc.ubicacion_cyc = 2 AND cyc.status_cyc = 1
+WHERE cyc.proyecto = ? AND cyc.ubicacion_cyc = ? AND cyc.status_cyc = 1
 ";
 
 if ($stmt = $conn->prepare($sql)) {
+    $stmt->bind_param('ii', $proyecto, $ubicacion);
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -83,7 +85,6 @@ if ($stmt = $conn->prepare($sql)) {
             "nombre" => $row['nombre'],
             "no_ticket" => $row['no_ticket'],
             "nombre_crisis" => $row['nombre'],
-            //"criticidad" => $row['criticidad'], // Asegúrate que exista
             "tipo_cyc" => $row['tipo_cyc'],
             "ubicacion_cyc" => $row['ubicacion_cyc'],
             "grabacion" => $message,
@@ -99,7 +100,8 @@ if ($stmt = $conn->prepare($sql)) {
         $messages[] = $record;
     }
 
-    echo json_encode($record);
+    // Enviar toda la respuesta con todos los registros
+    echo json_encode($messages);
 
     $stmt->close();
 } else {
