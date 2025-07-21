@@ -1,27 +1,30 @@
 <?php
-// Encabezados
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
 
-// Verificar método
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+$method = $_SERVER['REQUEST_METHOD'];
+
+// Obtener parámetros según método
+if ($method === 'GET') {
+    $proyecto = $_GET['proyecto'] ?? null;
+    $ubicacion = $_GET['ubicacion'] ?? null;
+} elseif ($method === 'POST') {
+    $proyecto = $_POST['proyecto'] ?? null;
+    $ubicacion = $_POST['ubicacion'] ?? null;
+} else {
     http_response_code(405);
-    echo json_encode(["error" => "Método no permitido. Solo se permite GET."]);
+    echo json_encode(["error" => "Método no permitido. Solo GET y POST aceptados."]);
     exit();
 }
 
 // Validar parámetros
-if (!isset($_GET['proyecto']) || !isset($_GET['ubicacion'])) {
+if (!$proyecto || !$ubicacion) {
     http_response_code(400);
     echo json_encode(["error" => "Faltan parámetros. Se requieren 'proyecto' y 'ubicacion'."]);
     exit();
 }
 
-// Obtener parámetros
-$proyecto = $_GET['proyecto'];
-$ubicacion = $_GET['ubicacion'];
-
-// Credenciales de conexión
+// Datos conexión
 $servername = "localhost";
 $port       = 3306;
 $username   = "root";
@@ -33,7 +36,6 @@ try {
     $pdo = new PDO($dsn, $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // Consulta preparada
     $stmt = $pdo->prepare("
         SELECT
             cyc.id_cyc,
