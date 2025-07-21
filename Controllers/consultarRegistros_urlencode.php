@@ -69,7 +69,7 @@ try {
     if ($row) {
         // Respuesta formateada según lo que necesitas
         $response = [
-            "message" => "{$row['tipo_cyc']} Registrada {$row['redaccion_cyc']} {$row['nombre']} con el número de ticket {$row['no_ticket']}",
+            "grabacion" => "{$row['tipo_cyc']} Registrada {$row['redaccion_cyc']} {$row['nombre']} con el número de ticket {$row['no_ticket']}",
             "status_cyc" => $row['status_cyc']
         ];
         echo json_encode($response);
