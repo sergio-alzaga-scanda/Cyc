@@ -1,37 +1,31 @@
 <?php
-header('Content-Type: application/json');
+// Establecer encabezados para permitir acceso cruzado y respuesta en JSON
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
 
-// Detectar método de solicitud
-$method = $_SERVER['REQUEST_METHOD'];
-error_log('Método usado: ' . $method);
-
-// Inicializar variables
-$proyecto = null;
-$ubicacion = null;
-
-if ($method === 'GET') {
-    // Obtener parámetros de la URL
-    $proyecto = $_GET['proyecto'] ?? null;
-    $ubicacion = $_GET['ubicacion'] ?? null;
-
-    error_log("GET - proyecto: [$proyecto], ubicacion: [$ubicacion]");
-} elseif ($method === 'POST') {
-    // Obtener parámetros del cuerpo de la solicitud
-    $proyecto = $_POST['proyecto'] ?? null;
-    $ubicacion = $_POST['ubicacion'] ?? null;
-
-    error_log("POST - proyecto: [$proyecto], ubicacion: [$ubicacion]");
-} else {
-    // Método no permitido
-    http_response_code(405);
-    echo json_encode(['error' => 'Método no permitido. Usa GET o POST.']);
-    exit;
+// Validar que el método sea GET
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    http_response_code(405); // Método no permitido
+    echo json_encode(["error" => "Método no permitido. Solo se permite GET."]);
+    exit();
 }
 
-// Devolver respuesta JSON
-echo json_encode([
-    'proyecto' => $proyecto,
-    'ubicacion' => $ubicacion
-]);
-exit;
-?>
+// Verificar que se recibieron los parámetros necesarios
+if (!isset($_GET['proyecto']) || !isset($_GET['ubicacion'])) {
+    http_response_code(400); // Solicitud incorrecta
+    echo json_encode(["error" => "Faltan parámetros. Se requieren 'proyecto' y 'ubicacion'."]);
+    exit();
+}
+
+// Obtener los parámetros desde la URL
+$proyecto = $_GET['proyecto'];
+$ubicacion = $_GET['ubicacion'];
+
+// Preparar y enviar la respuesta
+$response = [
+    "proyecto" => $proyecto,
+    "ubicacion" => $ubicacion,
+    "mensaje" => "Datos recibidos correctamente"
+];
+
+echo json_encode($response);
