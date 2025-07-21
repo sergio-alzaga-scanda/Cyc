@@ -72,7 +72,7 @@ try {
             "grabacion" => "{$row['tipo_cyc']} Registrada {$row['redaccion_cyc']} {$row['nombre']} con el número de ticket {$row['no_ticket']}",
             "status_cyc" => $row['status_cyc']
         ];
-        echo json_encode($response);
+        echo ($mensaje);
     } else {
         http_response_code(404);
         echo json_encode(["error" => "No records found for the given proyecto and ubicacion."]);
