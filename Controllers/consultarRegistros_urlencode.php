@@ -79,7 +79,7 @@ try {
         ];
     }
 
-    echo json_encode($response);
+    echo $response;
 
 } catch (PDOException $e) {
     http_response_code(500);
