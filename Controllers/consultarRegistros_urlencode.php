@@ -8,13 +8,23 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-// Leer parámetros de POST
-$proyecto = $_POST['proyecto'] ?? null;
-$ubicacion = $_POST['ubicacion'] ?? null;
+// Leer cuerpo raw JSON
+$inputJSON = file_get_contents('php://input');
+$data = json_decode($inputJSON, true);
 
-if (!$proyecto || !$ubicacion) {
-    http_response_code(400); // Bad Request
-    echo json_encode(["error" => "Missing required parameters: 'proyecto' and 'ubicacion'."]);
+if (!is_array($data)) {
+    http_response_code(400);
+    echo json_encode(["error" => "Invalid JSON body"]);
+    exit();
+}
+
+// Validar parámetros
+$proyecto = $data['proyecto'] ?? null;
+$ubicacion = $data['ubicacion'] ?? null;
+
+if ($proyecto === null || $ubicacion === null) {
+    http_response_code(400);
+    echo json_encode(["error" => "Missing required fields: 'proyecto' and 'ubicacion'."]);
     exit();
 }
 
@@ -67,9 +77,8 @@ try {
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($row) {
-        // Respuesta formateada según lo que necesitas
         $response = [
-            "grabacion" => "{$row['tipo_cyc']} Registrada {$row['redaccion_cyc']} {$row['nombre']} con el número de ticket {$row['no_ticket']}",
+            "message" => "{$row['tipo_cyc']} Registrada {$row['redaccion_cyc']} {$row['nombre']} con el número de ticket {$row['no_ticket']}",
             "status_cyc" => $row['status_cyc']
         ];
         echo json_encode($response);
