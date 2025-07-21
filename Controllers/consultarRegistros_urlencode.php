@@ -26,12 +26,13 @@ if (!isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) ||
 // }
 
 $proyecto = 2;
+$ubicacion = 2;
 
-if (!isset($_GET['ubicacion']) || !is_numeric($_GET['ubicacion'])) {
-    header('HTTP/1.0 400 Bad Request');
-    echo json_encode(["error" => "El parámetro 'ubicacion' es obligatorio y debe ser un número."]);
-    exit;
-}
+// if (!isset($_GET['ubicacion']) || !is_numeric($_GET['ubicacion'])) {
+//     header('HTTP/1.0 400 Bad Request');
+//     echo json_encode(["error" => "El parámetro 'ubicacion' es obligatorio y debe ser un número."]);
+//     exit;
+// }
 
 $proyecto = intval($_GET['proyecto']);
 $ubicacion = intval($_GET['ubicacion']);
