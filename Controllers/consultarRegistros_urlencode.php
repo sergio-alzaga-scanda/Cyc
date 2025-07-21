@@ -8,11 +8,22 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-// Leer parámetros enviados por Five9 Query Module
-$proyecto = $_POST['proyecto'] ?? null;
-$ubicacion = $_POST['ubicacion'] ?? null;
+// Leer el cuerpo crudo y decodificar JSON
+$rawData = file_get_contents("php://input");
+$data = json_decode($rawData, true);
 
-// Validar parametros
+// Validar que se haya recibido JSON válido
+if (!is_array($data)) {
+    http_response_code(400);
+    echo json_encode(["error" => "Invalid JSON"]);
+    exit();
+}
+
+// Obtener parámetros desde el JSON
+$proyecto = $data['proyecto'] ?? null;
+$ubicacion = $data['ubicacion'] ?? null;
+
+// Validar parámetros
 if (!$proyecto || !$ubicacion) {
     http_response_code(400);
     echo json_encode(["error" => "Missing proyecto or ubicacion"]);
@@ -41,7 +52,6 @@ try {
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($row) {
-        // Respuesta JSON que puede mapear variables en IVR, ej: %tipo%
         echo json_encode($row);
     } else {
         echo json_encode(["error" => "No data"]);
