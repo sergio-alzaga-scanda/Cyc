@@ -1,26 +1,16 @@
 <?php
 header("Content-Type: application/json; charset=UTF-8");
 
-// Solo aceptar POST
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+// Solo aceptar GET
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     http_response_code(405); // Method Not Allowed
-    echo json_encode(["error" => "Only POST method is allowed."]);
+    echo json_encode(["error" => "Only GET method is allowed."]);
     exit();
 }
 
-// Leer cuerpo raw JSON
-$inputJSON = file_get_contents('php://input');
-$data = json_decode($inputJSON, true);
-
-if (!is_array($data)) {
-    http_response_code(400);
-    echo json_encode(["error" => "Invalid JSON body"]);
-    exit();
-}
-
-// Validar parámetros
-$proyecto = $data['proyecto'] ?? null;
-$ubicacion = $data['ubicacion'] ?? null;
+// Obtener parámetros desde URL
+$proyecto = $_GET['proyecto'] ?? null;
+$ubicacion = $_GET['ubicacion'] ?? null;
 
 if ($proyecto === null || $ubicacion === null) {
     http_response_code(400);
