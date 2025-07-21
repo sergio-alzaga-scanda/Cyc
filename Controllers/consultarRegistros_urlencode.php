@@ -85,26 +85,12 @@ while ($row = $result->fetch_assoc()) {
     $message = $row['tipo_cyc'] . ' Registrada ' . $row['redaccion_cyc'] . ' ' . $row['nombre'] . " con el numero de ticket " . $row['no_ticket'];
 
     $records[] = [
-        "id_cyc" => $row['id_cyc'],
-        "nombre" => $row['nombre'],
-        "no_ticket" => $row['no_ticket'],
-        "nombre_crisis" => $row['nombre'],
-        "tipo_cyc" => $row['tipo_cyc'],
-        "ubicacion_cyc" => $row['ubicacion_cyc'],
-        "grabacion" => $message,
-        "canal_cyc" => json_decode($row['canal_cyc'], true) ?? [],
-        "bot_cyc" => json_decode($row['bot_cyc'], true) ?? [],
-        "fecha_registro_cyc" => $row['fecha_registro_cyc'],
-        "status_cyc" => $row['status_cyc'],
-        "fecha_programacion" => $row['fecha_programacion'],
-        "nombre_usuario" => $row['nombre_usuario'],
-        "redaccion_canales" => $row['redaccion_canales'],
-        "proyecto" => $row['proyecto']
+        "message" => $message
     ];
 }
 
 
-    echo json_encode($message);
+    echo json_encode($records);
 
 
 // Cerrar
