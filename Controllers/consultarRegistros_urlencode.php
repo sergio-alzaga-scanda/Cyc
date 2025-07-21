@@ -80,7 +80,8 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 $records = [];
-echo $result;
+echo "proyecto". $proyecto;
+echo "ubicacion". $ubicacion;
 while ($row = $result->fetch_assoc()) {
     $message = "{$row['tipo_cyc']} Registrada {$row['redaccion_cyc']} {$row['nombre']} con el número de ticket {$row['no_ticket']}";
     $records[] = ["message" => $message];
