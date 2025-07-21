@@ -103,11 +103,9 @@ while ($row = $result->fetch_assoc()) {
     ];
 }
 
-if (empty($records)) {
-    echo json_encode(["status_cyc" => "Inactivo"]);
-} else {
-    echo json_encode($records);
-}
+
+    echo json_encode($message);
+
 
 // Cerrar
 $stmt->close();
