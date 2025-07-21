@@ -28,7 +28,8 @@ if (!$proyecto || !$ubicacion) {
     echo json_encode(["error" => "Faltan parámetros requeridos"]);
     exit;
 }
-
+echo "proyecto: " . ($_GET['proyecto'] ?? 'NO RECIBIDO') . "\n";
+echo "ubicacion: " . ($_GET['ubicacion'] ?? 'NO RECIBIDO') . "\n";
 // Conexión a la base de datos (ajusta tus valores)
 $host = 'localhost';
 $db = 'tu_basedatos';
