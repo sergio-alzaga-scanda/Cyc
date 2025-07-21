@@ -74,12 +74,12 @@ try {
         ];
     } else {
         $response = [
-            "message" => "No se encontraron registros con ese proyecto y ubicación",
+            "grabacion" => "No se encontraron registros con ese proyecto y ubicación",
             "status_cyc" => null
         ];
     }
 
-    echo $response;
+    echo json_encode($response);
 
 } catch (PDOException $e) {
     http_response_code(500);
