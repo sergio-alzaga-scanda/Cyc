@@ -3,20 +3,20 @@ header("Content-Type: application/json; charset=UTF-8");
 
 // Solo aceptar POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405); // Method Not Allowed
+    http_response_code(405);
     echo json_encode(["error" => "Only POST method is allowed."]);
     exit();
 }
 
-// Leer parámetros desde $_POST
-$proyecto = $_POST['proyecto'] ?? null;
-$ubicacion = $_POST['ubicacion'] ?? null;
-
-if ($proyecto === null || $ubicacion === null) {
+// Asegurar que los parámetros existen
+if (!isset($_POST['proyecto'], $_POST['ubicacion'])) {
     http_response_code(400);
     echo json_encode(["error" => "Missing required fields: 'proyecto' and 'ubicacion'."]);
     exit();
 }
+
+$proyecto = trim($_POST['proyecto']);
+$ubicacion = trim($_POST['ubicacion']);
 
 // Datos de conexión
 $servername = "localhost";
@@ -63,11 +63,9 @@ try {
 
     $stmt = $pdo->prepare($query);
     $stmt->execute([$proyecto, $ubicacion]);
-
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($row) {
-       $mensaje=  "{$row['tipo_cyc']} Registrada {$row['redaccion_cyc']} {$row['nombre']} con el número de ticket {$row['no_ticket']}";
         $response = [
             "grabacion" => "{$row['tipo_cyc']} Registrada {$row['redaccion_cyc']} {$row['nombre']} con el número de ticket {$row['no_ticket']}",
             "status_cyc" => $row['status_cyc']
