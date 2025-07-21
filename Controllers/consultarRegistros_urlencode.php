@@ -1,16 +1,16 @@
 <?php
 header("Content-Type: application/json; charset=UTF-8");
 
-// Solo aceptar GET
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+// Solo aceptar POST
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405); // Method Not Allowed
-    echo json_encode(["error" => "Only GET method is allowed."]);
+    echo json_encode(["error" => "Only POST method is allowed."]);
     exit();
 }
 
-// Obtener parámetros desde URL
-$proyecto = $_GET['proyecto'] ?? null;
-$ubicacion = $_GET['ubicacion'] ?? null;
+// Leer parámetros desde $_POST
+$proyecto = $_POST['proyecto'] ?? null;
+$ubicacion = $_POST['ubicacion'] ?? null;
 
 if ($proyecto === null || $ubicacion === null) {
     http_response_code(400);
