@@ -1,11 +1,17 @@
 <?php
 session_start();
-if (!$_SESSION['usuario']) {
-    header("Location: ../index.php"); 
+
+if (!isset($_SESSION['usuario'])) {
+    header("Location: ../index.php");
+    exit;
 }
-include("../Controllers/bd.php");
-$id_usuario     = $_SESSION['usuario'];
-$nombre_usuario = $_SESSION['nombre_usuario'];
+
+include("../Controllers/bd.php"); // Aquí $conn debe ser instancia mysqli
+
+$id_usuario      = $_SESSION['usuario'];
+$nombre_usuario  = $_SESSION['nombre_usuario'];
+$proyecto        = $_SESSION['proyecto'] ?? '';
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -15,29 +21,27 @@ $fechaHoraActual = $fechaActual;
 
 $accion = $_POST['accion'] ?? $_GET['accion'] ?? null;
 
-
 switch ($accion) {
-    case 1:
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            // Datos enviados desde el formulario
-            $no_ticket = $_POST['no_ticket'] ?? '';
-            $nombre    = $_POST['nombre'] ?? '';
-            $fecha     = $_POST['fecha_programacion'] ?? null; // Puede ser NULL
 
-            // Validar y formatear la fecha de la programación
+    case 1: // Crear o registrar un ticket
+        if ($_SERVER["REQUEST_METHOD"] == "POST") {
+            $no_ticket         = $_POST['no_ticket'] ?? '';
+            $nombre            = $_POST['nombre'] ?? '';
+            $fecha             = $_POST['fecha_programacion'] ?? null;
+
             if ($fecha) {
                 $status       = 2;
-                $fecha_string = trim($fecha);  // Elimina cualquier espacio extra
+                $fecha_string = trim($fecha);
                 try {
                     $fecha_obj          = new DateTime($fecha_string);
-                    $fecha_programacion = $fecha_obj->format('Y-m-d H:i:s'); // Formato para SQL Server
+                    $fecha_programacion = $fecha_obj->format('Y-m-d H:i:s');
                 } catch (Exception $e) {
                     echo "Error al procesar la fecha: " . $e->getMessage();
-                    exit; // Salir si la fecha no es válida
+                    exit;
                 }
             } else {
-                $status = 1;
-                $fecha_programacion = null; // Si no se proporciona, se deja como NULL
+                $status             = 1;
+                $fecha_programacion = null;
             }
 
             $criticidad          = $_POST['criticidad'] ?? '';
@@ -45,545 +49,455 @@ switch ($accion) {
             $ubicacion           = $_POST['ubicacion'] ?? '';
             $ivr_texto           = $_POST['ivr'] ?? '';
             $redaccion_canales   = $_POST['redaccion_canales'] ?? '';
-            $proyecto            = $_POST['proyecto'] ?? '';
-            
-            $canales             = $_POST['canal'] ?? []; // Array
-            $bots                = $_POST['bot'] ?? []; // Array
+
+            $canales             = $_POST['canal'] ?? [];
+            $bots                = $_POST['bot'] ?? [];
             $mismo_canal         = isset($_POST['mismo-canal']) ? 'Sí' : 'No';
             $canal_digital_texto = $_POST['canal-digital-texto'] ?? '';
 
-            // Convertir los arrays a formato JSON
             $canales_json = json_encode($canales);
             $bots_json    = json_encode($bots);
 
-            // Verificar si el no_ticket ya existe
-            try {
-                // Consulta para verificar si el no_ticket ya existe
-                $query_check = "SELECT COUNT(*) FROM [contingencias].[dbo].[cyc] WHERE no_ticket = :no_ticket AND status_cyc IN (1, 2);";
-                $stmt_check = $conn->prepare($query_check);
-                $stmt_check->bindParam(':no_ticket', $no_ticket);
-                $stmt_check->execute();
+            // Verificar si el ticket ya existe
+            $query_check = "SELECT COUNT(*) FROM cyc WHERE no_ticket = ? AND status_cyc IN (1, 2) AND proyecto = ?";
 
-                $ticket_exists = $stmt_check->fetchColumn();
+            if ($stmt_check = $conn->prepare($query_check)) {
+                $stmt_check->bind_param("ss", $no_ticket, $proyecto);
+                $stmt_check->execute();
+                $stmt_check->bind_result($ticket_exists);
+                $stmt_check->fetch();
+                $stmt_check->close();
 
                 if ($ticket_exists > 0) {
-                    // Si el ticket ya existe, mostrar la alerta con SweetAlert y redirigir a la página anterior
                     echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                          <script type='text/javascript'>
-                            window.onload = function() {
+                          <script>
+                            window.onload = () => {
                                 Swal.fire({
                                     title: 'Error',
                                     text: 'El número de ticket ya existe.',
                                     icon: 'error',
                                     confirmButtonText: 'Cerrar'
-                                }).then(function() {
-                                    window.history.back(); // Redirige a la página anterior
-                                });
+                                }).then(() => window.history.back());
                             }
                           </script>";
-                    exit; // Detener la ejecución del script
+                    exit;
                 } else {
-                    // Si el ticket no existe, proceder con el INSERT
-                    $query = "
-                        INSERT INTO [contingencias].[dbo].[cyc] (
-                            nombre,
-                            no_ticket,
-                            categoria_cyc,
-                            tipo_cyc,
-                            ubicacion_cyc,
-                            redaccion_cyc,
-                            canal_cyc,
-                            bot_cyc,
-                            redaccion_canal_cyc,
-                            fecha_registro_cyc,
-                            status_cyc,
-                            fecha_programacion,
-                            id_usuario,
-                            redaccion_canales,
-                            proyecto
-                        ) VALUES (
-                            :nombre,
-                            :no_ticket,
-                            :categoria_cyc,
-                            :tipo_cyc,
-                            :ubicacion_cyc,
-                            :redaccion_cyc,
-                            :canal_cyc,
-                            :bot_cyc,
-                            :redaccion_canal_cyc,
-                            GETDATE(), -- Fecha de registro
-                            :status_cyc,
-                            :fecha_programacion,
-                            :id_usuario,
-                            :redaccion_canales,
-                            :proyecto
-                        )
-                    ";
+                    $query = "INSERT INTO cyc (
+                        nombre,
+                        no_ticket,
+                        categoria_cyc,
+                        tipo_cyc,
+                        ubicacion_cyc,
+                        redaccion_cyc,
+                        canal_cyc,
+                        bot_cyc,
+                        redaccion_canal_cyc,
+                        fecha_registro_cyc,
+                        status_cyc,
+                        fecha_programacion,
+                        id_usuario,
+                        redaccion_canales,
+                        proyecto
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?)";
 
-                    // Preparar la consulta
-                    $stmt = $conn->prepare($query);
+                    if ($stmt = $conn->prepare($query)) {
+                        // Para bind_param, los tipos deben coincidir:
+                        // s = string, i = int
+                        // Asumiendo criticidad, tipo, ubicacion son enteros
+                        // Ajusta según la estructura real de tu tabla
 
-                    // Vincular los valores
-                    $stmt->bindParam(':nombre', $nombre);
-                    $stmt->bindParam(':no_ticket', $no_ticket);
-                    $stmt->bindParam(':categoria_cyc', $criticidad);
-                    $stmt->bindParam(':tipo_cyc', $tipo);
-                    $stmt->bindParam(':ubicacion_cyc', $ubicacion);
-                    $stmt->bindParam(':redaccion_cyc', $ivr_texto);
-                    $stmt->bindParam(':canal_cyc', $canales_json);
-                    $stmt->bindParam(':bot_cyc', $bots_json);
-                    $stmt->bindParam(':redaccion_canal_cyc', $canal_digital_texto);
-                    $stmt->bindParam(':status_cyc', $status);
-                    $stmt->bindParam(':fecha_programacion', $fecha_programacion);
-                    $stmt->bindParam(':redaccion_canales', $redaccion_canales);
-                    $stmt->bindParam(':id_usuario', $id_usuario, PDO::PARAM_INT);
-                    $stmt->bindParam(':proyecto', $proyecto);
+                        // Para manejar fecha_programacion que puede ser NULL,
+                        // MySQLi no acepta bind_param con null directamente,
+                        // así que usaremos una variable para pasar.
 
-                    // Ejecutar la consulta
-                    if ($stmt->execute()) {
-                        // Mostrar mensaje de éxito con SweetAlert y redirigir a la página de éxito
-                        echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                              <script type='text/javascript'>
-                                window.onload = function() {
-                                    Swal.fire({
-                                        title: 'Éxito',
-                                        text: 'El ticket se ha registrado correctamente.',
-                                        icon: 'success',
-                                        confirmButtonText: 'Aceptar'
-                                    }).then(function() {
-                                        window.location.href = '../Views/cyc.php'; // Redirige a la página de éxito
-                                    });
-                                }
-                              </script>";
+                        $fecha_programacion_param = $fecha_programacion ?? null;
 
-                        // // Insertar en la tabla logs 
-                        // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-                        //              VALUES (GETDATE(), :user_id, :name_user, :description)";
-                        // $stmtLog = $conn->prepare($queryLog);
-                        // $stmtLog->bindParam(':user_id', $id_usuario);
-                        // $stmtLog->bindParam(':name_user', $nombre_usuario);
-                        // $descripcion = 'El ticket se ha registrado correctamente, numero de ticket: ' . $no_ticket ;
-                        // $stmtLog->bindParam(':description', $descripcion);
-                        // $stmtLog->execute();
+                        // bind_param no acepta NULL, hay que usar 's' y pasar '' o pasarlo directamente
+                        // Aquí pasaremos fecha_programacion como string o NULL, 
+                        // y antes de la ejecución asignamos NULL para que MySQL lo interprete bien.
+                        // Sin embargo, para simplificar, vamos a pasar un string o NULL con mysqli_stmt::send_long_data
+                        // Pero lo más común es pasar un string vacío para NULL o el valor.
 
+                        // Por seguridad convertimos NULL a string vacío para bind_param y luego en la consulta MySQL lo interpreta bien.
+                        if ($fecha_programacion_param === null) {
+                            $fecha_programacion_param = null;
+                        }
 
+                        $stmt->bind_param(
+                            "ssiiissssssiss",
+                            $nombre,
+                            $no_ticket,
+                            $criticidad,
+                            $tipo,
+                            $ubicacion,
+                            $ivr_texto,
+                            $canales_json,
+                            $bots_json,
+                            $canal_digital_texto,
+                            $status,
+                            $fecha_programacion_param,
+                            $id_usuario,
+                            $redaccion_canales,
+                            $proyecto
+                        );
+
+                        if ($stmt->execute()) {
+                            // Log
+                            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) 
+                                         VALUES (NOW(), ?, ?, ?, ?)";
+                            if ($stmtLog = $conn->prepare($queryLog)) {
+                                $descripcion = 'El ticket se ha registrado correctamente, numero de ticket: ' . $no_ticket;
+                                $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario, $descripcion, $proyecto);
+                                $stmtLog->execute();
+                                $stmtLog->close();
+                            }
+
+                            echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+                                  <script>
+                                    window.onload = () => {
+                                        Swal.fire({
+                                            title: 'Éxito',
+                                            text: 'El ticket se ha registrado correctamente.',
+                                            icon: 'success',
+                                            confirmButtonText: 'Aceptar'
+                                        }).then(() => window.location.href = '../Views/cyc.php');
+                                    }
+                                  </script>";
+                        } else {
+                            echo "Error al insertar el registro: " . $stmt->error;
+                        }
+                        $stmt->close();
                     } else {
-                        echo "Error al insertar el registro.";
+                        echo "Error en la preparación de la consulta: " . $conn->error;
                     }
                 }
-            } catch (PDOException $e) {
-                echo "Error: " . $e->getMessage();
+            } else {
+                echo "Error en la preparación de la consulta: " . $conn->error;
             }
-            break;
         }
-    
-case 2:
-    $DtosTbl = array();
+        break;
 
-    try {
-        // Definir la nueva consulta
+    case 2: // Obtener tabla de tickets
+        $DtosTbl = [];
+
         $queryTbl = "
-        SELECT 
-            c.id_cyc,
-            c.no_ticket,
-            c.status_cyc,
-            cc.nombre_crisis AS categoria_nombre,
-            CASE 
-                WHEN c.tipo_cyc = 1 THEN 'Crisis'
-                WHEN c.tipo_cyc = 2 THEN 'Contingencia'
-                ELSE 'Desconocido'
-            END AS tipo_cyc,
-            c.ubicacion_cyc,
-            ui.nombre_ubicacion_ivr AS nombre_ubicacion,  -- Columna adicional para el nombre de la ubicación
-            CASE 
-                WHEN c.fecha_programacion > c.fecha_registro_cyc THEN c.fecha_programacion
-                ELSE c.fecha_registro_cyc
-            END AS fecha_activacion,
-            p.nombre_proyecto  -- Nueva columna para el nombre del proyecto
-        FROM 
-            cyc AS c
-        JOIN 
-            cat_crisis AS cc ON c.categoria_cyc = cc.id
-        LEFT JOIN 
-            ubicacion_ivr AS ui ON c.ubicacion_cyc = ui.id_ubicacion_ivr  -- Relacionar con la tabla de ubicaciones
-        LEFT JOIN 
-            cat_proyectos AS p ON c.proyecto = p.id_proyecto  -- Relacionar con la tabla de proyectos
-        WHERE 
-            c.status_cyc > 0
-        ORDER BY 
-            c.fecha_registro_cyc DESC;
+            SELECT 
+                c.id_cyc,
+                c.no_ticket,
+                c.status_cyc,
+                cc.nombre_crisis AS categoria_nombre,
+                CASE 
+                    WHEN c.tipo_cyc = 1 THEN 'Crisis'
+                    WHEN c.tipo_cyc = 2 THEN 'Contingencia'
+                    ELSE 'Desconocido'
+                END AS tipo_cyc,
+                c.ubicacion_cyc,
+                ui.nombre_ubicacion_ivr AS nombre_ubicacion,
+                CASE 
+                    WHEN c.fecha_programacion > c.fecha_registro_cyc THEN c.fecha_programacion
+                    ELSE c.fecha_registro_cyc
+                END AS fecha_activacion,
+                p.nombre_proyecto
+            FROM 
+                cyc AS c
+            JOIN 
+                cat_crisis AS cc ON c.categoria_cyc = cc.id
+            LEFT JOIN 
+                ubicacion_ivr AS ui ON c.ubicacion_cyc = ui.id_ubicacion_ivr
+            LEFT JOIN 
+                cat_proyectos AS p ON c.proyecto = p.id_proyecto
+            WHERE 
+                c.status_cyc > 0 AND c.proyecto = ?
+            ORDER BY 
+                c.fecha_registro_cyc DESC;
         ";
 
-        // Ejecutar la consulta usando PDO
-        $stmt = $conn->query($queryTbl);
+        if ($stmt = $conn->prepare($queryTbl)) {
+            $stmt->bind_param("s", $proyecto);
+            $stmt->execute();
+            $result = $stmt->get_result();
 
-        if ($stmt === false) {
-            echo json_encode(['error' => $conn->errorInfo()]);
-            exit;
-        }
-
-        // Obtener los resultados y prepararlos
-        while ($rowTbl = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            // Formatear la fecha_activacion para datetime-local
-            if ($rowTbl['fecha_activacion']) {
-                // Quitar la parte de los milisegundos
-                $fechaSinMilisegundos = substr($rowTbl['fecha_activacion'], 0, 19); // '2025-01-21 16:55:00'
-
-                // Intentar crear el objeto DateTime con el formato adecuado
-                $date = DateTime::createFromFormat('Y-m-d H:i:s', $fechaSinMilisegundos);
-                if ($date) {
-                    $rowTbl['fecha_activacion'] = $date->format('d-m-Y H:i'); // Formato para datetime-local
-                } else {
-                    // Si el formato es inválido
-                    $rowTbl['fecha_activacion'] = 'Fecha inválida';
+            while ($rowTbl = $result->fetch_assoc()) {
+                if ($rowTbl['fecha_activacion']) {
+                    $fechaSinMilisegundos = substr($rowTbl['fecha_activacion'], 0, 19);
+                    $date = DateTime::createFromFormat('Y-m-d H:i:s', $fechaSinMilisegundos);
+                    if ($date) {
+                        $rowTbl['fecha_activacion'] = $date->format('d-m-Y H:i');
+                    } else {
+                        $rowTbl['fecha_activacion'] = 'Fecha inválida';
+                    }
                 }
+
+                $DtosTbl[] = [
+                    'id_cyc'           => $rowTbl['id_cyc'],
+                    'no_ticket'        => $rowTbl['no_ticket'],
+                    'status_cyc'       => $rowTbl['status_cyc'],
+                    'categoria_nombre' => $rowTbl['categoria_nombre'],
+                    'tipo_cyc'         => $rowTbl['tipo_cyc'],
+                    'nombre_ubicacion' => $rowTbl['nombre_ubicacion'],
+                    'ubicacion_cyc'    => $rowTbl['ubicacion_cyc'],
+                    'fecha_activacion' => $rowTbl['fecha_activacion'],
+                    'nombre_proyecto'  => $rowTbl['nombre_proyecto'],
+                ];
             }
+            $stmt->close();
 
-            $DtosTbl[] = array(
-                'id_cyc'           => $rowTbl['id_cyc'],
-                'no_ticket'        => $rowTbl['no_ticket'],
-                'status_cyc'       => $rowTbl['status_cyc'],
-                'categoria_nombre' => $rowTbl['categoria_nombre'], 
-                'tipo_cyc'         => $rowTbl['tipo_cyc'], 
-                'nombre_ubicacion' => $rowTbl['nombre_ubicacion'],
-                'ubicacion_cyc'    => $rowTbl['ubicacion_cyc'],
-                'fecha_activacion' => $rowTbl['fecha_activacion'],  
-                'nombre_proyecto'  => $rowTbl['nombre_proyecto'],  // Agregar el nombre del proyecto
-            );
-        }
-
-        // Enviar la respuesta como JSON
-        header('Content-Type: application/json');
-        echo json_encode($DtosTbl);
-    } catch (Exception $e) {
-        // Capturar cualquier error y devolverlo como JSON
-        echo json_encode(['error' => $e->getMessage()]);
-    }
-    break;
-
-
-   case 3: // Obtener datos de una crisis específica
-    $id                 = $_POST['id'];
-    $queryCrisisDetails = "SELECT * FROM cyc WHERE id_cyc = :id";
-    $crisisDetails      = $conn->prepare($queryCrisisDetails);
-    $crisisDetails->bindParam(':id', $id, PDO::PARAM_INT);
-
-    if ($crisisDetails->execute()) {
-    $crisisData = $crisisDetails->fetch(PDO::FETCH_ASSOC);
-
-    // Decodificar JSON de los campos `canal_cyc` y `bot_cyc`
-    $crisisData['canal_cyc'] = json_decode($crisisData['canal_cyc'], true);
-    $crisisData['bot_cyc']   = json_decode($crisisData['bot_cyc'], true);
-
-    // Formatear la fecha `fecha_programacion` para datetime-local
-    if ($crisisData['fecha_programacion']) {
-        // Quitar la parte de los milisegundos
-        $fechaSinMilisegundos = substr($crisisData['fecha_programacion'], 0, 19); // '2025-01-21 16:55:00'
-
-        // Intentar crear el objeto DateTime con el formato adecuado
-        $date = DateTime::createFromFormat('Y-m-d H:i:s', $fechaSinMilisegundos);
-        if ($date) {
-            $crisisData['fecha_programacion'] = $date->format('d/m/Y H:i'); // Formato para datetime-local
+            header('Content-Type: application/json');
+            echo json_encode($DtosTbl);
         } else {
-            // Si el formato es inválido
-            $crisisData['fecha_programacion'] = 'Fecha inválida';
+            echo json_encode(['error' => $conn->error]);
         }
+        break;
+
+    case 3: // Obtener datos de un ticket para editar
+    // Activar errores para debug (quítalo en producción)
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+    error_reporting(E_ALL);
+
+    // Obtener el ID del ticket y el proyecto
+    $id_cyc = $_POST['id_cyc'] ?? $_POST['id'] ?? 0;
+    $proyecto = $_SESSION['proyecto'] ?? $_POST['proyecto'] ?? null;
+    $result = [];
+
+    if (!$proyecto) {
+        echo json_encode(['error' => 'Proyecto no definido']);
+        break;
     }
-    
-    // Obtener el proyecto relacionado, si es necesario (esto depende de tu base de datos)
-    // Aquí asumimos que `proyecto` es un campo relacionado en la base de datos
-    $crisisData['proyecto']  = $crisisData['proyecto'] ?? null;  // Añadir el dato del proyecto al array
-    $crisisData['no_ticket'] = $crisisData['no_ticket']; 
 
+    $query = "
+        SELECT 
+            c.*,
+            cc.nombre_crisis,
+            ui.nombre_ubicacion_ivr,
+            p.nombre_proyecto
+        FROM 
+            cyc AS c
+        LEFT JOIN 
+            cat_crisis AS cc ON c.categoria_cyc = cc.id
+        LEFT JOIN 
+            ubicacion_ivr AS ui ON c.ubicacion_cyc = ui.id_ubicacion_ivr
+        LEFT JOIN 
+            cat_proyectos AS p ON c.proyecto = p.id_proyecto
+        WHERE 
+            c.id_cyc = ? AND c.proyecto = ?
+        LIMIT 1
+    ";
 
-    // Enviar los datos en formato JSON al frontend
-    echo json_encode($crisisData);
+    if ($stmt = $conn->prepare($query)) {
+        $stmt->bind_param("is", $id_cyc, $proyecto);
+        $stmt->execute();
+        $res = $stmt->get_result();
 
-} else {
-    echo json_encode(['error' => 'Error al obtener los detalles de la crisis']);
-}
+        if ($row = $res->fetch_assoc()) {
+            // Decodificar campos JSON si existen
+            $row['canal_cyc'] = json_decode($row['canal_cyc'] ?? '[]', true);
+            $row['bot_cyc'] = json_decode($row['bot_cyc'] ?? '[]', true);
+
+            $result = $row;
+        }
+
+        $stmt->close();
+
+        header('Content-Type: application/json');
+        echo json_encode($result);
+    } else {
+        echo json_encode(['error' => 'Error en prepare: ' . $conn->error]);
+    }
 
     break;
-        case 4:
-         $id_cyc = $_GET['id'];
-         
-             try {
-                $query = "UPDATE cyc 
-                          SET status_cyc = 0
-                          WHERE id_cyc = :id_cyc";
 
-                $stmt = $conn->prepare($query);
-                $stmt->execute([
-                    
-                    ':id_cyc' => $id_cyc
-                ]);
-
-                $queryCrisisDetails = "SELECT * FROM cyc WHERE id_cyc = :id_cyc";
-                $crisisDetails = $conn->prepare($queryCrisisDetails);
-                $crisisDetails->bindParam(':id_cyc', $id_cyc, PDO::PARAM_INT);
-
-                if ($crisisDetails->execute()) {
-                    $crisisData = $crisisDetails->fetch(PDO::FETCH_ASSOC);
-
-                    // // Insertar en la tabla logs 
-                    // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-                    //              VALUES (GETDATE(), :user_id, :name_user, :description)";
-                    // $stmtLog = $conn->prepare($queryLog);
-                    // $stmtLog->bindParam(':user_id', $id_usuario);
-                    // $stmtLog->bindParam(':name_user', $nombre_usuario);
-                    // $descripcion = 'Eliminò el número de ticket: ' . $crisisData['no_ticket'] ;
-                    // $stmtLog->bindParam(':description', $descripcion);
-                    // $stmtLog->execute();
+    case 4: // Editar ticket
+        if ($_SERVER["REQUEST_METHOD"] == "POST") {
+            $id_cyc             = $_POST['id_cyc'] ?? 0;
+            $no_ticket          = $_POST['no_ticket'] ?? '';
+            $nombre             = $_POST['nombre'] ?? '';
+            $fecha              = $_POST['fecha_programacion'] ?? null;
+            
+            if ($fecha) {
+                $status       = 2;
+                $fecha_string = trim($fecha);
+                try {
+                    $fecha_obj          = new DateTime($fecha_string);
+                    $fecha_programacion = $fecha_obj->format('Y-m-d H:i:s');
+                } catch (Exception $e) {
+                    echo "Error al procesar la fecha: " . $e->getMessage();
+                    exit;
                 }
-
-                echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                              <script type='text/javascript'>
-                                window.onload = function() {
-                                    Swal.fire({
-                                        title: 'Éxito',
-                                        text: 'El ticket se eliminó correctamente.',
-                                        icon: 'success',
-                                        confirmButtonText: 'Aceptar'
-                                    }).then(function() {
-                                        window.location.href = '../Views/cyc.php'; // Redirige a la página de éxito
-                                    });
-                                }
-                              </script>";
-            } catch (PDOException $e) {
-               echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                              <script type='text/javascript'>
-                                window.onload = function() {
-                                    Swal.fire({
-                                        title: 'Error aqui',
-                                        text: 'No se pudo eliminar el registro',
-                                        icon: 'Error',
-                                        confirmButtonText: 'Aceptar'
-                                    }).then(function() {
-                                        window.location.href = '../Views/cyc.php'; // Redirige a la página de éxito
-                                    });
-                                }
-                              </script>";
-            }
-            break;
-        case 5:
-            $id_cyc             = intval($_POST['id']);
-            $nombre             = $_POST['nombre'];
-            $categoria_cyc      = intval($_POST['categoria_edit']);
-            $tipo_cyc           = intval($_POST['tipo_edit']);
-            $ubicacion_cyc      = intval($_POST['ubicacion_edit']);
-            $redaccion_cyc      = $_POST['ivr_edit'];
-            $programar          = isset($_POST['programar']) ? 1 : 0;
-            $fecha_programacion = $programar ? $_POST['fecha_programacion_2'] : null;
-            $canal_cyc          = isset($_POST['canal_edit']) ? implode(',', $_POST['canal_edit']) : null;
-            $bot_cyc            = isset($_POST['bot_edit']) ? implode(',', $_POST['bot_edit']) : null;
-            $redaccion_canales  = $_POST['redaccion_canales_edit'];
-            $edit_proyecto      = $_POST['edit_proyecto'];
-            $no_ticket          = $_POST['no_ticket'];
-            // Convertir fecha al formato SQL Server
-            if ($fecha_programacion) {
-                $fecha_programacion = str_replace('T', ' ', $fecha_programacion) . ':00';
+            } else {
+                $status             = 1;
+                $fecha_programacion = null;
             }
 
-            // Validar campos requeridos
-            if (empty($id_cyc) || empty($nombre) || empty($categoria_cyc) || empty($tipo_cyc) || empty($ubicacion_cyc)) {
-                die('Error: Todos los campos requeridos deben completarse.');
-            }
+            $criticidad          = $_POST['criticidad'] ?? '';
+            $tipo                = $_POST['tipo'] ?? '';
+            $ubicacion           = $_POST['ubicacion'] ?? '';
+            $ivr_texto           = $_POST['ivr'] ?? '';
+            $redaccion_canales   = $_POST['redaccion_canales'] ?? '';
 
-            try {
-                $query = "UPDATE cyc 
-                              SET nombre         = :nombre,
-                              categoria_cyc      = :categoria_cyc,
-                              tipo_cyc           = :tipo_cyc,
-                              ubicacion_cyc      = :ubicacion_cyc,
-                              redaccion_cyc      = :redaccion_cyc,
-                              fecha_programacion = :fecha_programacion,
-                              redaccion_canales  = :redaccion_canales,
-                              proyecto           = :edit_proyecto
-                          WHERE id_cyc = :id_cyc";
+            $canales             = $_POST['canal'] ?? [];
+            $bots                = $_POST['bot'] ?? [];
+            $mismo_canal         = isset($_POST['mismo-canal']) ? 'Sí' : 'No';
+            $canal_digital_texto = $_POST['canal-digital-texto'] ?? '';
 
-                $stmt = $conn->prepare($query);
-                $stmt->execute([
-                    ':nombre'             => $nombre,
-                    ':categoria_cyc'      => $categoria_cyc,
-                    ':tipo_cyc'           => $tipo_cyc,
-                    ':ubicacion_cyc'      => $ubicacion_cyc,
-                    ':redaccion_cyc'      => $redaccion_cyc,
-                    ':fecha_programacion' => $fecha_programacion,
-                    ':redaccion_canales'  => $redaccion_canales,
-                    ':edit_proyecto'      => $edit_proyecto,
-                    ':id_cyc'             => $id_cyc
-                ]);
+            $canales_json = json_encode($canales);
+            $bots_json    = json_encode($bots);
 
-                // // Insertar en la tabla logs 
-                // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-                //              VALUES (GETDATE(), :user_id, :name_user, :description)";
-                // $stmtLog = $conn->prepare($queryLog);
-                // $stmtLog->bindParam(':user_id', $id_usuario);
-                // $stmtLog->bindParam(':name_user', $nombre_usuario);
-                // $descripcion = 'El registro se editó correctamente, numero de ticket: ' . $no_ticket ;
-                // $stmtLog->bindParam(':description', $descripcion);
-                // $stmtLog->execute();
+            // Actualizar
+            $query = "
+                UPDATE cyc SET
+                    nombre = ?,
+                    no_ticket = ?,
+                    categoria_cyc = ?,
+                    tipo_cyc = ?,
+                    ubicacion_cyc = ?,
+                    redaccion_cyc = ?,
+                    canal_cyc = ?,
+                    bot_cyc = ?,
+                    redaccion_canal_cyc = ?,
+                    status_cyc = ?,
+                    fecha_programacion = ?,
+                    id_usuario = ?,
+                    redaccion_canales = ?
+                WHERE
+                    id_cyc = ? AND proyecto = ?
+            ";
 
-                echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                              <script type='text/javascript'>
-                                window.onload = function() {
-                                    Swal.fire({
-                                        title: 'Éxito',
-                                        text: 'El registro se editó correctamente.',
-                                        icon: 'success',
-                                        confirmButtonText: 'Aceptar'
-                                    }).then(function() {
-                                        window.location.href = '../Views/cyc.php'; // Redirige a la página de éxito
-                                    });
-                                }
-                              </script>";
+            if ($stmt = $conn->prepare($query)) {
+                $stmt->bind_param(
+                    "ssiiisssssisss",
+                    $nombre,
+                    $no_ticket,
+                    $criticidad,
+                    $tipo,
+                    $ubicacion,
+                    $ivr_texto,
+                    $canales_json,
+                    $bots_json,
+                    $canal_digital_texto,
+                    $status,
+                    $fecha_programacion,
+                    $id_usuario,
+                    $redaccion_canales,
+                    $id_cyc,
+                    $proyecto
+                );
 
-
-            } catch (PDOException $e) {
-               echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                              <script type='text/javascript'>
-                                window.onload = function() {
-                                    Swal.fire({
-                                        title: 'Error',
-                                        text: 'Ocurrio un error al editar el registro',
-                                        icon: 'success',
-                                        confirmButtonText: 'Aceptar'
-                                    }).then(function() {
-                                        window.location.href = '../Views/cyc.php'; // Redirige a la página de éxito
-                                    });
-                                }
-                              </script>";
-            }
-            break;
-            
-        break;    
-        case 6:
-            
-
-             $id_cyc         = $_GET['id'];
-             $status_inicial = $_GET['status'];
-            
-             try {
-                if ($status_inicial === '1') {
-                    $nuevo_status = 2;
-                }else{
-                    $nuevo_status = 1;
-                }
-                $query = "UPDATE cyc 
-                          SET status_cyc = :nuevo_status
-                          WHERE id_cyc = :id_cyc";
-
-                $stmt = $conn->prepare($query);
-                $stmt->execute([
-                    ':nuevo_status' => $nuevo_status,
-                    ':id_cyc' => $id_cyc
-                ]);
-                if ($status_inicial === '1') {
-
-                    $queryCrisisDetails = "SELECT * FROM cyc WHERE id_cyc = :id_cyc";
-                    $crisisDetails      = $conn->prepare($queryCrisisDetails);
-                    $crisisDetails->bindParam(':id_cyc', $id_cyc, PDO::PARAM_INT);
-
-                    if ($crisisDetails->execute()) {
-                        $crisisData = $crisisDetails->fetch(PDO::FETCH_ASSOC);
-
-                        // // Insertar en la tabla logs 
-                        // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-                        //              VALUES (GETDATE(), :user_id, :name_user, :description)";
-                        // $stmtLog = $conn->prepare($queryLog);
-                        // $stmtLog->bindParam(':user_id', $id_usuario);
-                        // $stmtLog->bindParam(':name_user', $nombre_usuario);
-                        // $descripcion = 'Desactivo la grabación con número de ticket: ' . $crisisData['no_ticket'] ;
-                        // $stmtLog->bindParam(':description', $descripcion);
-                        // $stmtLog->execute();
+                if ($stmt->execute()) {
+                    // Log
+                    $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) 
+                                 VALUES (NOW(), ?, ?, ?, ?)";
+                    if ($stmtLog = $conn->prepare($queryLog)) {
+                        $descripcion = 'El ticket se ha actualizado correctamente, numero de ticket: ' . $no_ticket;
+                        $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario, $descripcion, $proyecto);
+                        $stmtLog->execute();
+                        $stmtLog->close();
                     }
 
-                   echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                          <script type='text/javascript'>
-                            window.onload = function() {
+                    echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+                          <script>
+                            window.onload = () => {
                                 Swal.fire({
                                     title: 'Éxito',
-                                    text: 'La grabación ha sido deshabilitada exitosamente.',
+                                    text: 'El ticket se ha actualizado correctamente.',
                                     icon: 'success',
-                                    confirmButtonText: 'Aceptar',
-                                    confirmButtonColor: '#4B4A4B', // Color del botón
-                                    customClass: {
-                                        confirmButton: 'swal2-bold-button' // Clase personalizada para el texto en negrita
-                                    },
-                                    didOpen: () => {
-                                        // Cambiar icono de confirmación
-                                       
-                                    }
-                                }).then(function() {
-                                    window.location.href = '../Views/cyc.php'; // Redirige a la página de éxito
-                                });
+                                    confirmButtonText: 'Aceptar'
+                                }).then(() => window.location.href = '../Views/cyc.php');
                             }
                           </script>";
+                } else {
+                    echo "Error al actualizar el registro: " . $stmt->error;
+                }
+                $stmt->close();
+            } else {
+                echo "Error en la preparación de la consulta: " . $conn->error;
+            }
+        }
+        break;
 
-            }else{
+    case 5: // Eliminar ticket (cambiar status a 0)
+        $id_cyc = $_POST['id_cyc'] ?? 0;
 
-                $queryCrisisDetails = "SELECT * FROM cyc WHERE id_cyc = :id_cyc";
-                $crisisDetails      = $conn->prepare($queryCrisisDetails);
-                $crisisDetails->bindParam(':id_cyc', $id_cyc, PDO::PARAM_INT);
+        $query = "UPDATE cyc SET status_cyc = 0 WHERE id_cyc = ? ";
 
-                if ($crisisDetails->execute()) {
-                    $crisisData = $crisisDetails->fetch(PDO::FETCH_ASSOC);
+        if ($stmt = $conn->prepare($query)) {
+            $stmt->bind_param("is", $id_cyc, $proyecto);
 
-                    // // Insertar en la tabla logs 
-                    // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-                    //              VALUES (GETDATE(), :user_id, :name_user, :description)";
-                    // $stmtLog = $conn->prepare($queryLog);
-                    // $stmtLog->bindParam(':user_id', $id_usuario);
-                    // $stmtLog->bindParam(':name_user', $nombre_usuario);
-                    // $descripcion = 'Activó la grabación con número de ticket: ' . $crisisData['no_ticket'] ;
-                    // $stmtLog->bindParam(':description', $descripcion);
-                    // $stmtLog->execute();
+            if ($stmt->execute()) {
+                // Log
+                $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) 
+                             VALUES (NOW(), ?, ?, ?, ?)";
+                if ($stmtLog = $conn->prepare($queryLog)) {
+                    $descripcion = 'El ticket se ha eliminado correctamente, id: ' . $id_cyc;
+                    $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario, $descripcion, $proyecto);
+                    $stmtLog->execute();
+                    $stmtLog->close();
                 }
 
-                 echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                      <script type='text/javascript'>
-                        window.onload = function() {
-                            Swal.fire({
-                                title: 'Éxito',
-                                text: 'La grabación ha sido habilitada exitosamente.',
-                                icon: 'success',
-                                confirmButtonText: 'Aceptar',
-                                confirmButtonColor: '#4B4A4B', // Color del botón
-                                customClass: {
-                                    confirmButton: 'swal2-bold-button' // Clase personalizada para el texto en negrita
-                                },
-                                didOpen: () => {
-                                    // Cambiar icono de confirmación
-                                    
-                                }
-                            }).then(function() {
-                                window.location.href = '../Views/cyc.php'; // Redirige a la página de éxito
-                            });
-                        }
-                      </script>";
+                echo json_encode(['success' => true, 'message' => 'Ticket eliminado correctamente.']);
+            } else {
+                echo json_encode(['success' => false, 'error' => $stmt->error]);
             }
-                
-               
-            } catch (PDOException $e) {
-               echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                              <script type='text/javascript'>
-                                window.onload = function() {
-                                    Swal.fire({
-                                        title: 'Error',
-                                        text: 'No se pudo activar la crisis/contingencia',
-                                        icon: 'Error',
-                                        confirmButtonText: 'Aceptar'
-                                    }).then(function() {
-                                        window.location.href = '../Views/cyc.php'; // Redirige a la página de éxito
-                                    });
-                                }
-                              </script>";
+            $stmt->close();
+        } else {
+            echo json_encode(['success' => false, 'error' => $conn->error]);
+        }
+        break;
+    case 6: // Eliminar ticket (cambiar status a 0)
+        $id_cyc = $_GET['id'] ?? 0;
+        $status = $_GET['status'] ?? 0;
+        if ($status = 1){
+            $accion  = "desactivado";
+        }else{
+            $accion  = "activado";
+        }
+        $query = "UPDATE cyc SET status_cyc = 2 WHERE id_cyc = ?";
+
+        if ($stmt = $conn->prepare($query)) {
+            $stmt->bind_param("i", $id_cyc);
+
+            if ($stmt->execute()) {
+                // Log
+                $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) 
+                             VALUES (NOW(), ?, ?, ?, ?)";
+                if ($stmtLog = $conn->prepare($queryLog)) {
+                    $descripcion = 'El ticket se ha ' . $accion . ' correctamente, id: ' . $id_cyc;
+                    $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario, $descripcion, $proyecto);
+                    $stmtLog->execute();
+                    $stmtLog->close();
+                }
+
+                echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+                          <script>
+                            window.onload = () => {
+                                Swal.fire({
+                                    title: 'Éxito',
+                                    text: 'El ticket se ha actualizado correctamente.',
+                                    icon: 'success',
+                                    confirmButtonText: 'Aceptar'
+                                }).then(() => window.location.href = '../Views/cyc.php');
+                            }
+                          </script>";
+            } else {
+                echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+                          <script>
+                            window.onload = () => {
+                                Swal.fire({
+                                    title: 'Error',
+                                    text: 'Error al actualizar.',
+                                    icon: 'error',
+                                    confirmButtonText: 'Aceptar'
+                                }).then(() => window.location.href = '../Views/cyc.php');
+                            }
+                          </script>";
             }
-            
+            $stmt->close();
+        } else {
+            echo json_encode(['success' => false, 'error' => $conn->error]);
+        }
         break;    
 
-        default:
-            echo "Acción no reconocida.";
-    }
-
-
+    default:
+        echo "Acción no reconocida.";
+}
+?>

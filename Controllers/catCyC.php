@@ -2,10 +2,15 @@
 session_start();
 if (!$_SESSION['usuario']) {
     header("Location: ../index.php"); 
+    exit;
 }
+
 include("../Controllers/bd.php");
+
 $id_usuario           = $_SESSION['usuario'];
 $nombre_usuario_login = $_SESSION['nombre_usuario'];
+$proyecto             = $_SESSION['proyecto'];  // NUEVO: Proyecto de sesión
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -15,319 +20,249 @@ $fechaHoraActual = $fechaActual;
 
 $accion = $_POST['accion'] ?? $_GET['accion'] ?? null;
 
-
-
 switch ($accion) {
     case 1:
-        
-       // Verificar que se ha enviado el formulario
- if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        // Capturar los datos del formulario
-        $nombre     = $_POST['nombre'];
-        $criticidad = $_POST['criticidad'];
-        $status     = 1; // El status que deseas asignar, por ejemplo 1 para "activo"
+        if ($_SERVER["REQUEST_METHOD"] == "POST") {
+            $nombre     = $_POST['nombre'];
+            $criticidad = $_POST['criticidad'];
+            $status     = 1; // Activo
 
-        // Preparar la consulta de inserción
-        $sql = "INSERT INTO cat_crisis (nombre_crisis, criticidad, status) 
-                VALUES (:nombre, :criticidad, :status)";
-        
-        // Preparar la declaración
-        $stmt = $conn->prepare($sql);
+            $sql = "INSERT INTO cat_crisis (nombre_crisis, criticidad, status, proyecto) VALUES (?, ?, ?, ?)";
+            $stmt = $conn->prepare($sql);
+            if ($stmt === false) {
+                die("Error en la preparación de la consulta: " . $conn->error);
+            }
+            $stmt->bind_param("ssis", $nombre, $criticidad, $status, $proyecto);
 
-        // Enlazar los parámetros de forma segura
-        $stmt->bindParam(':nombre', $nombre);
-        $stmt->bindParam(':criticidad', $criticidad);
-        $stmt->bindParam(':status', $status);
-
-        // Ejecutar la consulta
-        if ($stmt->execute()) {
-
-            // // Insertar en la tabla logs 
-            // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-            //              VALUES (GETDATE(), :user_id, :name_user, :description)";
-            // $stmtLog = $conn->prepare($queryLog);
-            // $stmtLog->bindParam(':user_id', $id_usuario);
-            // $stmtLog->bindParam(':name_user', $nombre_usuario_login);
-            // $descripcion = 'Ha creado una CyCs de nombre: ' . $nombre . ' y Criticidad: ' . $criticidad ;
-            // $stmtLog->bindParam(':description', $descripcion);
-            // $stmtLog->execute();
-
-            echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-              <script type='text/javascript'>
-                window.onload = function() {
-                    Swal.fire({
-                        title: 'Éxito',
-                        text: 'Se gurardó el registro correctamente.',
-                        icon: 'success',
-                        confirmButtonText: 'Aceptar'
-                    }).then(function() {
-                        window.location.href = '../Views/catalogos.php'; // Redirige a la página de éxito
-                    });
+            if ($stmt->execute()) {
+                // Insertar log
+                $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) VALUES (?, ?, ?, ?, ?)";
+                $stmtLog = $conn->prepare($queryLog);
+                if ($stmtLog === false) {
+                    die("Error en preparación logs: " . $conn->error);
                 }
-              </script>";
-        } else {
-            echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-              <script type='text/javascript'>
-                window.onload = function() {
-                    Swal.fire({
-                        title: 'Error',
-                        text: 'Ocurrió un error al gurdar el registro',
-                        icon: 'error',
-                        confirmButtonText: 'Aceptar'
-                    }).then(function() {
-                        window.location.href = '../Views/catalogos.php'; // Redirige a la página de error
-                    });
-                }
-              </script>";
+                $descripcion = 'Ha creado una CyCs de nombre: ' . $nombre . ' y Criticidad: ' . $criticidad;
+                $fecha_log = date("Y-m-d H:i:s");
+                $stmtLog->bind_param("sisss", $fecha_log, $id_usuario, $nombre_usuario_login, $descripcion, $proyecto);
+                $stmtLog->execute();
+
+                echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+                      <script type='text/javascript'>
+                      window.onload = function() {
+                          Swal.fire({
+                              title: 'Éxito',
+                              text: 'Se guardó el registro correctamente.',
+                              icon: 'success',
+                              confirmButtonText: 'Aceptar'
+                          }).then(function() {
+                              window.location.href = '../Views/catalogos.php';
+                          });
+                      }
+                      </script>";
+            } else {
+                echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+                      <script type='text/javascript'>
+                      window.onload = function() {
+                          Swal.fire({
+                              title: 'Error',
+                              text: 'Ocurrió un error al guardar el registro',
+                              icon: 'error',
+                              confirmButtonText: 'Aceptar'
+                          }).then(function() {
+                              window.location.href = '../Views/catalogos.php';
+                          });
+                      }
+                      </script>";
+            }
+            $stmt->close();
+            $conn->close();
         }
-    }
+        break;
 
+    case 2:
+        $DtosTbl = array();
 
-// Cerrar la conexión
-$conn = null;
-break;
-    
-case 2:
-$DtosTbl = array();
-
-try {
-    // Definir la nueva consulta
-    $queryTbl = "
-    SELECT [id], [nombre_crisis], [criticidad], [status]
-    FROM [contingencias].[dbo].[cat_crisis]
-    WHERE status > 0
-    ORDER BY nombre_crisis DESC;
-    ";
-
-    // Preparar y ejecutar la consulta usando PDO
-    $stmt = $conn->prepare($queryTbl);
-    $stmt->execute();
-
-    // Obtener los resultados y prepararlos
-    while ($rowTbl = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        // Preparar los datos para la respuesta
-        $DtosTbl[] = array(
-            'id'            => $rowTbl['id'],
-            'nombre_crisis' => $rowTbl['nombre_crisis'],
-            'criticidad'    => $rowTbl['criticidad'],
-            'status'        => $rowTbl['status']  // Incluimos el campo status
-        );
-    }
-
-    // Enviar la respuesta como JSON
-    header('Content-Type: application/json');
-    echo json_encode($DtosTbl);
-
-} catch (PDOException $e) {
-    // Capturar errores de base de datos y devolverlo como JSON
-    echo json_encode(['error' => $e->getMessage()]);
-} catch (Exception $e) {
-    // Capturar cualquier otro error y devolverlo como JSON
-    echo json_encode(['error' => $e->getMessage()]);
-}
-break;
-
-
-
-
-case 3:
-    // Obtener los datos del formulario
-    $idCrisis     = $_POST['id']; // ID de la crisis
-    $nombreCrisis = $_POST['nombre']; // Nombre de la crisis
-    $criticidad   = $_POST['criticidad']; // Criticidad
-    $status       = $_POST['status']; // Estado
-
-    try {
-        // Consulta SQL para actualizar la categoría de crisis
-        $query = "
-            UPDATE [contingencias].[dbo].[cat_crisis]
-            SET 
-                [nombre_crisis]      = :nombre_crisis,
-                [criticidad]         = :criticidad,
-                [status]             = :status,
-                [fecha_modificacion] = GETDATE() -- Fecha de la última modificación
-            WHERE [id] = :idCrisis;
-        ";
-
-        $stmt = $conn->prepare($query);
-        $stmt->bindParam(':nombre_crisis', $nombreCrisis);
-        $stmt->bindParam(':criticidad', $criticidad);
-        $stmt->bindParam(':status', $status);
-        $stmt->bindParam(':idCrisis', $idCrisis);
-
-        // Ejecutar la actualización
+        $queryTbl = "SELECT id, nombre_crisis, criticidad, status FROM cat_crisis WHERE status > 0 AND proyecto = ? ORDER BY nombre_crisis DESC";
+        $stmt = $conn->prepare($queryTbl);
+        if ($stmt === false) {
+            die("Error en la preparación de la consulta: " . $conn->error);
+        }
+        $stmt->bind_param("s", $proyecto);
         $stmt->execute();
+        $result = $stmt->get_result();
 
-        // // Insertar en la tabla logs 
-        // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-        //              VALUES (GETDATE(), :user_id, :name_user, :description)";
-        // $stmtLog = $conn->prepare($queryLog);
-        // $stmtLog->bindParam(':user_id', $id_usuario);
-        // $stmtLog->bindParam(':name_user', $nombre_usuario_login);
-        // $descripcion = 'Ha editado una CyCs de nombre: ' . $nombreCrisis . ' y Criticidad: ' . $criticidad . ' ID: ' . $idCrisis ;
-        // $stmtLog->bindParam(':description', $descripcion);
-        // $stmtLog->execute();
-
-        // Mostrar alerta de éxito
-        echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-              <script type='text/javascript'>
-                window.onload = function() {
-                    Swal.fire({
-                        title: 'Éxito',
-                        text: 'La categoría de crisis se editó correctamente.',
-                        icon: 'success',
-                        confirmButtonText: 'Aceptar'
-                    }).then(function() {
-                        window.location.href = '../Views/catalogos.php'; // Redirige a la página de éxito
-                    });
-                }
-              </script>";
-    } catch (PDOException $e) {
-        // Manejo de error
-        echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-              <script type='text/javascript'>
-                window.onload = function() {
-                    Swal.fire({
-                        title: 'Error',
-                        text: 'Ocurrió un error al editar el registro.',
-                        icon: 'error',
-                        confirmButtonText: 'Aceptar'
-                    }).then(function() {
-                        window.location.href = '../Views/catalogos.php'; // Redirige a la página de error
-                    });
-                }
-              </script>";
-    }
-    break;
-
-
-        case 4:
-    $id_cyc = $_GET['id'];
-    try {
-        // Actualiza el estado de la crisis a '0' (eliminada/desactivada)
-        $query = "UPDATE [contingencias].[dbo].[cat_crisis]
-                  SET status = 0
-                  WHERE id = :id_cyc";
-
-        $stmt = $conn->prepare($query);
-        $stmt->execute([
-            ':id_cyc' => $id_cyc
-        ]);
-
-        // // Insertar en la tabla logs 
-        // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-        //              VALUES (GETDATE(), :user_id, :name_user, :description)";
-        // $stmtLog = $conn->prepare($queryLog);
-        // $stmtLog->bindParam(':user_id', $id_usuario);
-        // $stmtLog->bindParam(':name_user', $nombre_usuario_login);
-        // $descripcion = 'Ha eliminado una CyCs con ID: ' . $id_cyc;
-        // $stmtLog->bindParam(':description', $descripcion);
-        // $stmtLog->execute();
-
-        echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-              <script type='text/javascript'>
-                window.onload = function() {
-                    Swal.fire({
-                        title: 'Éxito',
-                        text: 'La crisis se eliminó correctamente.',
-                        icon: 'success',
-                        confirmButtonText: 'Aceptar'
-                    }).then(function() {
-                        window.location.href = '../Views/catalogos.php'; // Redirige a la página de éxito
-                    });
-                }
-              </script>";
-    } catch (PDOException $e) {
-        echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-              <script type='text/javascript'>
-                window.onload = function() {
-                    Swal.fire({
-                        title: 'Error',
-                        text: 'No se pudo eliminar la crisis',
-                        icon: 'error',
-                        confirmButtonText: 'Aceptar'
-                    }).then(function() {
-                        window.location.href = '../Views/catalogos.php'; // Redirige a la página de error
-                    });
-                }
-              </script>";
-    }
-    break;
-
-        case 5:
-    $id_cyc         = $_GET['id'];
-    $status_inicial = $_GET['status'];
-
-    try {
-        // Cambia el estado de la crisis
-        if ($status_inicial === '1') {
-            // Si está activo (status = 1), lo cambiamos a inactivo (status = 2 o 0)
-            $nuevo_status = 2;
-        } else {
-            // Si está inactivo (status = 0 o 2), lo cambiamos a activo (status = 1)
-            $nuevo_status = 1;
+        while ($rowTbl = $result->fetch_assoc()) {
+            $DtosTbl[] = array(
+                'id'            => $rowTbl['id'],
+                'nombre_crisis' => $rowTbl['nombre_crisis'],
+                'criticidad'    => $rowTbl['criticidad'],
+                'status'        => $rowTbl['status']
+            );
         }
 
-        $query = "UPDATE [contingencias].[dbo].[cat_crisis] 
-                  SET status = :nuevo_status
-                  WHERE id = :id_cyc";
+        header('Content-Type: application/json');
+        echo json_encode($DtosTbl);
+        $stmt->close();
+        break;
 
+    case 3:
+        $idCrisis     = $_POST['id']; 
+        $nombreCrisis = $_POST['nombre']; 
+        $criticidad   = (int)$_POST['criticidad']; 
+        $status       = (int)$_POST['status']; 
+
+        $query = "UPDATE cat_crisis SET nombre_crisis = ?, criticidad = ?, status = ?, fecha_modificacion = ?, proyecto = ? WHERE id = ? AND proyecto = ?";
         $stmt = $conn->prepare($query);
-        $stmt->execute([
-            ':nuevo_status' => $nuevo_status,
-            ':id_cyc' => $id_cyc
-        ]);
+        if ($stmt === false) {
+            die("Error en la preparación de la consulta: " . $conn->error);
+        }
+        $fecha_modificacion = date("Y-m-d H:i:s");
+        $stmt->bind_param("siissis", $nombreCrisis, $criticidad, $status, $fecha_modificacion, $proyecto, $idCrisis, $proyecto);
 
-        // Mensajes de éxito dependiendo del nuevo estado
-        if ($nuevo_status === 2) {
+        if ($stmt->execute()) {
+            // Log de edición
+            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) VALUES (?, ?, ?, ?, ?)";
+            $stmtLog = $conn->prepare($queryLog);
+            if ($stmtLog === false) {
+                die("Error en preparación logs: " . $conn->error);
+            }
+            $descripcion = 'Ha editado una CyCs de nombre: ' . $nombreCrisis . ' y Criticidad: ' . $criticidad . ' ID: ' . $idCrisis;
+            $fecha_log = date("Y-m-d H:i:s");
+            $stmtLog->bind_param("sisss", $fecha_log, $id_usuario, $nombre_usuario_login, $descripcion, $proyecto);
+            $stmtLog->execute();
+
             echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
                   <script type='text/javascript'>
-                    window.onload = function() {
-                        Swal.fire({
-                            title: 'Éxito',
-                            text: 'Se desactivó la crisis.',
-                            icon: 'info',
-                            confirmButtonText: 'Aceptar'
-                        }).then(function() {
-                            window.location.href = '../Views/catalogos.php'; // Redirige a la página de éxito
-                        });
-                    }
+                  window.onload = function() {
+                      Swal.fire({
+                          title: 'Éxito',
+                          text: 'La categoría de crisis se editó correctamente.',
+                          icon: 'success',
+                          confirmButtonText: 'Aceptar'
+                      }).then(function() {
+                          window.location.href = '../Views/catalogos.php';
+                      });
+                  }
                   </script>";
         } else {
             echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
                   <script type='text/javascript'>
-                    window.onload = function() {
-                        Swal.fire({
-                            title: 'Éxito',
-                            text: 'Se activó la crisis.',
-                            icon: 'info',
-                            confirmButtonText: 'Aceptar'
-                        }).then(function() {
-                            window.location.href = '../Views/catalogos.php'; // Redirige a la página de éxito
-                        });
-                    }
+                  window.onload = function() {
+                      Swal.fire({
+                          title: 'Error',
+                          text: 'Ocurrió un error al editar el registro.',
+                          icon: 'error',
+                          confirmButtonText: 'Aceptar'
+                      }).then(function() {
+                          window.location.href = '../Views/catalogos.php';
+                      });
+                  }
                   </script>";
         }
+        $stmt->close();
+        break;
 
-    } catch (PDOException $e) {
-        echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-              <script type='text/javascript'>
-                window.onload = function() {
-                    Swal.fire({
-                        title: 'Error',
-                        text: 'No se pudo activar/desactivar la crisis.',
-                        icon: 'error',
-                        confirmButtonText: 'Aceptar'
-                    }).then(function() {
-                        window.location.href = '../Views/catalogos.php'; // Redirige a la página de error
-                    });
-                }
-              </script>";
-    }
-    break;
+    case 4:
+        $id_cyc = $_GET['id'];
 
-        default:
-            echo "Acción no reconocida.";
-    }
+        $query = "UPDATE cat_crisis SET status = 0 WHERE id = ? AND proyecto = ?";
+        $stmt = $conn->prepare($query);
+        if ($stmt === false) {
+            die("Error en la preparación de la consulta: " . $conn->error);
+        }
+        $stmt->bind_param("is", $id_cyc, $proyecto);
 
+        if ($stmt->execute()) {
+            // Log eliminación
+            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) VALUES (?, ?, ?, ?, ?)";
+            $stmtLog = $conn->prepare($queryLog);
+            if ($stmtLog === false) {
+                die("Error en preparación logs: " . $conn->error);
+            }
+            $descripcion = 'Ha eliminado una CyCs con ID: ' . $id_cyc;
+            $fecha_log = date("Y-m-d H:i:s");
+            $stmtLog->bind_param("sisss", $fecha_log, $id_usuario, $nombre_usuario_login, $descripcion, $proyecto);
+            $stmtLog->execute();
 
+            echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+                  <script type='text/javascript'>
+                  window.onload = function() {
+                      Swal.fire({
+                          title: 'Éxito',
+                          text: 'La crisis se eliminó correctamente.',
+                          icon: 'success',
+                          confirmButtonText: 'Aceptar'
+                      }).then(function() {
+                          window.location.href = '../Views/catalogos.php';
+                      });
+                  }
+                  </script>";
+        } else {
+            echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+                  <script type='text/javascript'>
+                  window.onload = function() {
+                      Swal.fire({
+                          title: 'Error',
+                          text: 'No se pudo eliminar la crisis',
+                          icon: 'error',
+                          confirmButtonText: 'Aceptar'
+                      }).then(function() {
+                          window.location.href = '../Views/catalogos.php';
+                      });
+                  }
+                  </script>";
+        }
+        $stmt->close();
+        break;
+
+    case 5:
+        $id_cyc         = $_GET['id'];
+        $status_inicial = $_GET['status'];
+
+        $nuevo_status = ($status_inicial === '1') ? 2 : 1;
+
+        $query = "UPDATE cat_crisis SET status = ? WHERE id = ? AND proyecto = ?";
+        $stmt = $conn->prepare($query);
+        if ($stmt === false) {
+            die("Error en la preparación de la consulta: " . $conn->error);
+        }
+        $stmt->bind_param("iis", $nuevo_status, $id_cyc, $proyecto);
+
+        if ($stmt->execute()) {
+            $textoMensaje = ($nuevo_status === 2) ? 'Se desactivó la crisis.' : 'Se activó la crisis.';
+
+            echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+                  <script type='text/javascript'>
+                  window.onload = function() {
+                      Swal.fire({
+                          title: 'Éxito',
+                          text: '$textoMensaje',
+                          icon: 'info',
+                          confirmButtonText: 'Aceptar'
+                      }).then(function() {
+                          window.location.href = '../Views/catalogos.php';
+                      });
+                  }
+                  </script>";
+        } else {
+            echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+                  <script type='text/javascript'>
+                  window.onload = function() {
+                      Swal.fire({
+                          title: 'Error',
+                          text: 'No se pudo activar/desactivar la crisis.',
+                          icon: 'error',
+                          confirmButtonText: 'Aceptar'
+                      }).then(function() {
+                          window.location.href = '../Views/catalogos.php';
+                      });
+                  }
+                  </script>";
+        }
+        $stmt->close();
+        break;
+
+    default:
+        echo "Acción no reconocida.";
+}
+?>

@@ -1,18 +1,24 @@
 <?php
 // Datos de conexión
-$serverName = "localhost";  // Docker SQL Server
-$connectionOptions = array(
-    "Database" => "contingencias",
-    "Uid" => "sa",
-    "PWD" => "CrisisSQL2024!"
-);
+// $servername = "localhost";
+// $port = 3307;
+// $username = "root";
+// $password = "";
+// $database = "Cyc";
 
-try {
-    $conn = new PDO("sqlsrv:server=$serverName;Database=" . $connectionOptions['Database'],
-                    $connectionOptions['Uid'],
-                    $connectionOptions['PWD']);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("Error de conexión: " . $e->getMessage());
+$servername = "localhost";
+$port       = 3306;
+$username   = "root";
+$password   = "Melco154.,";
+$database   = "Cyc";
+
+// Crear conexión con puerto
+$conn = new mysqli($servername, $username, $password, $database, $port);
+
+// Verificar conexión
+if ($conn->connect_error) {
+    die("Conexión fallida: " . $conn->connect_error);
 }
+
+$conn->set_charset("utf8mb4");
 ?>

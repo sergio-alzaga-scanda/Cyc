@@ -1,72 +1,63 @@
 <?php
 session_start();
-if (!$_SESSION['usuario']) {
-    header("Location: ../index.php"); 
+if (!isset($_SESSION['usuario'])) {
+    header("Location: ../index.php");
+    exit();
 }
+
 include("../Controllers/bd.php");
+
 $id_usuario     = $_SESSION['usuario'];
 $nombre_usuario = $_SESSION['nombre_usuario'];
+$proyecto       = $_SESSION['proyecto']; // Proyecto desde la sesión
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-$fechaActual = date("Y-m-d H:i:s");
-$fechaHoraActual = $fechaActual;
-
 $accion = $_POST['accion'] ?? $_GET['accion'] ?? null;
 
-
 switch ($accion) {
-	case 1:
-    $DtosTbl = array();
+    case 1:
+        $DtosTbl = [];
 
-    try {
-        // Definir la nueva consulta
-        $queryTbl = "SELECT fecha, user_id, name_user, description FROM logs ORDER BY fecha DESC;";
-
-        // Ejecutar la consulta usando PDO
-        $stmt = $conn->query($queryTbl);
-
+        // Consulta filtrando por el campo "proyecto"
+        $query = "SELECT fecha, user_id, name_user, description FROM logs WHERE proyecto = ? ORDER BY fecha DESC";
+        $stmt = $conn->prepare($query);
         if ($stmt === false) {
-            echo json_encode(['error' => $conn->errorInfo()]);
+            echo json_encode(['error' => $conn->error]);
             exit;
         }
 
-        // Obtener los resultados y prepararlos
-        while ($rowTbl = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            // Formatear la fecha_activacion para datetime-local
-            if ($rowTbl['fecha']) {
-                // Quitar la parte de los milisegundos
-                $fechaSinMilisegundos = substr($rowTbl['fecha'], 0, 19); // '2025-01-21 16:55:00'
+        $stmt->bind_param("s", $proyecto);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-                // Intentar crear el objeto DateTime con el formato adecuado
-                $date = DateTime::createFromFormat('Y-m-d H:i:s', $fechaSinMilisegundos);
-                if ($date) {
-                    $rowTbl['fecha'] = $date->format('d-m-Y H:i'); // Formato para datetime-local
-                } else {
-                    // Si el formato es inválido
-                    $rowTbl['fecha'] = 'Fecha inválida';
+        while ($row = $result->fetch_assoc()) {
+            $fechaOriginal = $row['fecha'];
+            $fechaFormateada = 'Fecha inválida';
+
+            if ($fechaOriginal) {
+                $fechaSinMs = substr($fechaOriginal, 0, 19); // Elimina milisegundos
+                $dateObj = DateTime::createFromFormat('Y-m-d H:i:s', $fechaSinMs);
+                if ($dateObj) {
+                    $fechaFormateada = $dateObj->format('d-m-Y H:i');
                 }
             }
 
-            $DtosTbl[] = array(
-				//'id'          => $rowTbl['id'],
-				'fecha'       => $rowTbl['fecha'],
-				'user_id'     => $rowTbl['user_id'],
-				'name_user'   => $rowTbl['name_user'], 
-				'description' => $rowTbl['description']
-            );
+            $DtosTbl[] = [
+                'fecha'       => $fechaFormateada,
+                'user_id'     => $row['user_id'],
+                'name_user'   => $row['name_user'],
+                'description' => $row['description'],
+            ];
         }
 
-        // Enviar la respuesta como JSON
         header('Content-Type: application/json');
         echo json_encode($DtosTbl);
-    } catch (Exception $e) {
-        // Capturar cualquier error y devolverlo como JSON
-        echo json_encode(['error' => $e->getMessage()]);
-    }
-    break;
-	
-	default:
-    	echo "Acción no reconocida.";
+        break;
+
+    default:
+        echo "Acción no reconocida.";
 }
+?>

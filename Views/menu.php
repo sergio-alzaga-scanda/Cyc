@@ -1,43 +1,51 @@
 <?php
 include("../Controllers/bd.php");
+
+// Después:
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 $id_usuario     = $_SESSION['usuario'];
 $nombre_usuario = $_SESSION['nombre_usuario'];
-$queryTbl       = "SELECT * FROM permisos WHERE id_usuario = :id_usuario";
-$stmt           = $conn->prepare($queryTbl);
-$stmt->bindParam(':id_usuario', $id_usuario);
+
+$queryTbl = "SELECT * FROM permisos WHERE id_usuario = ?";
+$stmt = $conn->prepare($queryTbl);
+$stmt->bind_param("i", $id_usuario); // "i" para entero
 
 if ($stmt->execute()) {
-    $permisos     = $stmt->fetch(PDO::FETCH_ASSOC);
-    // Now access each permission directly without foreach
-    $id_usuario   = $permisos['id_usuario'];
-    $dashboard    = $permisos['dashboard'];
-    $CyC          = $permisos['CyC'];
-    $Usuarios     = $permisos['Usuarios'];
-    $Perfiles     = $permisos['Perfiles'];
-    $Avisos       = $permisos['Avisos'];
-    $Actividad    = $permisos['Actividad'];
-    $Catalogos    = $permisos['Catalogos'];
-    $c_agregar    = $permisos['c_agregar'];
-    $c_eliminar   = $permisos['c_eliminar'];
-    $c_habilitar  = $permisos['c_habilitar'];
-    $c_filtrar    = $permisos['c_filtrar'];
-    $d_filtrar    = $permisos['d_filtrar'];
-    $d_visualizar = $permisos['d_visualizar'];
-    $h_detalle    = $permisos['h_detalle'];
-    $h_filtrar    = $permisos['h_filtrar'];
-    $u_agregar    = $permisos['u_agregar'];
-    $u_eliminar   = $permisos['u_eliminar'];
-    $u_modificar  = $permisos['u_modificar'];
-    $u_habilitar  = $permisos['u_habilitar'];
-    $u_filtrar    = $permisos['u_filtrar'];
-    $p_agregar    = $permisos['p_agregar'];
-    $p_eliminar   = $permisos['p_eliminar'];
-    $p_modificar  = $permisos['p_modificar'];
-    $p_filtrar    = $permisos['p_filtrar'];
-    $cat_cyc      = $permisos['cat_cyc'];
-    $cat_bot      = $permisos['cat_bot'];
+    $result = $stmt->get_result();
+    $permisos = $result->fetch_assoc(); // ✅ Forma correcta con mysqli
 
+    if ($permisos) {
+        $dashboard    = $permisos['dashboard'];
+        $CyC          = $permisos['CyC'];
+        $Usuarios     = $permisos['Usuarios'];
+        $Perfiles     = $permisos['Perfiles'];
+        $Avisos       = $permisos['Avisos'];
+        $Actividad    = $permisos['Actividad'];
+        $Catalogos    = $permisos['Catalogos'];
+        $c_agregar    = $permisos['c_agregar'];
+        $c_eliminar   = $permisos['c_eliminar'];
+        $c_habilitar  = $permisos['c_habilitar'];
+        $c_filtrar    = $permisos['c_filtrar'];
+        $d_filtrar    = $permisos['d_filtrar'];
+        $d_visualizar = $permisos['d_visualizar'];
+        $h_detalle    = $permisos['h_detalle'];
+        $h_filtrar    = $permisos['h_filtrar'];
+        $u_agregar    = $permisos['u_agregar'];
+        $u_eliminar   = $permisos['u_eliminar'];
+        $u_modificar  = $permisos['u_modificar'];
+        $u_habilitar  = $permisos['u_habilitar'];
+        $u_filtrar    = $permisos['u_filtrar'];
+        $p_agregar    = $permisos['p_agregar'];
+        $p_eliminar   = $permisos['p_eliminar'];
+        $p_modificar  = $permisos['p_modificar'];
+        $p_filtrar    = $permisos['p_filtrar'];
+        $cat_cyc      = $permisos['cat_cyc'];
+        $cat_bot      = $permisos['cat_bot'];
+    }
 }
+
 ?>
 
 <!DOCTYPE html>

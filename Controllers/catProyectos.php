@@ -1,314 +1,288 @@
 <?php
 session_start();
-if (!$_SESSION['usuario']) {
+if (!isset($_SESSION['usuario'])) {
     header("Location: ../index.php");
+    exit;
 }
-include("../Controllers/bd.php");
+include("../Controllers/bd.php"); // bd.php debe tener conexión mysqli
 $id_usuario           = $_SESSION['usuario'];
 $nombre_usuario_login = $_SESSION['nombre_usuario'];
+$proyecto             = $_SESSION['proyecto'];  // <-- NUEVO
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-
-$fechaActual = date("Y-m-d H:i:s");
-$fechaHoraActual = $fechaActual;
 
 $accion = $_POST['accion'] ?? $_GET['accion'] ?? null;
 
 switch ($accion) {
     case 1:
-        // Verificar que se ha enviado el formulario
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            // Capturar los datos del formulario
-            $nombre = $_POST['nombre'];
+        if ($_SERVER["REQUEST_METHOD"] === "POST") {
+            $nombre = $_POST['nombre'] ?? null;
             $status = 1;
 
-            // Preparar la consulta de inserción
-            $sql = "INSERT INTO cat_proyectos (nombre_proyecto, status) 
-                    VALUES (:nombre, :status)";
-            
-            // Preparar la declaración
+            if (!$nombre) {
+                echo "El nombre del proyecto es obligatorio.";
+                exit;
+            }
+
+            $sql = "INSERT INTO cat_proyectos (nombre_proyecto, status, proyecto) VALUES (?, ?, ?)";
             $stmt = $conn->prepare($sql);
+            if (!$stmt) {
+                die("Error en prepare: " . $conn->error);
+            }
+            $stmt->bind_param("sis", $nombre, $status, $proyecto);
 
-            // Enlazar los parámetros de forma segura
-            $stmt->bindParam(':nombre', $nombre);
-            $stmt->bindParam(':status', $status);
-            
-            // Ejecutar la consulta
             if ($stmt->execute()) {
-
-                // // Insertar en la tabla logs 
-                // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-                //              VALUES (GETDATE(), :user_id, :name_user, :description)";
-                // $stmtLog = $conn->prepare($queryLog);
-                // $stmtLog->bindParam(':user_id', $id_usuario);
-                // $stmtLog->bindParam(':name_user', $nombre_usuario_login);
-                // $descripcion = 'Ha creado un Proyecto de nombre: ' . $nombre ;
-                // $stmtLog->bindParam(':description', $descripcion);
-                // $stmtLog->execute();
+                // Insertar log
+                $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) VALUES (NOW(), ?, ?, ?)";
+                $stmtLog = $conn->prepare($queryLog);
+                if (!$stmtLog) {
+                    die("Error en prepare log: " . $conn->error);
+                }
+                $descripcion = 'Ha creado un Proyecto de nombre: ' . $nombre;
+                $stmtLog->bind_param("iss", $id_usuario, $nombre_usuario_login, $descripcion);
+                $stmtLog->execute();
 
                 echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                      <script type='text/javascript'>
+                      <script>
                         window.onload = function() {
                             Swal.fire({
                                 title: 'Éxito',
                                 text: 'Se guardó el registro correctamente.',
                                 icon: 'success',
                                 confirmButtonText: 'Aceptar'
-                            }).then(function() {
-                                window.location.href = '../Views/catalogos.php'; // Redirige a la página de éxito
+                            }).then(() => {
+                                window.location.href = '../Views/catalogos.php';
                             });
                         }
                       </script>";
             } else {
                 echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                      <script type='text/javascript'>
+                      <script>
                         window.onload = function() {
                             Swal.fire({
                                 title: 'Error',
                                 text: 'Ocurrió un error al guardar el registro.',
                                 icon: 'error',
                                 confirmButtonText: 'Aceptar'
-                            }).then(function() {
-                                window.location.href = '../Views/catalogos.php'; // Redirige a la página de error
+                            }).then(() => {
+                                window.location.href = '../Views/catalogos.php';
                             });
                         }
                       </script>";
             }
+            $stmt->close();
+            if (isset($stmtLog)) $stmtLog->close();
+            $conn->close();
         }
-
-        // Cerrar la conexión
-        $conn = null;
         break;
 
     case 2:
-        $DtosTbl = array();
+        $DtosTbl = [];
+        $queryTbl = "SELECT id_proyecto, nombre_proyecto, status 
+                     FROM cat_proyectos 
+                     WHERE status > 0 AND proyecto = ? 
+                     ORDER BY nombre_proyecto DESC";
 
-        try {
-            // Definir la nueva consulta
-            $queryTbl = "
-            SELECT [id_proyecto], [nombre_proyecto], [status]
-            FROM [contingencias].[dbo].[cat_proyectos]
-            WHERE status > 0
-            ORDER BY nombre_proyecto DESC;
-            ";
-
-            // Preparar y ejecutar la consulta usando PDO
-            $stmt = $conn->prepare($queryTbl);
-            $stmt->execute();
-
-            // Obtener los resultados y prepararlos
-            while ($rowTbl = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                // Preparar los datos para la respuesta
-                $DtosTbl[] = array(
-                    'id'              => $rowTbl['id_proyecto'],
-                    'nombre_proyecto' => $rowTbl['nombre_proyecto'],
-                    'status'          => $rowTbl['status'] // Incluimos el campo status
-                );
-            }
-
-            // Enviar la respuesta como JSON
-            header('Content-Type: application/json');
-            echo json_encode($DtosTbl);
-
-        } catch (PDOException $e) {
-            // Capturar errores de base de datos y devolverlo como JSON
-            echo json_encode(['error' => $e->getMessage()]);
-        } catch (Exception $e) {
-            // Capturar cualquier otro error y devolverlo como JSON
-            echo json_encode(['error' => $e->getMessage()]);
+        $stmt = $conn->prepare($queryTbl);
+        if (!$stmt) {
+            echo json_encode(['error' => $conn->error]);
+            exit;
         }
+        $stmt->bind_param("s", $proyecto);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        while ($rowTbl = $result->fetch_assoc()) {
+            $DtosTbl[] = [
+                'id' => $rowTbl['id_proyecto'],
+                'nombre_proyecto' => $rowTbl['nombre_proyecto'],
+                'status' => $rowTbl['status']
+            ];
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode($DtosTbl);
+
+        $stmt->close();
+        $conn->close();
         break;
 
     case 3:
-        // Obtener los datos del formulario
-        $idProyecto     = $_POST['edit_id_proyecto']; // ID del proyecto
-        $nombreProyecto = $_POST['nombre']; // Nombre del proyecto
+        $idProyecto     = $_POST['edit_id_proyecto'] ?? null;
+        $nombreProyecto = $_POST['nombre'] ?? null;
 
-        try {
-            // Consulta SQL para actualizar el nombre del proyecto
-            $query = "
-                UPDATE [contingencias].[dbo].[cat_proyectos]
-                SET 
-                    [nombre_proyecto] = :nombre_proyecto
-                WHERE [id_proyecto] = :idProyecto;
-            ";
+        if (!$idProyecto || !$nombreProyecto) {
+            echo "Datos incompletos para actualizar.";
+            exit;
+        }
 
-            $stmt = $conn->prepare($query);
-            $stmt->bindParam(':nombre_proyecto', $nombreProyecto);
-            $stmt->bindParam(':idProyecto', $idProyecto);
+        $query = "UPDATE cat_proyectos SET nombre_proyecto = ? WHERE id_proyecto = ? AND proyecto = ?";
+        $stmt = $conn->prepare($query);
+        if (!$stmt) {
+            die("Error en prepare: " . $conn->error);
+        }
+        $stmt->bind_param("sis", $nombreProyecto, $idProyecto, $proyecto);
 
-            // Ejecutar la actualización
-            $stmt->execute();
+        if ($stmt->execute()) {
+            // Log
+            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) VALUES (NOW(), ?, ?, ?)";
+            $stmtLog = $conn->prepare($queryLog);
+            if (!$stmtLog) {
+                die("Error en prepare log: " . $conn->error);
+            }
+            $descripcion = "Ha editado un Proyecto de nombre: $nombreProyecto ID: $idProyecto";
+            $stmtLog->bind_param("iss", $id_usuario, $nombre_usuario_login, $descripcion);
+            $stmtLog->execute();
 
-            // // Insertar en la tabla logs 
-            // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-            //              VALUES (GETDATE(), :user_id, :name_user, :description)";
-            // $stmtLog = $conn->prepare($queryLog);
-            // $stmtLog->bindParam(':user_id', $id_usuario);
-            // $stmtLog->bindParam(':name_user', $nombre_usuario_login);
-            // $descripcion = 'Ha editado un Proyecto de nombre: ' . $nombreProyecto . ' ID: ' . $idProyecto ;
-            // $stmtLog->bindParam(':description', $descripcion);
-            // $stmtLog->execute();
-
-            // Mostrar alerta de éxito
             echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                  <script type='text/javascript'>
+                  <script>
                     window.onload = function() {
                         Swal.fire({
                             title: 'Éxito',
                             text: 'El proyecto se editó correctamente.',
                             icon: 'success',
                             confirmButtonText: 'Aceptar'
-                        }).then(function() {
-                            window.location.href = '../Views/catalogos.php'; // Redirige a la página de éxito
+                        }).then(() => {
+                            window.location.href = '../Views/catalogos.php';
                         });
                     }
                   </script>";
-        } catch (PDOException $e) {
-            // Manejo de error
+        } else {
             echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                  <script type='text/javascript'>
+                  <script>
                     window.onload = function() {
                         Swal.fire({
                             title: 'Error',
                             text: 'Ocurrió un error al editar el registro.',
                             icon: 'error',
                             confirmButtonText: 'Aceptar'
-                        }).then(function() {
-                            window.location.href = '../Views/catalogos.php'; // Redirige a la página de error
+                        }).then(() => {
+                            window.location.href = '../Views/catalogos.php';
                         });
                     }
                   </script>";
         }
+
+        $stmt->close();
+        if (isset($stmtLog)) $stmtLog->close();
+        $conn->close();
         break;
 
     case 4:
-        $id_proyecto = $_GET['id'];
-        try {
-            // Actualiza el estado del proyecto a '0' (eliminado/desactivado)
-            $query = "UPDATE [contingencias].[dbo].[cat_proyectos] 
-                      SET status = 0
-                      WHERE id_proyecto = :id_proyecto";
+        $id_proyecto = $_GET['id'] ?? null;
 
-            $stmt = $conn->prepare($query);
-            $stmt->execute([
-                ':id_proyecto' => $id_proyecto
-            ]);
+        if (!$id_proyecto) {
+            echo "ID de proyecto no proporcionado.";
+            exit;
+        }
 
-            // // Insertar en la tabla logs 
-            // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-            //              VALUES (GETDATE(), :user_id, :name_user, :description)";
-            // $stmtLog = $conn->prepare($queryLog);
-            // $stmtLog->bindParam(':user_id', $id_usuario);
-            // $stmtLog->bindParam(':name_user', $nombre_usuario_login);
-            // $descripcion = 'Ha eliminado un Proyecto con ID: ' . $id_proyecto ;
-            // $stmtLog->bindParam(':description', $descripcion);
-            // $stmtLog->execute();
+        $query = "UPDATE cat_proyectos SET status = 0 WHERE id_proyecto = ? AND proyecto = ?";
+        $stmt = $conn->prepare($query);
+        if (!$stmt) {
+            die("Error en prepare: " . $conn->error);
+        }
+        $stmt->bind_param("is", $id_proyecto, $proyecto);
+
+        if ($stmt->execute()) {
+            // Log
+            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) VALUES (NOW(), ?, ?, ?)";
+            $stmtLog = $conn->prepare($queryLog);
+            if (!$stmtLog) {
+                die("Error en prepare log: " . $conn->error);
+            }
+            $descripcion = 'Ha eliminado un Proyecto con ID: ' . $id_proyecto;
+            $stmtLog->bind_param("iss", $id_usuario, $nombre_usuario_login, $descripcion);
+            $stmtLog->execute();
 
             echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                  <script type='text/javascript'>
+                  <script>
                     window.onload = function() {
                         Swal.fire({
                             title: 'Éxito',
                             text: 'El proyecto se eliminó correctamente.',
                             icon: 'success',
                             confirmButtonText: 'Aceptar'
-                        }).then(function() {
-                            window.location.href = '../Views/catalogos.php'; // Redirige a la página de éxito
+                        }).then(() => {
+                            window.location.href = '../Views/catalogos.php';
                         });
                     }
                   </script>";
-        } catch (PDOException $e) {
+        } else {
             echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                  <script type='text/javascript'>
+                  <script>
                     window.onload = function() {
                         Swal.fire({
                             title: 'Error',
                             text: 'No se pudo eliminar el proyecto.',
                             icon: 'error',
                             confirmButtonText: 'Aceptar'
-                        }).then(function() {
-                            window.location.href = '../Views/catalogos.php'; // Redirige a la página de error
+                        }).then(() => {
+                            window.location.href = '../Views/catalogos.php';
                         });
                     }
                   </script>";
         }
+
+        $stmt->close();
+        if (isset($stmtLog)) $stmtLog->close();
+        $conn->close();
         break;
 
     case 5:
-        $id_proyecto    = $_GET['id'];
-        $status_inicial = $_GET['status'];
+        $id_proyecto    = $_GET['id'] ?? null;
+        $status_inicial = $_GET['status'] ?? null;
 
-        try {
-            // Cambia el estado del proyecto
-            if ($status_inicial === '1') {
-                // Si está activo (status = 1), lo cambiamos a inactivo (status = 2 o 0)
-                $nuevo_status = 2;
-            } else {
-                // Si está inactivo (status = 0 o 2), lo cambiamos a activo (status = 1)
-                $nuevo_status = 1;
-            }
+        if (!$id_proyecto || !in_array($status_inicial, ['1', '2'])) {
+            echo "Datos inválidos para cambiar estado.";
+            exit;
+        }
 
-            $query = "UPDATE [contingencias].[dbo].[cat_proyectos] 
-                      SET status = :nuevo_status
-                      WHERE id_proyecto = :id_proyecto";
+        $nuevo_status = ($status_inicial === '1') ? 2 : 1;
 
-            $stmt = $conn->prepare($query);
-            $stmt->execute([
-                ':nuevo_status' => $nuevo_status,
-                ':id_proyecto' => $id_proyecto
-            ]);
+        $query = "UPDATE cat_proyectos SET status = ? WHERE id_proyecto = ? AND proyecto = ?";
+        $stmt = $conn->prepare($query);
+        if (!$stmt) {
+            die("Error en prepare: " . $conn->error);
+        }
+        $stmt->bind_param("iis", $nuevo_status, $id_proyecto, $proyecto);
 
-            // Mensajes de éxito dependiendo del nuevo estado
-            if ($nuevo_status === 2) {
-                echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                      <script type='text/javascript'>
-                        window.onload = function() {
-                            Swal.fire({
-                                title: 'Éxito',
-                                text: 'Se desactivó el proyecto.',
-                                icon: 'info',
-                                confirmButtonText: 'Aceptar'
-                            }).then(function() {
-                                window.location.href = '../Views/catalogos.php'; // Redirige a la página de éxito
-                            });
-                        }
-                      </script>";
-            } else {
-                echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                      <script type='text/javascript'>
-                        window.onload = function() {
-                            Swal.fire({
-                                title: 'Éxito',
-                                text: 'Se activó el proyecto.',
-                                icon: 'info',
-                                confirmButtonText: 'Aceptar'
-                            }).then(function() {
-                                window.location.href = '../Views/catalogos.php'; // Redirige a la página de éxito
-                            });
-                        }
-                      </script>";
-            }
+        if ($stmt->execute()) {
+            $msg = ($nuevo_status === 2) ? 'Se desactivó el proyecto.' : 'Se activó el proyecto.';
 
-        } catch (PDOException $e) {
             echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                  <script type='text/javascript'>
+                  <script>
+                    window.onload = function() {
+                        Swal.fire({
+                            title: 'Éxito',
+                            text: '$msg',
+                            icon: 'info',
+                            confirmButtonText: 'Aceptar'
+                        }).then(() => {
+                            window.location.href = '../Views/catalogos.php';
+                        });
+                    }
+                  </script>";
+        } else {
+            echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+                  <script>
                     window.onload = function() {
                         Swal.fire({
                             title: 'Error',
                             text: 'No se pudo activar/desactivar el proyecto.',
                             icon: 'error',
                             confirmButtonText: 'Aceptar'
-                        }).then(function() {
-                            window.location.href = '../Views/catalogos.php'; // Redirige a la página de error
+                        }).then(() => {
+                            window.location.href = '../Views/catalogos.php';
                         });
                     }
                   </script>";
         }
+
+        $stmt->close();
+        $conn->close();
         break;
 
     default:
         echo "Acción no reconocida.";
 }
-?>

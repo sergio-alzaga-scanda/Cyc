@@ -1,4 +1,5 @@
 <?php
+session_start();
 include("../Controllers/bd.php");
 header('Content-Type: application/json');
 
@@ -6,26 +7,27 @@ header('Content-Type: application/json');
 $valid_user = "Admin_fanafesa";
 $valid_password = "F4n4f3s4_2025";
 
-if ($_SERVER['PHP_AUTH_USER'] !== $valid_user || $_SERVER['PHP_AUTH_PW'] !== $valid_password) {
+if (!isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) || 
+    $_SERVER['PHP_AUTH_USER'] !== $valid_user || $_SERVER['PHP_AUTH_PW'] !== $valid_password) {
     header('HTTP/1.0 403 Forbidden');
     echo json_encode(["error" => "Credenciales inválidas."]);
     exit;
 }
 
-// Leer los parámetros de la URL
-if (!isset($_GET['proyecto']) || !is_numeric($_GET['proyecto'])) {
+// Validar sesión proyecto
+if (!isset($_SESSION['proyecto']) || !is_numeric($_SESSION['proyecto'])) {
     header('HTTP/1.0 400 Bad Request');
-    echo json_encode(["error" => "El parámetro 'proyecto' es obligatorio y debe ser un número."]);
+    echo json_encode(["error" => "La variable de sesión 'proyecto' no está definida o no es válida."]);
     exit;
 }
+$proyecto = intval($_SESSION['proyecto']);
 
+// Validar parámetro "ubicacion"
 if (!isset($_GET['ubicacion']) || !is_numeric($_GET['ubicacion'])) {
     header('HTTP/1.0 400 Bad Request');
     echo json_encode(["error" => "El parámetro 'ubicacion' es obligatorio y debe ser un número."]);
     exit;
 }
-
-$proyecto = intval($_GET['proyecto']);
 $ubicacion = intval($_GET['ubicacion']);
 
 // Consulta SQL con los joins y todos los campos necesarios
@@ -49,68 +51,68 @@ SELECT
         WHEN '0' THEN 'Desactivado'
         ELSE 'Desconocido'
     END AS status_cyc,
-   
     cyc.fecha_programacion,
     u.nombre_usuario,
     cyc.redaccion_canales,
     cyc.proyecto
-FROM [contingencias].[dbo].[cyc] AS cyc
-INNER JOIN [usuarios] AS u ON cyc.id_usuario = u.idUsuarios
-WHERE cyc.proyecto = ? AND cyc.ubicacion_cyc = $ubicacion
+FROM contingencias.dbo.cyc AS cyc
+INNER JOIN usuarios AS u ON cyc.id_usuario = u.idUsuarios
+WHERE cyc.proyecto = ? AND cyc.ubicacion_cyc = ?
 AND cyc.status_cyc = 1;
 ";
 
-try {
-    $stmt = $conn->prepare($sql);
-    $stmt->execute([$proyecto, $ubicacion]);
+if ($stmt = $conn->prepare($sql)) {
+    // "ii" indica que los parámetros son enteros (int, int)
+    $stmt->bind_param("ii", $proyecto, $ubicacion);
 
-    // Construir el resultado
-    $resultado = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    if ($stmt->execute()) {
+        $result = $stmt->get_result();
 
-    // Verificar si se encontraron registros
-    if (empty($resultado)) {
-        // header('HTTP/1.0 404 Not Found');
-        header('HTTP/1.0 200 Ok');
-        echo json_encode(["status_cyc" => "Inactivo"]);
-    } else {
-        $messages = [];
-        
-        // Procesar cada registro y construir el mensaje
-        foreach ($resultado as $row) {
-            // Cambiar el valor de redaccion_cyc por la cadena compuesta
-            $message = $row['tipo_cyc'] . ' Registrada ' . $row['redaccion_cyc'] . ' ' . $row['nombre'] . " con el numero de ticket " . $row['no_ticket'];
+        if ($result->num_rows === 0) {
+            header('HTTP/1.0 200 OK');
+            echo json_encode(["status_cyc" => "Inactivo"]);
+        } else {
+            $messages = [];
 
-            // Crear el formato de la respuesta
-            $record = [
-                "id_cyc" => $row['id_cyc'],
-                "nombre" => $row['nombre'],
-                "no_ticket" => $row['no_ticket'],
-                "nombre_crisis" => $row['nombre'],
-                "criticidad" => $row['criticidad'],
-                "tipo_cyc" => $row['tipo_cyc'],
-                "ubicacion_cyc" => $row['ubicacion_cyc'],
-                "grabacion" => $message, // Cambiar el valor de redaccion_cyc
-                "canal_cyc" => json_decode($row['canal_cyc'], true),  // Asegurar que esté en formato de array
-                "bot_cyc" => json_decode($row['bot_cyc'], true),  // Asegurar que esté en formato de array
-                "fecha_registro_cyc" => $row['fecha_registro_cyc'],
-                "status_cyc" => $row['status_cyc'],
-                "fecha_programacion" => $row['fecha_programacion'],
-                "nombre_usuario" => $row['nombre_usuario'],
-                "redaccion_canales" => $row['redaccion_canales'],
-                "proyecto" => $row['proyecto']
-            ];
-            
-            $messages[] = $record; // Agregar al array de mensajes
+            while ($row = $result->fetch_assoc()) {
+                $message = $row['tipo_cyc'] . ' Registrada ' . $row['redaccion_cyc'] . ' ' . $row['nombre'] . " con el numero de ticket " . $row['no_ticket'];
+
+                $record = [
+                    "id_cyc" => $row['id_cyc'],
+                    "nombre" => $row['nombre'],
+                    "no_ticket" => $row['no_ticket'],
+                    "nombre_crisis" => $row['nombre'],       // campo original 'nombre_crisis' no está en esta consulta
+                    "criticidad" => $row['criticidad'] ?? null, // puede que no exista
+                    "tipo_cyc" => $row['tipo_cyc'],
+                    "ubicacion_cyc" => $row['ubicacion_cyc'],
+                    "grabacion" => $message,
+                    "canal_cyc" => json_decode($row['canal_cyc'], true),
+                    "bot_cyc" => json_decode($row['bot_cyc'], true),
+                    "fecha_registro_cyc" => $row['fecha_registro_cyc'],
+                    "status_cyc" => $row['status_cyc'],
+                    "fecha_programacion" => $row['fecha_programacion'],
+                    "nombre_usuario" => $row['nombre_usuario'],
+                    "redaccion_canales" => $row['redaccion_canales'],
+                    "proyecto" => $row['proyecto']
+                ];
+
+                $messages[] = $record;
+            }
+
+            echo json_encode($messages, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         }
 
-        // Retornar la respuesta en formato JSON
-        echo json_encode($record);
+        $result->free();
+    } else {
+        header('HTTP/1.0 500 Internal Server Error');
+        echo json_encode(["error" => "Error al ejecutar la consulta.", "details" => $stmt->error]);
     }
-} catch (PDOException $e) {
+
+    $stmt->close();
+} else {
     header('HTTP/1.0 500 Internal Server Error');
-    echo json_encode(["error" => "Error al ejecutar la consulta.", "details" => $e->getMessage()]);
+    echo json_encode(["error" => "Error al preparar la consulta.", "details" => $conn->error]);
 }
 
-// Cerrar la conexión
-$conn = null;
+$conn->close();
 ?>

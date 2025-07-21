@@ -2,10 +2,14 @@
 session_start();
 if (!$_SESSION['usuario']) {
     header("Location: ../index.php");
+    exit;
 }
-include("../Controllers/bd.php");
+
+include("../Controllers/bd.php"); // Aquí $conn es mysqli
 $id_usuario           = $_SESSION['usuario'];
 $nombre_usuario_login = $_SESSION['nombre_usuario'];
+$proyecto             = $_SESSION['proyecto']; // Obtenemos el proyecto de la sesión
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -17,36 +21,31 @@ $accion = $_POST['accion'] ?? $_GET['accion'] ?? null;
 
 switch ($accion) {
     case 1:
-        // Verificar que se ha enviado el formulario
+        // Insertar canal digital con proyecto
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            // Capturar los datos del formulario
             $nombre = $_POST['nombre'];
-            $status = 1; // El status que deseas asignar, por ejemplo 1 para "activo"
+            $status = 1;
 
-            // Preparar la consulta de inserción
-            $sql = "INSERT INTO canal_digital (nombre_canal, status) 
-                    VALUES (:nombre, :status)";
-            
-            // Preparar la declaración
+            $sql = "INSERT INTO canal_digital (nombre_canal, status, proyecto) VALUES (?, ?, ?)";
+
             $stmt = $conn->prepare($sql);
+            if ($stmt === false) {
+                die("Error en preparación: " . $conn->error);
+            }
 
-            // Enlazar los parámetros de forma segura
-            $stmt->bindParam(':nombre', $nombre);
-            $stmt->bindParam(':status', $status);
-            
+            $stmt->bind_param("sis", $nombre, $status, $proyecto);
 
-            // Ejecutar la consulta
             if ($stmt->execute()) {
+                // Insertar log con NOW()
+                $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) VALUES (NOW(), ?, ?, ?, ?)";
+                $stmtLog = $conn->prepare($queryLog);
+                if ($stmtLog === false) {
+                    die("Error en preparación log: " . $conn->error);
+                }
 
-                // // Insertar en la tabla logs 
-                // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-                //              VALUES (GETDATE(), :user_id, :name_user, :description)";
-                // $stmtLog = $conn->prepare($queryLog);
-                // $stmtLog->bindParam(':user_id', $id_usuario);
-                // $stmtLog->bindParam(':name_user', $nombre_usuario_login);
-                // $descripcion = 'Ha creado un Canal Digital de nombre: ' . $nombre ;
-                // $stmtLog->bindParam(':description', $descripcion);
-                // $stmtLog->execute();
+                $descripcion = 'Ha creado un Canal Digital de nombre: ' . $nombre;
+                $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario_login, $descripcion, $proyecto);
+                $stmtLog->execute();
 
                 echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
                       <script type='text/javascript'>
@@ -57,7 +56,7 @@ switch ($accion) {
                                 icon: 'success',
                                 confirmButtonText: 'Aceptar'
                             }).then(function() {
-                                window.location.href = '../Views/catalogos.php'; // Redirige a la página de éxito
+                                window.location.href = '../Views/catalogos.php';
                             });
                         }
                       </script>";
@@ -71,90 +70,73 @@ switch ($accion) {
                                 icon: 'error',
                                 confirmButtonText: 'Aceptar'
                             }).then(function() {
-                                window.location.href = '../Views/catalogos.php'; // Redirige a la página de error
+                                window.location.href = '../Views/catalogos.php';
                             });
                         }
                       </script>";
             }
+            $stmt->close();
         }
-
-        // Cerrar la conexión
-        $conn = null;
+        $conn->close();
         break;
 
     case 2:
         $DtosTbl = array();
+        $sql = "SELECT id_canal_digital, nombre_canal, status, fecha_registro, fecha_actualizacion
+                FROM canal_digital
+                WHERE status > 0 AND proyecto = ?
+                ORDER BY nombre_canal DESC";
 
-        try {
-            // Definir la nueva consulta
-            $queryTbl = "
-            SELECT [id_canal_digital], [nombre_canal], [status], [fecha_registro], [fecha_actualizacion]
-            FROM [contingencias].[dbo].[canal_digital]
-            WHERE status > 0
-            ORDER BY nombre_canal DESC;
-            ";
-
-            // Preparar y ejecutar la consulta usando PDO
-            $stmt = $conn->prepare($queryTbl);
-            $stmt->execute();
-
-            // Obtener los resultados y prepararlos
-            while ($rowTbl = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                // Preparar los datos para la respuesta
-                $DtosTbl[] = array(
-                    'id'                  => $rowTbl['id_canal_digital'],
-                    'nombre_canal'        => $rowTbl['nombre_canal'],
-                    'status'              => $rowTbl['status'], // Incluimos el campo status
-                    'fecha_registro'      => $rowTbl['fecha_registro'],
-                    'fecha_actualizacion' => $rowTbl['fecha_actualizacion']
-                );
-            }
-
-            // Enviar la respuesta como JSON
-            header('Content-Type: application/json');
-            echo json_encode($DtosTbl);
-
-        } catch (PDOException $e) {
-            // Capturar errores de base de datos y devolverlo como JSON
-            echo json_encode(['error' => $e->getMessage()]);
-        } catch (Exception $e) {
-            // Capturar cualquier otro error y devolverlo como JSON
-            echo json_encode(['error' => $e->getMessage()]);
+        $stmt = $conn->prepare($sql);
+        if ($stmt === false) {
+            echo json_encode(['error' => $conn->error]);
+            exit;
         }
+        $stmt->bind_param("s", $proyecto);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        while ($rowTbl = $result->fetch_assoc()) {
+            $DtosTbl[] = array(
+                'id'                  => $rowTbl['id_canal_digital'],
+                'nombre_canal'        => $rowTbl['nombre_canal'],
+                'status'              => $rowTbl['status'],
+                'fecha_registro'      => $rowTbl['fecha_registro'],
+                'fecha_actualizacion' => $rowTbl['fecha_actualizacion']
+            );
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode($DtosTbl);
+
+        $stmt->close();
+        $conn->close();
         break;
 
     case 3:
-        // Obtener los datos del formulario
-        $idCanal     = $_POST['edit_id_canal']; // ID del canal
-        $nombreCanal = $_POST['nombre']; // Nombre del canal
+        $idCanal     = $_POST['edit_id_canal'];
+        $nombreCanal = $_POST['nombre'];
 
-        try {
-            // Consulta SQL para actualizar la categoría de canal
-            $query = "
-                UPDATE [contingencias].[dbo].[canal_digital]
-                SET 
-                    [nombre_canal] = :nombre_canal
-                WHERE [id_canal_digital] = :idCanal;
-            ";
+        $sql = "UPDATE canal_digital SET nombre_canal = ? WHERE id_canal_digital = ? AND proyecto = ?";
 
-            $stmt = $conn->prepare($query);
-            $stmt->bindParam(':nombre_canal', $nombreCanal);
-            $stmt->bindParam(':idCanal', $idCanal);
+        $stmt = $conn->prepare($sql);
+        if ($stmt === false) {
+            die("Error en preparación: " . $conn->error);
+        }
 
-            // Ejecutar la actualización
-            $stmt->execute();
+        $stmt->bind_param("sis", $nombreCanal, $idCanal, $proyecto);
 
-            // // Insertar en la tabla logs 
-            // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-            //              VALUES (GETDATE(), :user_id, :name_user, :description)";
-            // $stmtLog = $conn->prepare($queryLog);
-            // $stmtLog->bindParam(':user_id', $id_usuario);
-            // $stmtLog->bindParam(':name_user', $nombre_usuario_login);
-            // $descripcion = 'Ha editado un Canal Digital de nombre: ' . $nombreCanal . ' ID: ' . $idCanal ;
-            // $stmtLog->bindParam(':description', $descripcion);
-            // $stmtLog->execute();
+        if ($stmt->execute()) {
+            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) VALUES (NOW(), ?, ?, ?, ?)";
+            $stmtLog = $conn->prepare($queryLog);
+            if ($stmtLog === false) {
+                die("Error en preparación log: " . $conn->error);
+            }
 
-            // Mostrar alerta de éxito
+            $descripcion = 'Ha editado un Canal Digital de nombre: ' . $nombreCanal . ' ID: ' . $idCanal;
+            $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario_login, $descripcion, $proyecto);
+            $stmtLog->execute();
+
             echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
                   <script type='text/javascript'>
                     window.onload = function() {
@@ -164,12 +146,11 @@ switch ($accion) {
                             icon: 'success',
                             confirmButtonText: 'Aceptar'
                         }).then(function() {
-                            window.location.href = '../Views/catalogos.php'; // Redirige a la página de éxito
+                            window.location.href = '../Views/catalogos.php';
                         });
                     }
                   </script>";
-        } catch (PDOException $e) {
-            // Manejo de error
+        } else {
             echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
                   <script type='text/javascript'>
                     window.onload = function() {
@@ -179,35 +160,36 @@ switch ($accion) {
                             icon: 'error',
                             confirmButtonText: 'Aceptar'
                         }).then(function() {
-                            window.location.href = '../Views/catalogos.php'; // Redirige a la página de error
+                            window.location.href = '../Views/catalogos.php';
                         });
                     }
                   </script>";
         }
+        $stmt->close();
+        $conn->close();
         break;
 
     case 4:
         $id_canal = $_GET['id'];
-        try {
-            // Actualiza el estado del canal a '0' (eliminado/desactivado)
-            $query = "UPDATE [contingencias].[dbo].[canal_digital] 
-                      SET status = 0
-                      WHERE id_canal_digital = :id_canal";
 
-            $stmt = $conn->prepare($query);
-            $stmt->execute([
-                ':id_canal' => $id_canal
-            ]);
+        $sql = "UPDATE canal_digital SET status = 0 WHERE id_canal_digital = ? AND proyecto = ?";
+        $stmt = $conn->prepare($sql);
+        if ($stmt === false) {
+            die("Error en preparación: " . $conn->error);
+        }
 
-            // // Insertar en la tabla logs 
-            // $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) 
-            //              VALUES (GETDATE(), :user_id, :name_user, :description)";
-            // $stmtLog = $conn->prepare($queryLog);
-            // $stmtLog->bindParam(':user_id', $id_usuario);
-            // $stmtLog->bindParam(':name_user', $nombre_usuario_login);
-            // $descripcion = 'Ha eliminado un Canal Digital con ID: ' . $id_canal ;
-            // $stmtLog->bindParam(':description', $descripcion);
-            // $stmtLog->execute();
+        $stmt->bind_param("is", $id_canal, $proyecto);
+
+        if ($stmt->execute()) {
+            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) VALUES (NOW(), ?, ?, ?, ?)";
+            $stmtLog = $conn->prepare($queryLog);
+            if ($stmtLog === false) {
+                die("Error en preparación log: " . $conn->error);
+            }
+
+            $descripcion = 'Ha eliminado un Canal Digital con ID: ' . $id_canal;
+            $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario_login, $descripcion, $proyecto);
+            $stmtLog->execute();
 
             echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
                   <script type='text/javascript'>
@@ -218,11 +200,11 @@ switch ($accion) {
                             icon: 'success',
                             confirmButtonText: 'Aceptar'
                         }).then(function() {
-                            window.location.href = '../Views/catalogos.php'; // Redirige a la página de éxito
+                            window.location.href = '../Views/catalogos.php';
                         });
                     }
                   </script>";
-        } catch (PDOException $e) {
+        } else {
             echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
                   <script type='text/javascript'>
                     window.onload = function() {
@@ -232,69 +214,46 @@ switch ($accion) {
                             icon: 'error',
                             confirmButtonText: 'Aceptar'
                         }).then(function() {
-                            window.location.href = '../Views/catalogos.php'; // Redirige a la página de error
+                            window.location.href = '../Views/catalogos.php';
                         });
                     }
                   </script>";
         }
+        $stmt->close();
+        $conn->close();
         break;
 
     case 5:
         $id_canal       = $_GET['id'];
         $status_inicial = $_GET['status'];
 
-        try {
-            // Cambia el estado del canal
-            if ($status_inicial === '1') {
-                // Si está activo (status = 1), lo cambiamos a inactivo (status = 2 o 0)
-                $nuevo_status = 2;
-            } else {
-                // Si está inactivo (status = 0 o 2), lo cambiamos a activo (status = 1)
-                $nuevo_status = 1;
-            }
+        $nuevo_status = ($status_inicial === '1') ? 2 : 1;
 
-            $query = "UPDATE [contingencias].[dbo].[canal_digital] 
-                      SET status = :nuevo_status
-                      WHERE id_canal_digital = :id_canal";
+        $sql = "UPDATE canal_digital SET status = ? WHERE id_canal_digital = ? AND proyecto = ?";
+        $stmt = $conn->prepare($sql);
+        if ($stmt === false) {
+            die("Error en preparación: " . $conn->error);
+        }
 
-            $stmt = $conn->prepare($query);
-            $stmt->execute([
-                ':nuevo_status' => $nuevo_status,
-                ':id_canal'     => $id_canal
-            ]);
+        $stmt->bind_param("iis", $nuevo_status, $id_canal, $proyecto);
 
-            // Mensajes de éxito dependiendo del nuevo estado
-            if ($nuevo_status === 2) {
-                echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                      <script type='text/javascript'>
-                        window.onload = function() {
-                            Swal.fire({
-                                title: 'Éxito',
-                                text: 'Se desactivó el canal.',
-                                icon: 'info',
-                                confirmButtonText: 'Aceptar'
-                            }).then(function() {
-                                window.location.href = '../Views/catalogos.php'; // Redirige a la página de éxito
-                            });
-                        }
-                      </script>";
-            } else {
-                echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                      <script type='text/javascript'>
-                        window.onload = function() {
-                            Swal.fire({
-                                title: 'Éxito',
-                                text: 'Se activó el canal.',
-                                icon: 'info',
-                                confirmButtonText: 'Aceptar'
-                            }).then(function() {
-                                window.location.href = '../Views/catalogos.php'; // Redirige a la página de éxito
-                            });
-                        }
-                      </script>";
-            }
+        if ($stmt->execute()) {
+            $msg = ($nuevo_status === 2) ? 'Se desactivó el canal.' : 'Se activó el canal.';
 
-        } catch (PDOException $e) {
+            echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+                  <script type='text/javascript'>
+                    window.onload = function() {
+                        Swal.fire({
+                            title: 'Éxito',
+                            text: '$msg',
+                            icon: 'info',
+                            confirmButtonText: 'Aceptar'
+                        }).then(function() {
+                            window.location.href = '../Views/catalogos.php';
+                        });
+                    }
+                  </script>";
+        } else {
             echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
                   <script type='text/javascript'>
                     window.onload = function() {
@@ -304,11 +263,13 @@ switch ($accion) {
                             icon: 'error',
                             confirmButtonText: 'Aceptar'
                         }).then(function() {
-                            window.location.href = '../Views/catalogos.php'; // Redirige a la página de error
+                            window.location.href = '../Views/catalogos.php';
                         });
                     }
                   </script>";
         }
+        $stmt->close();
+        $conn->close();
         break;
 
     default:

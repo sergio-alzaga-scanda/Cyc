@@ -260,66 +260,88 @@ document.getElementById('mismo-canal-edit').addEventListener('change', function(
     }
 });
 
-// Cargar los datos del modal con los datos de la crisis
-$(document).on('click', '.btn-warning', function() {
+$(document).on('click', '.btn-warning', function () {
     var crisisId = $(this).data('id');
-    
+
     // Mostrar el splash
     $('#splash').fadeIn();
 
     $.ajax({
         url: '../Controllers/crisis.php',
         method: 'POST',
-        data: {accion: 3, id: crisisId},  // Trae los datos de la crisis
-        success: function(data) {
+        dataType: 'json', 
+        data: { accion: 3, id: crisisId },
+        success: function (data) {
             const crisisData = JSON.parse(data);
             console.log(crisisData);
+
+            // Asignar valores al formulario
             $('#id').val(crisisData.id_cyc);
             $('#no_ticket_edit').val(crisisData.no_ticket);
             $('#nombre_edit').val(crisisData.nombre);
-            $('#categoria_edit').val(crisisData.categoria_cyc);
-            $('#tipo_edit').val(crisisData.tipo_cyc);
-            $('#ubicacion_edit').val(crisisData.ubicacion_cyc);
-            $('#ivr_edit').val(crisisData.redaccion_cyc);
-            $('#edit_proyecto').val(crisisData.proyecto);
-            
-            // Convertir la fecha de formato dd-MM-yyyy HH:mm a yyyy-MM-ddTHH:mm
-            if (crisisData.fecha_programacion) {
-                var fecha = crisisData.fecha_programacion.split(' ');
-                var fechaPartes = fecha[0].split('-'); // [dd, MM, yyyy]
-                var horaPartes = fecha[1].split(':'); // [HH, mm]
-                var fechaFormateada = fechaPartes[2] + '-' + fechaPartes[1] + '-' + fechaPartes[0] + 'T' + horaPartes[0] + ':' + horaPartes[1];
-                $('#fecha_programacion').val(fechaFormateada);
-            }
 
+            // Convertir a string para asegurar coincidencia exacta en selects
+            $('#categoria_edit').val(String(crisisData.categoria_cyc)).trigger('change');
+            $('#tipo_edit').val(String(crisisData.tipo_cyc));
+            $('#ubicacion_edit').val(String(crisisData.ubicacion_cyc));
+            $('#edit_proyecto').val(String(crisisData.proyecto));
+
+            $('#ivr_edit').val(crisisData.redaccion_cyc);
             $('#redaccion_canales_edit').val(crisisData.redaccion_canales);
 
-            // Marcar las opciones seleccionadas previamente en los "canales" y "bots"
-            if (crisisData.canal_cyc && crisisData.canal_cyc.length > 0) {
-                crisisData.canal_cyc.forEach(function(canalId) {
-                    $('#canal_edit option[value="' + canalId + '"]').prop('selected', true);
-                });
+            // Refrescar selects si usas bootstrap-select
+            if ($('#categoria_edit').hasClass('selectpicker')) $('#categoria_edit').selectpicker('refresh');
+            if ($('#tipo_edit').hasClass('selectpicker')) $('#tipo_edit').selectpicker('refresh');
+            if ($('#ubicacion_edit').hasClass('selectpicker')) $('#ubicacion_edit').selectpicker('refresh');
+            if ($('#edit_proyecto').hasClass('selectpicker')) $('#edit_proyecto').selectpicker('refresh');
+
+            // Actualizar criticidad visual
+            actualizarCriticidad();
+
+            // Fecha programación
+            if (crisisData.fecha_programacion) {
+                const fecha = crisisData.fecha_programacion.split(' ');
+                const partesFecha = fecha[0].split('-'); // [yyyy, mm, dd]
+                const partesHora = fecha[1].split(':');  // [HH, mm, ss]
+                const fechaFormateada = `${partesFecha[0]}-${partesFecha[1]}-${partesFecha[2]}T${partesHora[0]}:${partesHora[1]}`;
+                $('#fecha_programacion_2').val(fechaFormateada);
+            } else {
+                $('#fecha_programacion_2').val('');
             }
 
-            if (crisisData.bot_cyc && crisisData.bot_cyc.length > 0) {
-                crisisData.bot_cyc.forEach(function(botId) {
-                    $('#bot_edit option[value="' + botId + '"]').prop('selected', true);
-                });
+            // Canales digitales
+            if (Array.isArray(crisisData.canal_cyc)) {
+                $('#canal_edit').val(crisisData.canal_cyc);
+                if ($('#canal_edit').hasClass('selectpicker')) $('#canal_edit').selectpicker('refresh');
+            } else {
+                $('#canal_edit').val([]);
+                if ($('#canal_edit').hasClass('selectpicker')) $('#canal_edit').selectpicker('refresh');
             }
 
-            // Refrescar el selectpicker de nuevo para reflejar las selecciones
-            $('#canal_edit').selectpicker('refresh');
-            $('#bot_edit').selectpicker('refresh');
+            if (Array.isArray(crisisData.bot_cyc)) {
+                $('#bot_edit').val(crisisData.bot_cyc);
+                if ($('#bot_edit').hasClass('selectpicker')) $('#bot_edit').selectpicker('refresh');
+            } else {
+                $('#bot_edit').val([]);
+                if ($('#bot_edit').hasClass('selectpicker')) $('#bot_edit').selectpicker('refresh');
+            }
 
-            // Mostrar el modal
+            // Mostrar canal digital si hay datos
+            if ((crisisData.canal_cyc && crisisData.canal_cyc.length) ||
+                (crisisData.bot_cyc && crisisData.bot_cyc.length) ||
+                crisisData.redaccion_canales) {
+                $('#habilitar-canal-digital-edit').prop('checked', true).trigger('change');
+            } else {
+                $('#habilitar-canal-digital-edit').prop('checked', false).trigger('change');
+            }
+
+            // Mostrar modal y ocultar splash
             $('#editModal').modal('show');
-
-            // Ocultar el splash una vez cargados los datos
             $('#splash').fadeOut();
         },
-        error: function() {
+        error: function () {
             alert('Error al cargar los datos para la edición');
-            $('#splash').fadeOut(); // Ocultar el splash en caso de error
+            $('#splash').fadeOut();
         }
     });
 });

@@ -1,56 +1,85 @@
 <?php
-include("../Controllers/bd.php");
-
-// Obtener las crisis
-$queryCrisis = "SELECT * FROM cat_crisis WHERE status > 0 ORDER BY nombre_crisis ASC";
-$crisis_data = $conn->prepare($queryCrisis);
-
-if ($crisis_data->execute()) {
-    $crisis = $crisis_data->fetchAll(PDO::FETCH_ASSOC); // Obtener todos los registros
-} else {
-    echo "Error al obtener las crisis";
+include("../Controllers/bd.php"); // Debe contener $conn (objeto mysqli)
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
 }
 
-// Obtener las ubicaciones
-$queryUbicaciones = "SELECT * FROM ubicacion_ivr WHERE status > 0";
-$ubicacion = $conn->prepare($queryUbicaciones);
+$crisis = [];
+$ubicaciones = [];
+$canales = [];
+$proyectos = [];
+$bots = [];
 
-if ($ubicacion->execute()) {
-    $ubicaciones = $ubicacion->fetchAll(PDO::FETCH_ASSOC); // Obtener todos los registros
-} else {
-    echo "Error al obtener las ubicaciones";
+$proyecto_id = $_SESSION['proyecto'] ?? null;
+
+// Verifica que haya un proyecto en sesión
+if (!$proyecto_id) {
+    echo "No hay proyecto en la sesión.";
+    exit;
 }
 
-// Obtener los canales
-$queryCanales = "SELECT * FROM canal_digital WHERE status > 0 ORDER BY nombre_canal ASC";
-$canal = $conn->prepare($queryCanales);
+// -------------------- Obtener CRISIS -------------------- //
+$stmt = $conn->prepare("SELECT * FROM cat_crisis WHERE status >= 1 AND proyecto = ? ORDER BY nombre_crisis ASC");
+$stmt->bind_param("s", $proyecto_id);
 
-if ($canal->execute()) {
-    $canales = $canal->fetchAll(PDO::FETCH_ASSOC); // Obtener todos los registros
+if ($stmt->execute()) {
+    $result = $stmt->get_result();
+    $crisis = $result->fetch_all(MYSQLI_ASSOC);
 } else {
-    echo "Error al obtener los canales";
+    echo "Error al obtener las crisis: " . $stmt->error;
 }
+$stmt->close();
 
-// Obtener los proyectos
-$queryProyecto = "SELECT * FROM cat_proyectos WHERE status > 0 ORDER BY nombre_proyecto ASC";
-$proyecto = $conn->prepare($queryProyecto);
+// -------------------- Obtener UBICACIONES -------------------- //
+$stmt = $conn->prepare("SELECT * FROM ubicacion_ivr WHERE status >= 1 AND proyecto = ?");
+$stmt->bind_param("s", $proyecto_id);
 
-if ($proyecto->execute()) {
-    $proyectos = $proyecto->fetchAll(PDO::FETCH_ASSOC); // Obtener todos los registros
+if ($stmt->execute()) {
+    $result = $stmt->get_result();
+    $ubicaciones = $result->fetch_all(MYSQLI_ASSOC);
 } else {
-    echo "Error al obtener los proyectos";
+    echo "Error al obtener las ubicaciones: " . $stmt->error;
 }
+$stmt->close();
 
-// Obtener los bots
-$queryBot = "SELECT * FROM bot ORDER BY nombre_bot ASC";
-$bot = $conn->prepare($queryBot);
+// -------------------- Obtener CANALES -------------------- //
+$stmt = $conn->prepare("SELECT * FROM canal_digital WHERE status >= 1 AND proyecto = ? ORDER BY nombre_canal ASC");
+$stmt->bind_param("s", $proyecto_id);
 
-if ($bot->execute()) {
-    $bots = $bot->fetchAll(PDO::FETCH_ASSOC); // Obtener todos los registros
+if ($stmt->execute()) {
+    $result = $stmt->get_result();
+    $canales = $result->fetch_all(MYSQLI_ASSOC);
 } else {
-    echo "Error al obtener los bots";
+    echo "Error al obtener los canales: " . $stmt->error;
 }
+$stmt->close();
+
+// -------------------- Obtener PROYECTOS -------------------- //
+$stmt = $conn->prepare("SELECT * FROM cat_proyectos WHERE status >= 1 AND proyecto = ? ORDER BY nombre_proyecto ASC");
+$stmt->bind_param("s", $proyecto_id);
+
+if ($stmt->execute()) {
+    $result = $stmt->get_result();
+    $proyectos = $result->fetch_all(MYSQLI_ASSOC);
+} else {
+    echo "Error al obtener los proyectos: " . $stmt->error;
+}
+$stmt->close();
+
+// -------------------- Obtener BOTS -------------------- //
+$stmt = $conn->prepare("SELECT * FROM bot WHERE status >= 1 AND proyecto = ? ORDER BY nombre_bot ASC");
+$stmt->bind_param("s", $proyecto_id);
+
+if ($stmt->execute()) {
+    $result = $stmt->get_result();
+    $bots = $result->fetch_all(MYSQLI_ASSOC);
+} else {
+    echo "Error al obtener los bots: " . $stmt->error;
+}
+$stmt->close();
 ?>
+
+
 
 <!-- Modal -->
 <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true">
@@ -89,12 +118,16 @@ if ($bot->execute()) {
           <div class="mb-4">
            <div class="row g-3 mb-3">
   <div class="col-md-2">
-  <label for="categoria" class="form-label">Categoria</label>
+  <label for="categoria" class="form-label">Categoría</label>
   <select class="form-select" name="criticidad" required id="categoria">
-    <option value="">Seleccione una opción</option> <!-- Opción vacía -->
+    <option value="">Seleccione una opción</option>
     <?php
-      foreach ($crisis as $row) {
-          echo '<option value="' . $row['id'] . '" data-criticidad="' . $row['criticidad'] . '">' . $row['nombre_crisis'] . '</option>';
+      if (!empty($crisis)) {
+          foreach ($crisis as $row) {
+              echo '<option value="' . $row['id'] . '" data-criticidad="' . htmlspecialchars($row['criticidad']) . '">' . htmlspecialchars($row['nombre_crisis']) . '</option>';
+          }
+      } else {
+          echo '<option value="">No hay crisis disponibles</option>';
       }
     ?>
   </select>
@@ -114,28 +147,38 @@ if ($bot->execute()) {
 
 <div class="col-md-2">
   <label for="ubicacion" class="form-label">Ubicación de CoC</label>
-  <select class="form-select" required  name="ubicacion" id="ubicacion">
-    <option value="">Seleccione una opción</option> <!-- Opción vacía -->
+  <select class="form-select" required name="ubicacion" id="ubicacion">
+    <option value="">Seleccione una opción</option>
     <?php
-      foreach ($ubicaciones as $row) {
-          echo '<option value="' . $row['id_ubicacion_ivr'] . '">' . $row['nombre_ubicacion_ivr'] . '</option>';
+      if (!empty($ubicaciones)) {
+          foreach ($ubicaciones as $row) {
+              echo '<option value="' . $row['id_ubicacion_ivr'] . '">' . htmlspecialchars($row['nombre_ubicacion_ivr']) . '</option>';
+          }
+      } else {
+          echo '<option value="">No hay ubicaciones disponibles</option>';
       }
     ?>
   </select>
 </div>
 
+
 <!-- Nuevo combo agregado para 'Prioridad' -->
 <div class="col-md-2">
   <label for="proyecto" class="form-label">Proyecto</label>
-  <select class="form-select"  name="proyecto" id="proyecto">
-    <option value="">Seleccione una opción</option> <!-- Opción vacía -->
+  <select class="form-select" name="proyecto" id="proyecto">
+    <option value="">Seleccione una opción</option>
     <?php
-      foreach ($proyectos as $row_proyecto) {
-          echo '<option value="' . $row_proyecto['id_proyecto'] . '">' . $row_proyecto['nombre_proyecto'] . ' </option>';
+      if (!empty($proyectos)) {
+          foreach ($proyectos as $row) {
+              echo '<option value="' . $row['id_proyecto'] . '">' . htmlspecialchars($row['nombre_proyecto']) . '</option>';
+          }
+      } else {
+          echo '<option value="">No hay proyectos disponibles</option>';
       }
     ?>
   </select>
 </div>
+
 
 </div>
 

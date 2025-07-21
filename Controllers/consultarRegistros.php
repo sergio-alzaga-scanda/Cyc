@@ -1,4 +1,5 @@
 <?php
+session_start();
 include("../Controllers/bd.php");
 header('Content-Type: application/json');
 
@@ -6,26 +7,27 @@ header('Content-Type: application/json');
 $valid_user     = "Admin_fanafesa";
 $valid_password = "F4n4f3s4_2025";
 
-if ($_SERVER['PHP_AUTH_USER'] !== $valid_user || $_SERVER['PHP_AUTH_PW'] !== $valid_password) {
+if (!isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) || 
+    $_SERVER['PHP_AUTH_USER'] !== $valid_user || $_SERVER['PHP_AUTH_PW'] !== $valid_password) {
     header('HTTP/1.0 403 Forbidden');
     echo json_encode(["error" => "Credenciales inválidas."]);
     exit;
 }
 
-// Validar los parámetros "proyecto" y "ubicacion"
-if (!isset($_GET['proyecto']) || !is_numeric($_GET['proyecto'])) {
-    header('HTTP/1.0 400');
-    echo json_encode(["error" => "El parámetro 'proyecto' es obligatorio y debe ser un número."]);
+// Validar que exista la sesión con proyecto
+if (!isset($_SESSION['proyecto']) || !is_numeric($_SESSION['proyecto'])) {
+    header('HTTP/1.0 400 Bad Request');
+    echo json_encode(["error" => "La variable de sesión 'proyecto' no está definida o no es válida."]);
     exit;
 }
+$proyecto = intval($_SESSION['proyecto']);
 
+// Validar parámetro "ubicacion"
 if (!isset($_GET['ubicacion']) || !is_numeric($_GET['ubicacion'])) {
-    header('HTTP/1.0 400');
+    header('HTTP/1.0 400 Bad Request');
     echo json_encode(["error" => "El parámetro 'ubicacion' es obligatorio y debe ser un número."]);
     exit;
 }
-
-$proyecto  = intval($_GET['proyecto']);
 $ubicacion = intval($_GET['ubicacion']);
 
 // Consulta SQL con los joins
@@ -53,39 +55,49 @@ SELECT
     END AS status_cyc,
     cyc.fecha_programacion,
     cyc.id_usuario,
-    usuarios.nombre_usuario, -- Nombre del usuario obtenido de la tabla usuarios
+    usuarios.nombre_usuario,
     cyc.redaccion_canales,
     cyc.proyecto
-FROM [contingencias].[dbo].[cyc] AS cyc
-LEFT JOIN [contingencias].[dbo].[cat_crisis] AS cat_crisis
+FROM contingencias.dbo.cyc AS cyc
+LEFT JOIN contingencias.dbo.cat_crisis AS cat_crisis
     ON cyc.categoria_cyc = cat_crisis.id
-LEFT JOIN [contingencias].[dbo].[ubicacion_ivr] AS ubicaciones
+LEFT JOIN contingencias.dbo.ubicacion_ivr AS ubicaciones
     ON cyc.ubicacion_cyc = ubicaciones.id_ubicacion_ivr
-LEFT JOIN [contingencias].[dbo].[usuarios] AS usuarios -- Unir la tabla usuarios
+LEFT JOIN contingencias.dbo.usuarios AS usuarios
     ON cyc.id_usuario = usuarios.idUsuarios
 WHERE cyc.proyecto = ? AND cyc.ubicacion_cyc = ?
 AND cyc.status_cyc = 1;
 ";
 
-try {
-    $stmt = $conn->prepare($sql);
-    $stmt->execute([$proyecto, $ubicacion]);
+if ($stmt = $conn->prepare($sql)) {
+    $stmt->bind_param("ii", $proyecto, $ubicacion);
 
-    // Construir el resultado
-    $resultado = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    if ($stmt->execute()) {
+        $result = $stmt->get_result();
 
-    // Verificar si se encontraron registros
-    if (empty($resultado)) {
-        header('HTTP/1.0 404 Not Found');
-        echo json_encode(["respuesta" => "No se encontraron registros."]);
+        if ($result->num_rows === 0) {
+            header('HTTP/1.0 404 Not Found');
+            echo json_encode(["respuesta" => "No se encontraron registros."]);
+        } else {
+            $resultado = [];
+            while ($row = $result->fetch_assoc()) {
+                $resultado[] = $row;
+            }
+            echo json_encode($resultado, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        }
+
+        $result->free();
     } else {
-        // Retornar la respuesta en formato JSON
-        echo json_encode($resultado, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        header('HTTP/1.0 500 Internal Server Error');
+        echo json_encode(["error" => "Error al ejecutar la consulta.", "details" => $stmt->error]);
     }
-} catch (PDOException $e) {
+
+    $stmt->close();
+} else {
     header('HTTP/1.0 500 Internal Server Error');
-    echo json_encode(["error" => "Error al ejecutar la consulta.", "details" => $e->getMessage()]);
+    echo json_encode(["error" => "Error al preparar la consulta.", "details" => $conn->error]);
 }
 
 // Cerrar la conexión
-$conn = null;
+$conn->close();
+?>
