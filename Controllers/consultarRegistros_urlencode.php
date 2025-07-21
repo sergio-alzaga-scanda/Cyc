@@ -34,7 +34,9 @@ if (!isset($_GET['ubicacion']) || !is_numeric($_GET['ubicacion'])) {
 $proyecto = intval($_GET['proyecto']);
 $ubicacion = intval($_GET['ubicacion']);
 
-// Consulta SQL corregida para MySQL
+error_log("Proyecto recibido: $proyecto");
+error_log("Ubicacion recibida: $ubicacion");
+
 $sql = "
 SELECT
     cyc.id_cyc,
@@ -61,13 +63,12 @@ SELECT
     cyc.proyecto
 FROM `cyc` AS cyc
 INNER JOIN `usuarios` AS u ON cyc.id_usuario = u.idUsuarios
-WHERE cyc.proyecto = ? AND cyc.ubicacion_cyc = ? AND cyc.status_cyc = 1
+WHERE cyc.proyecto = ? AND cyc.ubicacion_cyc = ? AND cyc.status_cyc = '1'
 ";
 
-
-// Preparar y ejecutar
 $stmt = $conn->prepare($sql);
 if (!$stmt) {
+    error_log("Error en la preparación: " . $conn->error);
     http_response_code(500);
     echo json_encode(["error" => "Error en la preparación de la consulta.", "sql_error" => $conn->error]);
     exit;
@@ -88,7 +89,6 @@ while ($row = $result->fetch_assoc()) {
         "nombre" => $row['nombre'],
         "no_ticket" => $row['no_ticket'],
         "nombre_crisis" => $row['nombre'],
-        // "criticidad" => $row['criticidad'], // Descomenta si este campo existe
         "tipo_cyc" => $row['tipo_cyc'],
         "ubicacion_cyc" => $row['ubicacion_cyc'],
         "grabacion" => $message,
