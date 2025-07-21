@@ -1,113 +1,93 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-include("../Controllers/bd.php"); // Asegúrate que aquí $conn es mysqli
-header('Content-Type: application/json');
-
+// Configuración de autenticación
 $valid_user = "Admin_fanafesa";
 $valid_password = "F4n4f3s4_2025";
 
-// Validar autenticación básica
-if (!isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) ||
+// Autenticación HTTP básica
+if (!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW']) ||
     $_SERVER['PHP_AUTH_USER'] !== $valid_user || $_SERVER['PHP_AUTH_PW'] !== $valid_password) {
-    header('HTTP/1.0 403 Forbidden');
-    echo json_encode(["error" => "Credenciales inválidas."]);
+    header('WWW-Authenticate: Basic realm="API Access"');
+    header('HTTP/1.0 401 Unauthorized');
+    echo json_encode(["error" => "Acceso no autorizado"]);
     exit;
 }
 
-if (!isset($_GET['proyecto']) || !is_numeric($_GET['proyecto'])) {
-    header('HTTP/1.0 400 Bad Request');
-    echo json_encode(["error" => "El parámetro 'proyecto' es obligatorio y debe ser un número."]);
+// Validar método GET
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    http_response_code(405); // Method Not Allowed
+    echo json_encode(["error" => "Método no permitido"]);
     exit;
 }
 
-if (!isset($_GET['ubicacion']) || !is_numeric($_GET['ubicacion'])) {
-    header('HTTP/1.0 400 Bad Request');
-    echo json_encode(["error" => "El parámetro 'ubicacion' es obligatorio y debe ser un número."]);
+// Obtener parámetros
+$proyecto = isset($_GET['proyecto']) ? $_GET['proyecto'] : null;
+$ubicacion = isset($_GET['ubicacion']) ? $_GET['ubicacion'] : null;
+
+if (!$proyecto || !$ubicacion) {
+    http_response_code(400); // Bad Request
+    echo json_encode(["error" => "Faltan parámetros requeridos"]);
     exit;
 }
 
-$proyecto = intval($_GET['proyecto']);
-$ubicacion = intval($_GET['ubicacion']);
+// Conexión a la base de datos (ajusta tus valores)
+$host = 'localhost';
+$db = 'tu_basedatos';
+$user = 'tu_usuario';
+$pass = 'tu_contraseña';
+$charset = 'utf8mb4';
 
+$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
 
-// Cambié la consulta para usar placeholders y bind_param para evitar inyección SQL
-$sql = "
-SELECT
-    cyc.id_cyc,
-    cyc.nombre,
-    cyc.no_ticket,
-    CASE cyc.tipo_cyc 
-        WHEN 1 THEN 'Crisis'
-        WHEN 2 THEN 'Contingencia'
-        ELSE 'Desconocido'
-    END AS tipo_cyc,
-    cyc.ubicacion_cyc,
-    cyc.redaccion_cyc,
-    cyc.canal_cyc,
-    cyc.bot_cyc,
-    cyc.fecha_registro_cyc,
-    CASE cyc.status_cyc 
-        WHEN '1' THEN 'Activo'
-        WHEN '0' THEN 'Desactivado'
-        ELSE 'Desconocido'
-    END AS status_cyc,
-    cyc.fecha_programacion,
-    u.nombre_usuario,
-    cyc.redaccion_canales,
-    cyc.proyecto
-FROM `cyc` AS cyc
-INNER JOIN `usuarios` AS u ON cyc.id_usuario = u.idUsuarios
-WHERE cyc.proyecto = ? AND cyc.ubicacion_cyc = ? AND cyc.status_cyc = 1
-";
+try {
+    $pdo = new PDO($dsn, $user, $pass, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+    ]);
 
-if ($stmt = $conn->prepare($sql)) {
-    $stmt->bind_param('ii', $proyecto, $ubicacion);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    $stmt = $pdo->prepare("
+        SELECT
+            cyc.id_cyc,
+            cyc.nombre,
+            cyc.no_ticket,
+            CASE cyc.tipo_cyc 
+                WHEN 1 THEN 'Crisis'
+                WHEN 2 THEN 'Contingencia'
+                ELSE 'Desconocido'
+            END AS tipo_cyc,
+            cyc.ubicacion_cyc,
+            cyc.redaccion_cyc,
+            cyc.canal_cyc,
+            cyc.bot_cyc,
+            cyc.fecha_registro_cyc,
+            CASE cyc.status_cyc 
+                WHEN '1' THEN 'Activo'
+                WHEN '0' THEN 'Desactivado'
+                ELSE 'Desconocido'
+            END AS status_cyc,
+            cyc.fecha_programacion,
+            u.nombre_usuario,
+            cyc.redaccion_canales,
+            cyc.proyecto
+        FROM `cyc` AS cyc
+        INNER JOIN `usuarios` AS u ON cyc.id_usuario = u.idUsuarios
+        WHERE cyc.proyecto = ? AND cyc.ubicacion_cyc = ? AND cyc.status_cyc = 1
+    ");
 
-    $resultado = $result->fetch_all(MYSQLI_ASSOC);
+    $stmt->execute([$proyecto, $ubicacion]);
 
-    if (empty($resultado)) {
-        http_response_code(200);
-        echo json_encode(["status_cyc" => "Inactivo"]);
-        exit;
-    }
+    $results = [];
 
-    $messages = [];
-    foreach ($resultado as $row) {
-        $message = $row['tipo_cyc'] . ' Registrada ' . $row['redaccion_cyc'] . ' ' . $row['nombre'] . " con el número de ticket " . $row['no_ticket'];
-
-        $record = [
-            "id_cyc" => $row['id_cyc'],
-            "nombre" => $row['nombre'],
-            "no_ticket" => $row['no_ticket'],
-            "nombre_crisis" => $row['nombre'],
-            "tipo_cyc" => $row['tipo_cyc'],
-            "ubicacion_cyc" => $row['ubicacion_cyc'],
-            "grabacion" => $message,
-            "canal_cyc" => json_decode($row['canal_cyc'], true) ?? [],
-            "bot_cyc" => json_decode($row['bot_cyc'], true) ?? [],
-            "fecha_registro_cyc" => $row['fecha_registro_cyc'],
-            "status_cyc" => $row['status_cyc'],
-            "fecha_programacion" => $row['fecha_programacion'],
-            "nombre_usuario" => $row['nombre_usuario'],
-            "redaccion_canales" => $row['redaccion_canales'],
-            "proyecto" => $row['proyecto']
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $results[] = [
+            "message" => $row['tipo_cyc'] . ' Registrada ' . $row['redaccion_cyc'] . ' ' . $row['nombre'] . " con el número de ticket " . $row['no_ticket'],
+            "status_cyc" => $row['status_cyc']
         ];
-        $messages[] = $record;
     }
 
-    // Enviar toda la respuesta con todos los registros
-    echo json_encode($messages);
+    header('Content-Type: application/json');
+    echo json_encode($results);
 
-    $stmt->close();
-} else {
+} catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(["error" => "Error en la preparación de la consulta.", "details" => $conn->error]);
+    echo json_encode(["error" => "Error en la base de datos: " . $e->getMessage()]);
 }
-
-$conn->close();
 ?>
