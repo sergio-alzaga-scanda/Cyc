@@ -1,28 +1,37 @@
 <?php
 header('Content-Type: application/json');
 
-// Log para saber qué método se está usando
-error_log('Método usado: ' . $_SERVER['REQUEST_METHOD']);
+// Detectar método de solicitud
+$method = $_SERVER['REQUEST_METHOD'];
+error_log('Método usado: ' . $method);
 
-// Mostrar variables GET recibidas (para depuración)
-error_log('$_GET completo: ' . print_r($_GET, true));
+// Inicializar variables
+$proyecto = null;
+$ubicacion = null;
 
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    // Usamos el operador null coalescing
+if ($method === 'GET') {
+    // Obtener parámetros de la URL
     $proyecto = $_GET['proyecto'] ?? null;
     $ubicacion = $_GET['ubicacion'] ?? null;
 
-    // Log de valores individuales
-    error_log("proyecto: [$proyecto], ubicacion: [$ubicacion]");
+    error_log("GET - proyecto: [$proyecto], ubicacion: [$ubicacion]");
+} elseif ($method === 'POST') {
+    // Obtener parámetros del cuerpo de la solicitud
+    $proyecto = $_POST['proyecto'] ?? null;
+    $ubicacion = $_POST['ubicacion'] ?? null;
 
-    echo json_encode([
-        'proyecto' => $proyecto,
-        'ubicacion' => $ubicacion
-    ]);
-    exit;
+    error_log("POST - proyecto: [$proyecto], ubicacion: [$ubicacion]");
 } else {
+    // Método no permitido
     http_response_code(405);
-    echo json_encode(['error' => 'Método no permitido. Usa GET.']);
+    echo json_encode(['error' => 'Método no permitido. Usa GET o POST.']);
     exit;
 }
+
+// Devolver respuesta JSON
+echo json_encode([
+    'proyecto' => $proyecto,
+    'ubicacion' => $ubicacion
+]);
+exit;
 ?>
