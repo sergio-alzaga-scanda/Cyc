@@ -1,16 +1,15 @@
 <?php
-// Mostrar errores (solo para desarrollo, quitar en producción)
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-include("../Controllers/bd.php"); // Asegúrate que $conn esté definido aquí
+include("../Controllers/bd.php"); // Asegúrate que aquí $conn es mysqli
 header('Content-Type: application/json');
 
-// Autenticación básica
 $valid_user = "Admin_fanafesa";
 $valid_password = "F4n4f3s4_2025";
 
+// Validar autenticación básica
 if (!isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) ||
     $_SERVER['PHP_AUTH_USER'] !== $valid_user || $_SERVER['PHP_AUTH_PW'] !== $valid_password) {
     header('HTTP/1.0 403 Forbidden');
@@ -19,25 +18,21 @@ if (!isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) ||
 }
 
 // Validar parámetros
-// if (!isset($_GET['proyecto']) || !is_numeric($_GET['proyecto'])) {
-//     header('HTTP/1.0 400 Bad Request');
-//     echo json_encode(["error" => "El parámetro 'proyecto' es obligatorio y debe ser un número."]);
-//     exit;
-// }
+if (!isset($_GET['proyecto']) || !is_numeric($_GET['proyecto'])) {
+    header('HTTP/1.0 400 Bad Request');
+    echo json_encode(["error" => "El parámetro 'proyecto' es obligatorio y debe ser un número."]);
+    exit;
+}
 
-$proyecto = 2;
-$ubicacion = 2;
-
-// if (!isset($_GET['ubicacion']) || !is_numeric($_GET['ubicacion'])) {
-//     header('HTTP/1.0 400 Bad Request');
-//     echo json_encode(["error" => "El parámetro 'ubicacion' es obligatorio y debe ser un número."]);
-//     exit;
-// }
+if (!isset($_GET['ubicacion']) || !is_numeric($_GET['ubicacion'])) {
+    header('HTTP/1.0 400 Bad Request');
+    echo json_encode(["error" => "El parámetro 'ubicacion' es obligatorio y debe ser un número."]);
+    exit;
+}
 
 $proyecto = intval($_GET['proyecto']);
 $ubicacion = intval($_GET['ubicacion']);
 
-// Preparar la consulta usando parámetros para evitar SQL injection
 $sql = "
 SELECT
     cyc.id_cyc,
@@ -67,29 +62,51 @@ INNER JOIN `usuarios` AS u ON cyc.id_usuario = u.idUsuarios
 WHERE cyc.proyecto = ? AND cyc.ubicacion_cyc = ? AND cyc.status_cyc = 1
 ";
 
-$stmt = $conn->prepare($sql);
+if ($stmt = $conn->prepare($sql)) {
+    $stmt->bind_param('ii', $proyecto, $ubicacion);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-if (!$stmt) {
-    error_log("Error en la preparación: " . $conn->error);
+    $resultado = $result->fetch_all(MYSQLI_ASSOC);
+
+    if (empty($resultado)) {
+        http_response_code(200);
+        echo json_encode(["status_cyc" => "Inactivo"]);
+        exit;
+    }
+
+    $messages = [];
+    foreach ($resultado as $row) {
+        $message = $row['tipo_cyc'] . ' Registrada ' . $row['redaccion_cyc'] . ' ' . $row['nombre'] . " con el número de ticket " . $row['no_ticket'];
+
+        $record = [
+            "id_cyc" => $row['id_cyc'],
+            "nombre" => $row['nombre'],
+            "no_ticket" => $row['no_ticket'],
+            "nombre_crisis" => $row['nombre'],
+            //"criticidad" => $row['criticidad'], // Asegúrate que exista
+            "tipo_cyc" => $row['tipo_cyc'],
+            "ubicacion_cyc" => $row['ubicacion_cyc'],
+            "grabacion" => $message,
+            "canal_cyc" => json_decode($row['canal_cyc'], true) ?? [],
+            "bot_cyc" => json_decode($row['bot_cyc'], true) ?? [],
+            "fecha_registro_cyc" => $row['fecha_registro_cyc'],
+            "status_cyc" => $row['status_cyc'],
+            "fecha_programacion" => $row['fecha_programacion'],
+            "nombre_usuario" => $row['nombre_usuario'],
+            "redaccion_canales" => $row['redaccion_canales'],
+            "proyecto" => $row['proyecto']
+        ];
+        $messages[] = $record;
+    }
+
+    echo json_encode($messages);
+
+    $stmt->close();
+} else {
     http_response_code(500);
-    echo json_encode(["error" => "Error en la preparación de la consulta.", "sql_error" => $conn->error]);
-    exit;
+    echo json_encode(["error" => "Error en la preparación de la consulta.", "details" => $conn->error]);
 }
 
-$stmt->bind_param("ii", $proyecto, $ubicacion);
-
-$stmt->execute();
-
-$result = $stmt->get_result();
-
-$records = [];
-while ($row = $result->fetch_assoc()) {
-    $message = "{$row['tipo_cyc']} Registrada {$row['redaccion_cyc']} {$row['nombre']} con el número de ticket {$row['no_ticket']}";
-    $records[] = ["message" => $message, "status_cyc" => $row['status_cyc'], "id_cyc" => $row['id_cyc'], "ubicacion_cyc" => $row['ubicacion_cyc']];
-}
-
-echo json_encode($records);
-
-$stmt->close();
 $conn->close();
 ?>
