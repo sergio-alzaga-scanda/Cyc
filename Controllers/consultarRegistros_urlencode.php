@@ -2,7 +2,6 @@
 include("../Controllers/bd.php");
 header('Content-Type: application/json');
 
-// Validar autenticación básica
 $valid_user = "Admin_fanafesa";
 $valid_password = "F4n4f3s4_2025";
 
@@ -12,7 +11,6 @@ if ($_SERVER['PHP_AUTH_USER'] !== $valid_user || $_SERVER['PHP_AUTH_PW'] !== $va
     exit;
 }
 
-// Leer los parámetros de la URL
 if (!isset($_GET['proyecto']) || !is_numeric($_GET['proyecto'])) {
     header('HTTP/1.0 400 Bad Request');
     echo json_encode(["error" => "El parámetro 'proyecto' es obligatorio y debe ser un número."]);
@@ -28,7 +26,6 @@ if (!isset($_GET['ubicacion']) || !is_numeric($_GET['ubicacion'])) {
 $proyecto = intval($_GET['proyecto']);
 $ubicacion = intval($_GET['ubicacion']);
 
-// Consulta SQL segura con parámetros
 $sql = "
 SELECT
     cyc.id_cyc,
@@ -61,7 +58,6 @@ WHERE cyc.proyecto = ? AND cyc.ubicacion_cyc = ? AND cyc.status_cyc = 1;
 try {
     $stmt = $conn->prepare($sql);
     $stmt->execute([$proyecto, $ubicacion]);
-
     $resultado = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     if (empty($resultado)) {
@@ -69,21 +65,20 @@ try {
         echo json_encode(["status_cyc" => "Inactivo"]);
     } else {
         $messages = [];
-
         foreach ($resultado as $row) {
-            $message = $row['tipo_cyc'] . ' Registrada ' . $row['redaccion_cyc'] . ' ' . $row['nombre'] . " con el número de ticket " . $row['no_ticket'];
+            $message = $row['tipo_cyc'] . ' Registrada ' . $row['redaccion_cyc'] . ' ' . $row['nombre'] . " con el numero de ticket " . $row['no_ticket'];
 
             $record = [
                 "id_cyc" => $row['id_cyc'],
                 "nombre" => $row['nombre'],
                 "no_ticket" => $row['no_ticket'],
                 "nombre_crisis" => $row['nombre'],
-                // "criticidad" => $row['criticidad'], // Comentado: no existe en SELECT
+                //"criticidad" => $row['criticidad'], // Asegúrate que exista
                 "tipo_cyc" => $row['tipo_cyc'],
                 "ubicacion_cyc" => $row['ubicacion_cyc'],
                 "grabacion" => $message,
-                "canal_cyc" => json_decode($row['canal_cyc'], true),
-                "bot_cyc" => json_decode($row['bot_cyc'], true),
+                "canal_cyc" => json_decode($row['canal_cyc'], true) ?? [],
+                "bot_cyc" => json_decode($row['bot_cyc'], true) ?? [],
                 "fecha_registro_cyc" => $row['fecha_registro_cyc'],
                 "status_cyc" => $row['status_cyc'],
                 "fecha_programacion" => $row['fecha_programacion'],
@@ -91,7 +86,6 @@ try {
                 "redaccion_canales" => $row['redaccion_canales'],
                 "proyecto" => $row['proyecto']
             ];
-
             $messages[] = $record;
         }
 
