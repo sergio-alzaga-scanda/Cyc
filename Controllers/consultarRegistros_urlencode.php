@@ -1,30 +1,24 @@
 <?php
-header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
 
-$method = $_SERVER['REQUEST_METHOD'];
-
-// Obtener parámetros según método
-if ($method === 'GET') {
-    $proyecto = $_GET['proyecto'] ?? null;
-    $ubicacion = $_GET['ubicacion'] ?? null;
-} elseif ($method === 'POST') {
-    $proyecto = $_POST['proyecto'] ?? null;
-    $ubicacion = $_POST['ubicacion'] ?? null;
-} else {
-    http_response_code(405);
-    echo json_encode(["error" => "Método no permitido. Solo GET y POST aceptados."]);
+// Solo aceptar POST
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405); // Method Not Allowed
+    echo json_encode(["error" => "Only POST method is allowed."]);
     exit();
 }
 
-// Validar parámetros
+// Leer parámetros de POST
+$proyecto = $_POST['proyecto'] ?? null;
+$ubicacion = $_POST['ubicacion'] ?? null;
+
 if (!$proyecto || !$ubicacion) {
-    http_response_code(400);
-    echo json_encode(["error" => "Faltan parámetros. Se requieren 'proyecto' y 'ubicacion'."]);
+    http_response_code(400); // Bad Request
+    echo json_encode(["error" => "Missing required parameters: 'proyecto' and 'ubicacion'."]);
     exit();
 }
 
-// Datos conexión
+// Datos de conexión
 $servername = "localhost";
 $port       = 3306;
 $username   = "root";
@@ -33,10 +27,11 @@ $database   = "Cyc";
 
 try {
     $dsn = "mysql:host=$servername;port=$port;dbname=$database;charset=utf8";
-    $pdo = new PDO($dsn, $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo = new PDO($dsn, $username, $password, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+    ]);
 
-    $stmt = $pdo->prepare("
+    $query = "
         SELECT
             cyc.id_cyc,
             cyc.nombre,
@@ -63,25 +58,27 @@ try {
         FROM cyc
         INNER JOIN usuarios AS u ON cyc.id_usuario = u.idUsuarios
         WHERE cyc.proyecto = ? AND cyc.ubicacion_cyc = ? AND cyc.status_cyc = 1
-    ");
+        LIMIT 1
+    ";
 
+    $stmt = $pdo->prepare($query);
     $stmt->execute([$proyecto, $ubicacion]);
 
-    if ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($row) {
+        // Respuesta formateada según lo que necesitas
         $response = [
-            "grabacion" => $row['tipo_cyc'] . ' Registrada ' . $row['redaccion_cyc'] . ' ' . $row['nombre'] . " con el número de ticket " . $row['no_ticket'],
+            "message" => "{$row['tipo_cyc']} Registrada {$row['redaccion_cyc']} {$row['nombre']} con el número de ticket {$row['no_ticket']}",
             "status_cyc" => $row['status_cyc']
         ];
+        echo json_encode($response);
     } else {
-        $response = [
-            "grabacion" => "No se encontraron registros con ese proyecto y ubicación",
-            "status_cyc" => null
-        ];
+        http_response_code(404);
+        echo json_encode(["error" => "No records found for the given proyecto and ubicacion."]);
     }
-
-    echo json_encode($response);
 
 } catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(["error" => "Error en la base de datos: " . $e->getMessage()]);
+    echo json_encode(["error" => "Database error: " . $e->getMessage()]);
 }
