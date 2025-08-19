@@ -1,63 +1,91 @@
 <?php
-header("Content-Type: application/json; charset=UTF-8");
+include("../Controllers/bd.php");
+header('Content-Type: application/json');
 
-// Solo aceptar POST
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(["error" => "Invalid method"]);
-    exit();
+// Validar autenticación básica
+$valid_user     = "Admin_fanafesa";
+$valid_password = "F4n4f3s4_2025";
+
+if ($_SERVER['PHP_AUTH_USER'] !== $valid_user || $_SERVER['PHP_AUTH_PW'] !== $valid_password) {
+    header('HTTP/1.0 403 Forbidden');
+    echo json_encode(["error" => "Credenciales inválidas."]);
+    exit;
 }
 
-// Leer el cuerpo crudo y decodificar JSON
-$rawData = file_get_contents("php://input");
-$data = json_decode($rawData, true);
-
-// Validar que se haya recibido JSON válido
-if (!is_array($data)) {
-    http_response_code(400);
-    echo json_encode(["error" => "Invalid JSON"]);
-    exit();
+// Validar los parámetros "proyecto" y "ubicacion"
+if (!isset($_GET['proyecto']) || !is_numeric($_GET['proyecto'])) {
+    header('HTTP/1.0 400');
+    echo json_encode(["error" => "El parámetro 'proyecto' es obligatorio y debe ser un número."]);
+    exit;
 }
 
-// Obtener parámetros desde el JSON
-$proyecto = $data['proyecto'] ?? null;
-$ubicacion = $data['ubicacion'] ?? null;
-
-// Validar parámetros
-if (!$proyecto || !$ubicacion) {
-    http_response_code(400);
-    echo json_encode(["error" => "Missing proyecto or ubicacion"]);
-    exit();
+if (!isset($_GET['ubicacion']) || !is_numeric($_GET['ubicacion'])) {
+    header('HTTP/1.0 400');
+    echo json_encode(["error" => "El parámetro 'ubicacion' es obligatorio y debe ser un número."]);
+    exit;
 }
 
-// Conexión a base de datos
+$proyecto  = intval($_GET['proyecto']);
+$ubicacion = intval($_GET['ubicacion']);
+
+// Consulta SQL con los joins
+$sql = "
+SELECT
+    cyc.id_cyc,
+    cyc.nombre,
+    cyc.no_ticket,
+    cat_crisis.nombre_crisis,
+    cat_crisis.criticidad,
+    CASE cyc.tipo_cyc 
+        WHEN 1 THEN 'Crisis'
+        WHEN 2 THEN 'Contingencia'
+        ELSE 'Desconocido'
+    END AS tipo_cyc,
+    ubicaciones.nombre_ubicacion_ivr AS ubicacion_cyc,
+    cyc.redaccion_cyc,
+    cyc.canal_cyc,
+    cyc.bot_cyc,
+    cyc.fecha_registro_cyc,
+    CASE cyc.status_cyc
+        WHEN 1 THEN 'Activo'
+        WHEN 2 THEN 'Desactivado'
+        ELSE 'Desconocido'
+    END AS status_cyc,
+    cyc.fecha_programacion,
+    cyc.id_usuario,
+    usuarios.nombre_usuario, -- Nombre del usuario obtenido de la tabla usuarios
+    cyc.redaccion_canales,
+    cyc.proyecto
+FROM [contingencias].[dbo].[cyc] AS cyc
+LEFT JOIN [contingencias].[dbo].[cat_crisis] AS cat_crisis
+    ON cyc.categoria_cyc = cat_crisis.id
+LEFT JOIN [contingencias].[dbo].[ubicacion_ivr] AS ubicaciones
+    ON cyc.ubicacion_cyc = ubicaciones.id_ubicacion_ivr
+LEFT JOIN [contingencias].[dbo].[usuarios] AS usuarios -- Unir la tabla usuarios
+    ON cyc.id_usuario = usuarios.idUsuarios
+WHERE cyc.proyecto = ? AND cyc.ubicacion_cyc = ?
+AND cyc.status_cyc = 1;
+";
+
 try {
-    $pdo = new PDO(
-        "mysql:host=localhost;port=3306;dbname=Cyc;charset=utf8",
-        "root", "Melco154.,",
-        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-    );
-
-    $stmt = $pdo->prepare("
-        SELECT
-            CASE tipo_cyc WHEN 1 THEN 'Crisis' WHEN 2 THEN 'Contingencia' ELSE 'Desconocido' END AS tipo,
-            redaccion_cyc AS texto,
-            no_ticket AS ticket,
-            CASE status_cyc WHEN '1' THEN 'Activo' WHEN '0' THEN 'Desactivado' ELSE 'Desconocido' END AS status
-        FROM cyc
-        WHERE proyecto = ? AND ubicacion_cyc = ? AND status_cyc = 1
-        LIMIT 1
-    ");
+    $stmt = $conn->prepare($sql);
     $stmt->execute([$proyecto, $ubicacion]);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($row) {
-        echo json_encode($row);
+    // Construir el resultado
+    $resultado = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Verificar si se encontraron registros
+    if (empty($resultado)) {
+        header('HTTP/1.0 404 Not Found');
+        echo json_encode(["respuesta" => "No se encontraron registros."]);
     } else {
-        echo json_encode(["error" => "No data"]);
+        // Retornar la respuesta en formato JSON
+        echo json_encode($resultado, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     }
-
 } catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode(["error" => "DB error"]);
+    header('HTTP/1.0 500 Internal Server Error');
+    echo json_encode(["error" => "Error al ejecutar la consulta.", "details" => $e->getMessage()]);
 }
+
+// Cerrar la conexión
+$conn = null;
