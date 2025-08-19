@@ -60,12 +60,12 @@ SELECT
     usuarios.nombre_usuario,
     cyc.redaccion_canales,
     cyc.proyecto
-FROM contingencias.cyc AS cyc
-LEFT JOIN contingencias.cat_crisis AS cat_crisis
+FROM Cyc.cyc AS cyc
+LEFT JOIN Cyc.cat_crisis AS cat_crisis
     ON cyc.categoria_cyc = cat_crisis.id
-LEFT JOIN contingencias.ubicacion_ivr AS ubicaciones
+LEFT JOIN Cyc.ubicacion_ivr AS ubicaciones
     ON cyc.ubicacion_cyc = ubicaciones.id_ubicacion_ivr
-LEFT JOIN contingencias.usuarios AS usuarios
+LEFT JOIN Cyc.usuarios AS usuarios
     ON cyc.id_usuario = usuarios.idUsuarios
 WHERE cyc.proyecto = ? AND cyc.ubicacion_cyc = ?
 AND cyc.status_cyc = 1;
