@@ -57,15 +57,15 @@ SELECT
     END AS status_cyc,
     cyc.fecha_programacion,
     cyc.id_usuario,
-    usuarios.nombre_usuario, -- Nombre del usuario obtenido de la tabla usuarios
+    usuarios.nombre_usuario,
     cyc.redaccion_canales,
     cyc.proyecto
-FROM [contingencias].[dbo].[cyc] AS cyc
-LEFT JOIN [contingencias].[dbo].[cat_crisis] AS cat_crisis
+FROM contingencias.cyc AS cyc
+LEFT JOIN contingencias.cat_crisis AS cat_crisis
     ON cyc.categoria_cyc = cat_crisis.id
-LEFT JOIN [contingencias].[dbo].[ubicacion_ivr] AS ubicaciones
+LEFT JOIN contingencias.ubicacion_ivr AS ubicaciones
     ON cyc.ubicacion_cyc = ubicaciones.id_ubicacion_ivr
-LEFT JOIN [contingencias].[dbo].[usuarios] AS usuarios -- Unir la tabla usuarios
+LEFT JOIN contingencias.usuarios AS usuarios
     ON cyc.id_usuario = usuarios.idUsuarios
 WHERE cyc.proyecto = ? AND cyc.ubicacion_cyc = ?
 AND cyc.status_cyc = 1;
