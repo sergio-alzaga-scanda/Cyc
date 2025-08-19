@@ -6,25 +6,28 @@ error_reporting(E_ALL);
 include("../Controllers/bd.php");
 header('Content-Type: application/json');
 
-// Validar autenticación básica
+// Autenticación básica
 $valid_user     = "Admin_fanafesa";
 $valid_password = "F4n4f3s4_2025";
 
-if ($_SERVER['PHP_AUTH_USER'] !== $valid_user || $_SERVER['PHP_AUTH_PW'] !== $valid_password) {
+if (
+    !isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW']) ||
+    $_SERVER['PHP_AUTH_USER'] !== $valid_user || $_SERVER['PHP_AUTH_PW'] !== $valid_password
+) {
     header('HTTP/1.0 403 Forbidden');
     echo json_encode(["error" => "Credenciales inválidas."]);
     exit;
 }
 
-// Validar los parámetros "proyecto" y "ubicacion"
+// Validar parámetros
 if (!isset($_GET['proyecto']) || !is_numeric($_GET['proyecto'])) {
-    header('HTTP/1.0 400');
+    header('HTTP/1.0 400 Bad Request');
     echo json_encode(["error" => "El parámetro 'proyecto' es obligatorio y debe ser un número."]);
     exit;
 }
 
 if (!isset($_GET['ubicacion']) || !is_numeric($_GET['ubicacion'])) {
-    header('HTTP/1.0 400');
+    header('HTTP/1.0 400 Bad Request');
     echo json_encode(["error" => "El parámetro 'ubicacion' es obligatorio y debe ser un número."]);
     exit;
 }
@@ -32,7 +35,7 @@ if (!isset($_GET['ubicacion']) || !is_numeric($_GET['ubicacion'])) {
 $proyecto  = intval($_GET['proyecto']);
 $ubicacion = intval($_GET['ubicacion']);
 
-// Consulta SQL con los joins
+// Consulta SQL
 $sql = "
 SELECT
     cyc.id_cyc,
@@ -68,28 +71,34 @@ LEFT JOIN Cyc.ubicacion_ivr AS ubicaciones
 LEFT JOIN Cyc.usuarios AS usuarios
     ON cyc.id_usuario = usuarios.idUsuarios
 WHERE cyc.proyecto = ? AND cyc.ubicacion_cyc = ?
-AND cyc.status_cyc = 1;
+AND cyc.status_cyc = 1
 ";
 
-try {
-    $stmt = $conn->prepare($sql);
-    $stmt->execute([$proyecto, $ubicacion]);
-
-    // Construir el resultado
-    $resultado = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // Verificar si se encontraron registros
-    if (empty($resultado)) {
-        header('HTTP/1.0 404 Not Found');
-        echo json_encode(["respuesta" => "No se encontraron registros."]);
-    } else {
-        // Retornar la respuesta en formato JSON
-        echo json_encode($resultado, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-    }
-} catch (PDOException $e) {
+// Preparar y ejecutar con mysqli
+$stmt = $conn->prepare($sql);
+if (!$stmt) {
     header('HTTP/1.0 500 Internal Server Error');
-    echo json_encode(["error" => "Error al ejecutar la consulta.", "details" => $e->getMessage()]);
+    echo json_encode(["error" => "Error al preparar la consulta.", "details" => $conn->error]);
+    exit;
 }
 
-// Cerrar la conexión
-$conn = null;
+$stmt->bind_param("ii", $proyecto, $ubicacion);
+$stmt->execute();
+
+$result = $stmt->get_result();
+$data = [];
+
+while ($row = $result->fetch_assoc()) {
+    $data[] = $row;
+}
+
+if (empty($data)) {
+    header('HTTP/1.0 404 Not Found');
+    echo json_encode(["respuesta" => "No se encontraron registros."]);
+} else {
+    echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+}
+
+$stmt->close();
+$conn->close();
+?>
