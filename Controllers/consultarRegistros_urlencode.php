@@ -89,8 +89,7 @@ $result = $stmt->get_result();
 $data = [];
 
 while ($row = $result->fetch_assoc()) {
-    // Convertir cada fila a un arreglo plano de valores
-    $data[] = array_values($row);
+    $data = $row;
 }
 
 if (empty($data)) {
