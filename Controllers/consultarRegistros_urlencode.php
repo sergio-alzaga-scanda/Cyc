@@ -49,7 +49,7 @@ SELECT
         ELSE 'Desconocido'
     END AS tipo_cyc,
     ubicaciones.nombre_ubicacion_ivr AS ubicacion_cyc,
-    cyc.redaccion_cyc,
+    cyc.redaccion_cyc as grabacion,
     cyc.canal_cyc,
     cyc.bot_cyc,
     cyc.fecha_registro_cyc,
