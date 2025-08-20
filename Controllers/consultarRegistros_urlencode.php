@@ -86,7 +86,7 @@ $stmt->bind_param("ii", $proyecto, $ubicacion);
 $stmt->execute();
 
 $result = $stmt->get_result();
-$data = [];
+//$data = [];
 
 while ($row = $result->fetch_assoc()) {
     $data = $row;
