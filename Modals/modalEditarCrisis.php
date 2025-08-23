@@ -221,49 +221,12 @@
   }
 
 </style>
-
 <script>
-// Mostrar/ocultar los canales digitales
-document.getElementById('habilitar-canal-digital-edit').addEventListener('change', function() {
-    const contenidoCanalDigital = document.getElementById('contenido-canal-digital-edit');
-    if (this.checked) {
-        contenidoCanalDigital.style.display = 'block';
-    } else {
-        contenidoCanalDigital.style.display = 'none';
-    }
-});
-
-// Función para actualizar la criticidad al seleccionar una categoría
-function actualizarCriticidad() {
-    const selectedOption = document.getElementById('categoria_edit').options[document.getElementById('categoria_edit').selectedIndex];
-    const criticidad = selectedOption ? selectedOption.getAttribute('data-criticidad') : '';
-    document.getElementById('criticidad-label-edit').textContent = criticidad;
-}
-
-// Inicializar el valor de la criticidad cuando se carga la página
-document.addEventListener('DOMContentLoaded', function() {
-    actualizarCriticidad();
-});
-
-// Actualizar el label de criticidad cuando se cambie la categoría
-document.getElementById('categoria_edit').addEventListener('change', actualizarCriticidad);
-
-// Copiar el texto del campo ivr_edit a redaccion_canales_edit
-document.getElementById('mismo-canal-edit').addEventListener('change', function() {
-    const ivrText = document.getElementById('ivr_edit').value;
-    const canalText = document.getElementById('redaccion_canales_edit');
-    
-    if (this.checked) {
-        canalText.value = ivrText;  // Copiar texto del IVR a los canales
-    } else {
-        canalText.value = '';  // Limpiar el campo si no está seleccionado
-    }
-});
-
 $(document).on('click', '.btn-warning', function () {
     var crisisId = $(this).data('id');
+    console.log('ID de crisis a editar:', crisisId);
 
-    // Mostrar el splash
+    // Mostrar splash de carga
     $('#splash').fadeIn();
 
     $.ajax({
@@ -271,76 +234,63 @@ $(document).on('click', '.btn-warning', function () {
         method: 'POST',
         dataType: 'json', 
         data: { accion: 3, id: crisisId },
-        success: function (data) {
-            const crisisData = JSON.parse(data);
-            console.log(crisisData);
+        success: function (crisisData) {
+            console.log('Datos recibidos:', crisisData);
 
-            // Asignar valores al formulario
+            // Llenar campos básicos
             $('#id').val(crisisData.id_cyc);
             $('#no_ticket_edit').val(crisisData.no_ticket);
             $('#nombre_edit').val(crisisData.nombre);
 
-            // Convertir a string para asegurar coincidencia exacta en selects
-            $('#categoria_edit').val(String(crisisData.categoria_cyc)).trigger('change');
+            $('#categoria_edit').val(String(crisisData.categoria_cyc));
             $('#tipo_edit').val(String(crisisData.tipo_cyc));
             $('#ubicacion_edit').val(String(crisisData.ubicacion_cyc));
             $('#edit_proyecto').val(String(crisisData.proyecto));
 
-            $('#ivr_edit').val(crisisData.redaccion_cyc);
-            $('#redaccion_canales_edit').val(crisisData.redaccion_canales);
+            $('#ivr_edit').val(crisisData.redaccion_cyc || '');
+            $('#redaccion_canales_edit').val(crisisData.redaccion_canales || '');
 
-            // Refrescar selects si usas bootstrap-select
-            if ($('#categoria_edit').hasClass('selectpicker')) $('#categoria_edit').selectpicker('refresh');
-            if ($('#tipo_edit').hasClass('selectpicker')) $('#tipo_edit').selectpicker('refresh');
-            if ($('#ubicacion_edit').hasClass('selectpicker')) $('#ubicacion_edit').selectpicker('refresh');
-            if ($('#edit_proyecto').hasClass('selectpicker')) $('#edit_proyecto').selectpicker('refresh');
-
-            // Actualizar criticidad visual
+            // Actualizar criticidad
             actualizarCriticidad();
 
-            // Fecha programación
+            // Fecha de programación (si existe)
             if (crisisData.fecha_programacion) {
-                const fecha = crisisData.fecha_programacion.split(' ');
-                const partesFecha = fecha[0].split('-'); // [yyyy, mm, dd]
-                const partesHora = fecha[1].split(':');  // [HH, mm, ss]
-                const fechaFormateada = `${partesFecha[0]}-${partesFecha[1]}-${partesFecha[2]}T${partesHora[0]}:${partesHora[1]}`;
+                const [fecha, hora] = crisisData.fecha_programacion.split(' ');
+                const fechaFormateada = `${fecha}T${hora.slice(0,5)}`;
                 $('#fecha_programacion_2').val(fechaFormateada);
             } else {
                 $('#fecha_programacion_2').val('');
             }
 
             // Canales digitales
-            if (Array.isArray(crisisData.canal_cyc)) {
-                $('#canal_edit').val(crisisData.canal_cyc);
-                if ($('#canal_edit').hasClass('selectpicker')) $('#canal_edit').selectpicker('refresh');
-            } else {
-                $('#canal_edit').val([]);
-                if ($('#canal_edit').hasClass('selectpicker')) $('#canal_edit').selectpicker('refresh');
-            }
+            const canal = Array.isArray(crisisData.canal_cyc) ? crisisData.canal_cyc : [];
+            const bot = Array.isArray(crisisData.bot_cyc) ? crisisData.bot_cyc : [];
 
-            if (Array.isArray(crisisData.bot_cyc)) {
-                $('#bot_edit').val(crisisData.bot_cyc);
-                if ($('#bot_edit').hasClass('selectpicker')) $('#bot_edit').selectpicker('refresh');
-            } else {
-                $('#bot_edit').val([]);
-                if ($('#bot_edit').hasClass('selectpicker')) $('#bot_edit').selectpicker('refresh');
-            }
+            $('#canal_edit').val(canal);
+            $('#bot_edit').val(bot);
 
-            // Mostrar canal digital si hay datos
-            if ((crisisData.canal_cyc && crisisData.canal_cyc.length) ||
-                (crisisData.bot_cyc && crisisData.bot_cyc.length) ||
-                crisisData.redaccion_canales) {
-                $('#habilitar-canal-digital-edit').prop('checked', true).trigger('change');
-            } else {
-                $('#habilitar-canal-digital-edit').prop('checked', false).trigger('change');
-            }
+            // Refrescar selectpickers si existen
+            $('.selectpicker').selectpicker('refresh');
 
-            // Mostrar modal y ocultar splash
-            $('#editModal').modal('show');
-            $('#splash').fadeOut();
+            // Mostrar contenido de canal digital si hay datos
+            const tieneCanalDigital = (
+                (canal && canal.length > 0) ||
+                (bot && bot.length > 0) ||
+                crisisData.redaccion_canales
+            );
+
+            $('#habilitar-canal-digital-edit').prop('checked', tieneCanalDigital).trigger('change');
+
+            // Mostrar modal después de llenar todo
+            setTimeout(() => {
+                $('#editModal').modal('show');
+                $('#splash').fadeOut();
+            }, 300);
         },
-        error: function () {
-            alert('Error al cargar los datos para la edición');
+        error: function (xhr, status, error) {
+            console.error('Error en AJAX:', error);
+            console.log('Respuesta del servidor:', xhr.responseText);
+            alert('Error al cargar los datos para la edición.');
             $('#splash').fadeOut();
         }
     });

@@ -151,57 +151,57 @@ function deleteUsuario(id) {
     }
   });
 }
-// Función para activar/desactivar un usuario
-function toggleStatus(id, imgElement, status) {
-  // Preguntar al usuario si está seguro de cambiar el estado
-  Swal.fire({
-    title: "¿Estás seguro?",
-    text:
-      status === "1"
-        ? "¿Estás seguro que deseas deshabilitar este usuario?"
-        : "¿Estás seguro que deseas habilitar este usuario?",
-    icon: "info", // Cambiado a 'info' para usar el icono de info
-    showCancelButton: true,
-    confirmButtonText: "Confirmar",
-    cancelButtonText: "Cancelar",
-    confirmButtonColor: "#4B4A4B", // Color del botón Confirmar
-    cancelButtonColor: "#4B4A4B", // Color del botón Cancelar
-    customClass: {
-      confirmButton: "swal2-bold-button", // Clase personalizada para el texto en negrita
-      cancelButton: "swal2-bold-button", // Clase personalizada para el texto en negrita
-    },
-  }).then((result) => {
-    if (result.isConfirmed) {
-      var newStatus = status === "1" ? 0 : 1;
-      imgElement.setAttribute("data-status", newStatus);
-      imgElement.src =
-        // Mostrar carga mientras se actualiza el estado
-        Swal.fire({
-          title: "Actualizando estado...",
-          text: "Por favor espera",
-          icon: "info",
-          showConfirmButton: false,
-          allowOutsideClick: false,
-          didOpen: () => {
-            Swal.showLoading();
-          },
-        });
+// // Función para activar/desactivar un usuario
+// function toggleStatus(id, imgElement, status) {
+//   // Preguntar al usuario si está seguro de cambiar el estado
+//   Swal.fire({
+//     title: "¿Estás seguro?",
+//     text:
+//       status === "1"
+//         ? "¿Estás seguro que deseas deshabilitar este usuario?"
+//         : "¿Estás seguro que deseas habilitar este usuario?",
+//     icon: "info", // Cambiado a 'info' para usar el icono de info
+//     showCancelButton: true,
+//     confirmButtonText: "Confirmar",
+//     cancelButtonText: "Cancelar",
+//     confirmButtonColor: "#4B4A4B", // Color del botón Confirmar
+//     cancelButtonColor: "#4B4A4B", // Color del botón Cancelar
+//     customClass: {
+//       confirmButton: "swal2-bold-button", // Clase personalizada para el texto en negrita
+//       cancelButton: "swal2-bold-button", // Clase personalizada para el texto en negrita
+//     },
+//   }).then((result) => {
+//     if (result.isConfirmed) {
+//       var newStatus = status === "1" ? 0 : 1;
+//       imgElement.setAttribute("data-status", newStatus);
+//       imgElement.src =
+//         // Mostrar carga mientras se actualiza el estado
+//         Swal.fire({
+//           title: "Actualizando estado...",
+//           text: "Por favor espera",
+//           icon: "info",
+//           showConfirmButton: false,
+//           allowOutsideClick: false,
+//           didOpen: () => {
+//             Swal.showLoading();
+//           },
+//         });
 
-      // Realiza la actualización en el backend (sin promesas, directamente)
-      window.location.href = `../Controllers/usuarios.php?accion=5&id=${id}&status=${status}`;
-    }
-  });
+//       // Realiza la actualización en el backend (sin promesas, directamente)
+//       window.location.href = `../Controllers/usuarios.php?accion=5&id=${id}&status=${status}`;
+//     }
+//   });
 
-  // Asegúrate de incluir una regla CSS para el estilo de los botones
-  document.head.insertAdjacentHTML(
-    "beforeend",
-    `
-        <style>
-            .swal2-bold-button {
-                font-weight: bold;
-                color: white !important;
-            }
-        </style>
-    `
-  );
-}
+//   // Asegúrate de incluir una regla CSS para el estilo de los botones
+//   document.head.insertAdjacentHTML(
+//     "beforeend",
+//     `
+//         <style>
+//             .swal2-bold-button {
+//                 font-weight: bold;
+//                 color: white !important;
+//             }
+//         </style>
+//     `
+//   );
+// }
