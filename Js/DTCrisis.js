@@ -233,7 +233,7 @@ function toggleStatus(id, imgElement, status_cyc) {
         },
       });
 
-      window.location.href = `../Controllers/crisis.php?accion=6&id=${id}&status=${nuevoStatus}`;
+      window.location.href = `../Controllers/crisis.php?accion=6&id=${id}`;
     }
   });
 

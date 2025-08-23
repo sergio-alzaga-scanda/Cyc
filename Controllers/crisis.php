@@ -443,20 +443,28 @@ switch ($accion) {
             echo json_encode(['success' => false, 'error' => $conn->error]);
         }
         break;
-    case 6: // Eliminar ticket (cambiar status a 0)
-        $id_cyc = $_GET['id'] ?? 0;
-        $status = $_GET['status'] ?? 0;
-        if ($status = 1){
-            $accion  = "desactivado";
-        }else{
-            $accion  = "activado";
-        }
-        $query = "UPDATE cyc SET status_cyc = 2 WHERE id_cyc = ?";
+    case 6: // Alternar estado (1 <-> 2)
+    $id_cyc = $_GET['id'] ?? 0;
 
-        if ($stmt = $conn->prepare($query)) {
-            $stmt->bind_param("i", $id_cyc);
+    // Primero obtener el status actual
+    $queryStatus = "SELECT status_cyc FROM cyc WHERE id_cyc = ?";
+    if ($stmtStatus = $conn->prepare($queryStatus)) {
+        $stmtStatus->bind_param("i", $id_cyc);
+        $stmtStatus->execute();
+        $stmtStatus->bind_result($statusActual);
+        $stmtStatus->fetch();
+        $stmtStatus->close();
 
-            if ($stmt->execute()) {
+        // Alternar el status
+        $nuevoStatus = ($statusActual == 1) ? 2 : 1;
+        $accion = ($nuevoStatus == 1) ? "activado" : "desactivado";
+
+        // Actualizar el nuevo estado
+        $queryUpdate = "UPDATE cyc SET status_cyc = ? WHERE id_cyc = ?";
+        if ($stmtUpdate = $conn->prepare($queryUpdate)) {
+            $stmtUpdate->bind_param("ii", $nuevoStatus, $id_cyc);
+
+            if ($stmtUpdate->execute()) {
                 // Log
                 $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) 
                              VALUES (NOW(), ?, ?, ?, ?)";
@@ -468,34 +476,37 @@ switch ($accion) {
                 }
 
                 echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                          <script>
-                            window.onload = () => {
-                                Swal.fire({
-                                    title: 'Éxito',
-                                    text: 'El ticket se ha actualizado correctamente.',
-                                    icon: 'success',
-                                    confirmButtonText: 'Aceptar'
-                                }).then(() => window.location.href = '../Views/cyc.php');
-                            }
-                          </script>";
+                      <script>
+                        window.onload = () => {
+                            Swal.fire({
+                                title: 'Éxito',
+                                text: 'El ticket se ha actualizado correctamente.',
+                                icon: 'success',
+                                confirmButtonText: 'Aceptar'
+                            }).then(() => window.location.href = '../Views/cyc.php');
+                        }
+                      </script>";
             } else {
                 echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                          <script>
-                            window.onload = () => {
-                                Swal.fire({
-                                    title: 'Error',
-                                    text: 'Error al actualizar.',
-                                    icon: 'error',
-                                    confirmButtonText: 'Aceptar'
-                                }).then(() => window.location.href = '../Views/cyc.php');
-                            }
-                          </script>";
+                      <script>
+                        window.onload = () => {
+                            Swal.fire({
+                                title: 'Error',
+                                text: 'Error al actualizar.',
+                                icon: 'error',
+                                confirmButtonText: 'Aceptar'
+                            }).then(() => window.location.href = '../Views/cyc.php');
+                        }
+                      </script>";
             }
-            $stmt->close();
+            $stmtUpdate->close();
         } else {
             echo json_encode(['success' => false, 'error' => $conn->error]);
         }
-        break;    
+    } else {
+        echo json_encode(['success' => false, 'error' => 'No se pudo obtener el estado actual.']);
+    }
+    break;
 
     default:
         echo "Acción no reconocida.";
