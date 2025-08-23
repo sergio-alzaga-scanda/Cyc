@@ -86,18 +86,35 @@ $stmt->bind_param("ii", $proyecto, $ubicacion);
 $stmt->execute();
 
 $result = $stmt->get_result();
-//$data = [];
 
+$rows = [];
 while ($row = $result->fetch_assoc()) {
-    $data = $row;
+    $rows[] = $row;
 }
 
-if (empty($data)) {
+if (empty($rows)) {
     header('HTTP/1.0 404 Not Found');
     echo json_encode(["respuesta" => "No se encontraron registros."]);
-} else {
-    echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    exit;
 }
+
+// Si hay más de un registro, concatenar las redacciones
+if (count($rows) > 1) {
+    $mensajes = [];
+    foreach ($rows as $index => $registro) {
+        $num = $index + 1;
+        $redaccion = $registro['grabacion'];
+        $mensajes[] = "mensaje {$num}: [{$redaccion}]";
+    }
+    // Tomamos el primer registro como base y sobreescribimos grabacion
+    $data = $rows[0];
+    $data['grabacion'] = implode("\n", $mensajes);
+} else {
+    // Solo un registro, devolver tal cual
+    $data = $rows[0];
+}
+
+echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
 $stmt->close();
 $conn->close();
