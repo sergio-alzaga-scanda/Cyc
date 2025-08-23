@@ -279,7 +279,13 @@ $(document).on('click', '.btn-warning', function () {
                 crisisData.redaccion_canales
             );
 
-            $('#habilitar-canal-digital-edit').prop('checked', tieneCanalDigital).trigger('change');
+            $('#habilitar-canal-digital-edit').on('change', function() {
+    if ($(this).is(':checked')) {
+        $('#bloque-canal-digital-edit').slideDown();
+    } else {
+        $('#bloque-canal-digital-edit').slideUp();
+    }
+});
 
             // Mostrar modal después de llenar todo
             setTimeout(() => {
