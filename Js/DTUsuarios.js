@@ -175,19 +175,17 @@ function toggleStatus(id, imgElement, status) {
       var newStatus = status === "1" ? 0 : 1;
       imgElement.setAttribute("data-status", newStatus);
       imgElement.src =
-        newStatus === 1 ? "../iconos/activo.png" : "../iconos/desactivo.png";
-
-      // Mostrar carga mientras se actualiza el estado
-      Swal.fire({
-        title: "Actualizando estado...",
-        text: "Por favor espera",
-        icon: "info",
-        showConfirmButton: false,
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
+        // Mostrar carga mientras se actualiza el estado
+        Swal.fire({
+          title: "Actualizando estado...",
+          text: "Por favor espera",
+          icon: "info",
+          showConfirmButton: false,
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          },
+        });
 
       // Realiza la actualización en el backend (sin promesas, directamente)
       window.location.href = `../Controllers/usuarios.php?accion=5&id=${id}&status=${status}`;
