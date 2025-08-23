@@ -98,17 +98,17 @@ if (empty($rows)) {
     exit;
 }
 
-// Si hay más de un registro, concatenar las redacciones
+// Concatenar grabaciones en un solo campo si hay más de un registro
 if (count($rows) > 1) {
     $mensajes = [];
     foreach ($rows as $index => $registro) {
         $num = $index + 1;
-        $redaccion = $registro['grabacion'];
-        $mensajes[] = "mensaje {$num}: [{$redaccion}]";
+        $redaccion = trim($registro['grabacion']);
+        $mensajes[] = "Mensaje {$num}: {$redaccion}";
     }
     // Tomamos el primer registro como base y sobreescribimos grabacion
     $data = $rows[0];
-    $data['grabacion'] = implode("\n", $mensajes);
+    $data['grabacion'] = implode(", ", $mensajes);
 } else {
     // Solo un registro, devolver tal cual
     $data = $rows[0];
