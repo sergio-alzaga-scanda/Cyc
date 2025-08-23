@@ -9,10 +9,7 @@ $(document).ready(function () {
       dataSrc: function (json) {
         var rows = [];
         $.each(json, function (index, item) {
-          var iconoStatus =
-            item.status === "1"
-              ? `<img src="../iconos/activo.png" alt="Activo" style="width: 50px; height: 25px;" data-status="1" data-id="${item.idUsuarios}" onclick="toggleStatus(${item.idUsuarios}, this, ${item.status})">`
-              : `<img src="../iconos/desactivo.png" alt="Desactivado" style="width: 50px; height: 25px;" data-status="0" data-id="${item.idUsuarios}" onclick="toggleStatus(${item.idUsuarios}, this, ${item.status})">`;
+          var iconoStatus = item.status === "1";
 
           rows.push([
             item.idUsuarios,
