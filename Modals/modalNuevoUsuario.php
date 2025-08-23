@@ -24,7 +24,7 @@ if ($perfil_data->execute()) {
       </div>
 
       <div class="modal-body">
-        <form action="javascript:void(0);" method="POST" id="form-usuario">
+        <form action="../Controllers/usuarios.php" method="POST" id="form-usuario">
           <input type="hidden" name="accion" id="accion" value="1">
 
           <div class="mb-3">
