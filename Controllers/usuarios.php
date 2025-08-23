@@ -31,35 +31,33 @@ switch ($accion) {
             $status           = $_POST['status'];
             $fecha_creacion   = $_POST['fecha_creacion'];
 
-            $query = "
-            INSERT INTO usuarios (
-                nombre_usuario, 
-                correo_usuario, 
-                pass, 
-                puesto_usuario, 
-                telefono_usuario, 
-                perfil_usuario, 
-                status,
-                proyecto
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ";
+           $query = "
+INSERT INTO usuarios (
+    nombre_usuario, 
+    correo_usuario, 
+    pass, 
+    puesto_usuario, 
+    telefono_usuario, 
+    perfil_usuario, 
+    status,
+    proyecto,
+    fecha_creacion
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+";
 
-            $stmt = $conn->prepare($query);
-            if ($stmt === false) {
-                die("Error en la preparación de la consulta: " . $conn->error);
-            }
-
-            $stmt->bind_param(
-                "ssssssis",
-                $nombre_usuario,
-                $correo_usuario,
-                $pass,
-                $puesto_usuario,
-                $telefono_usuario,
-                $perfil_usuario,
-                $status,
-                $proyecto
-            );
+$stmt = $conn->prepare($query);
+$stmt->bind_param(
+    "ssssssiss",
+    $nombre_usuario,
+    $correo_usuario,
+    $pass,
+    $puesto_usuario,
+    $telefono_usuario,
+    $perfil_usuario,
+    $status,
+    $proyecto,
+    $fecha_creacion
+);
 
             if ($stmt->execute()) {
                 $id_insertado = $stmt->insert_id;
