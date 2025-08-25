@@ -167,60 +167,62 @@ if ($stmt->execute()) {
     <b>
     <br>
     <ul>
-       
+            <?php  if($_SESSION['perfil'] === 1) { ?>
             <a href="dashboard.php" style="text-decoration: none; color: inherit;">
                 <li <?php if ($menu === 1) { echo 'class="active"'; } ?> >
                     <img src="../iconos/Vector-2.svg"> &nbsp;&nbsp;
                     Dashboard
                 </li>
             </a>
+            <?php } ?>
       
        
 
-          
+            
                 <a href="cyc.php" style="text-decoration: none; color: inherit;">
                     <li <?php if ($menu === 2) { echo 'class="active"'; } ?> >
                         <img src="../iconos/Vector-3.svg"> &nbsp;&nbsp;
                          CyC's
                      </li>
                 </a>
+              
            
 
-           
+           <?php  if($_SESSION['perfil'] === 1) { ?>
                 <a href="historico.php" style="text-decoration: none; color: inherit;">
                     <li <?php if ($menu === 3) { echo 'class="active"'; } ?> >
                         <img src="../iconos/entypo_archive.svg"> &nbsp;&nbsp;
                          Histórico
                     </li>
                 </a>
-           
+           <?php } ?>
 
-           
+           <?php  if($_SESSION['perfil'] === 1) { ?>
                 <a href="usuarios.php" style="text-decoration: none; color: inherit;">
                     <li <?php if ($menu === 4) { echo 'class="active"'; } ?> >
                         <img src="../iconos/Vector-4.svg"> &nbsp;&nbsp;
                          Usuarios
                     </li>
                 </a>
-           
+           <?php } ?>
 
-         
+         <?php  if($_SESSION['perfil'] === 1) { ?>
                 <a href="perfiles.php" style="text-decoration: none; color: inherit;">
                     <li <?php if ($menu === 5) { echo 'class="active"'; } ?> >
                         <img src="../iconos/Vector-5.svg"> &nbsp;&nbsp;
          				Perfiles
                     </li>
                 </a>
-            
+            <?php } ?>
 
-           
+           <?php  if($_SESSION['perfil'] === 1) { ?>
                 <a href="avisos.php" style="text-decoration: none; color: inherit;">
                     <li <?php if ($menu === 6) { echo 'class="active"'; } ?> >
                        <img src="../iconos/Group.svg"> &nbsp;&nbsp;
                        Avisos
                     </li>
                 </a>
-           
+           <?php } ?>
 
             
                 <a href="actividad.php" style="text-decoration: none; color: inherit;">
