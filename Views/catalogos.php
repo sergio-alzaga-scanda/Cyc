@@ -138,7 +138,11 @@ include("../Modals/modalEditarProyecto.php");
                 </div>
             </div>
         </div>
+        <?php
+            if($_SESSION['perfil'] === 1) {
+                // Mostrar las secciones solo si el perfil no es 3
 
+        ?>
         <!-- Canales Digitales -->
         <div class="accordion" id="accordionCanales">
             <div class="accordion-item">
@@ -258,6 +262,9 @@ include("../Modals/modalEditarProyecto.php");
                 </div>
             </div>
         </div>
+        <?php
+            } // Cierre del if para perfil  
+            ?>
 
     </div>
 </div>

@@ -22,6 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['nombre_usuario'] = $user['nombre_usuario'];
             $_SESSION['correo_usuario'] = $user['correo_usuario'];
             $_SESSION['proyecto'] = $user['proyecto'];
+            $_SESSION['perfil'] = $user['perfil_usuario'];
             
 
             // Redirigir al dashboard
