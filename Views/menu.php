@@ -1,27 +1,20 @@
 <?php
 include("../Controllers/bd.php");
 
-// Iniciar sesión si no está iniciada
+// Después:
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
-
-// Obtener datos de sesión
 $id_usuario     = $_SESSION['usuario'];
 $nombre_usuario = $_SESSION['nombre_usuario'];
 
-// Obtener perfil de usuario (asegúrate de que esta variable esté en sesión, 
-// o ajústalo para obtenerla de la base de datos si no está)
-$perfil_usuario = $_SESSION['perfil_usuario'] ?? 0; // 0 por defecto si no existe
-
-// Obtener permisos del usuario
 $queryTbl = "SELECT * FROM permisos WHERE id_usuario = ?";
 $stmt = $conn->prepare($queryTbl);
-$stmt->bind_param("i", $id_usuario);
+$stmt->bind_param("i", $id_usuario); // "i" para entero
 
 if ($stmt->execute()) {
     $result = $stmt->get_result();
-    $permisos = $result->fetch_assoc();
+    $permisos = $result->fetch_assoc(); // ✅ Forma correcta con mysqli
 
     if ($permisos) {
         $dashboard    = $permisos['dashboard'];
@@ -52,13 +45,14 @@ if ($stmt->execute()) {
         $cat_bot      = $permisos['cat_bot'];
     }
 }
+
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         * {
             box-sizing: border-box;
@@ -154,101 +148,118 @@ if ($stmt->execute()) {
 </head>
 <body>
 
+
 <!-- Botón para activar el menú -->
 <button id="menu-toggle" aria-label="Toggle menu">
-    &#9776; <!-- símbolo de hamburguesa -->
+    &#9776; <!-- Esto es el símbolo de la hamburguesa -->
 </button>
 
 <div class="sidebar">
     <div class="profile" style="text-align: center; padding-left: 20%;">
         <a style="text-decoration: none; color: inherit;" href="perfil_usuario.php">
-            <img src="../iconos/Vector-1.svg" alt="Icono perfil" />
-            <br />
-            <span><?php echo htmlspecialchars($nombre_usuario); ?></span>
-            <br />
+            <img src="../iconos/Vector-1.svg">
+            <br>
+            <span><?php echo $nombre_usuario; ?></span>
+            <br>
             <span style="font-size: 14px;">Mi perfil</span>
         </a>
     </div>
-    <br />
     <b>
+    <br>
     <ul>
-        <?php if ($perfil_usuario == 1): ?>
+       
             <a href="dashboard.php" style="text-decoration: none; color: inherit;">
-                <li <?php if (isset($menu) && $menu === 1) { echo 'class="active"'; } ?>>
-                    <img src="../iconos/Vector-2.svg" alt="Dashboard" /> &nbsp;&nbsp;
+                <li <?php if ($menu === 1) { echo 'class="active"'; } ?> >
+                    <img src="../iconos/Vector-2.svg"> &nbsp;&nbsp;
                     Dashboard
                 </li>
             </a>
+      
+       
 
-            <a href="historico.php" style="text-decoration: none; color: inherit;">
-                <li <?php if (isset($menu) && $menu === 3) { echo 'class="active"'; } ?>>
-                    <img src="../iconos/entypo_archive.svg" alt="Histórico" /> &nbsp;&nbsp;
-                    Histórico
+          
+                <a href="cyc.php" style="text-decoration: none; color: inherit;">
+                    <li <?php if ($menu === 2) { echo 'class="active"'; } ?> >
+                        <img src="../iconos/Vector-3.svg"> &nbsp;&nbsp;
+                         CyC's
+                     </li>
+                </a>
+           
+
+           
+                <a href="historico.php" style="text-decoration: none; color: inherit;">
+                    <li <?php if ($menu === 3) { echo 'class="active"'; } ?> >
+                        <img src="../iconos/entypo_archive.svg"> &nbsp;&nbsp;
+                         Histórico
+                    </li>
+                </a>
+           
+
+           
+                <a href="usuarios.php" style="text-decoration: none; color: inherit;">
+                    <li <?php if ($menu === 4) { echo 'class="active"'; } ?> >
+                        <img src="../iconos/Vector-4.svg"> &nbsp;&nbsp;
+                         Usuarios
+                    </li>
+                </a>
+           
+
+         
+                <a href="perfiles.php" style="text-decoration: none; color: inherit;">
+                    <li <?php if ($menu === 5) { echo 'class="active"'; } ?> >
+                        <img src="../iconos/Vector-5.svg"> &nbsp;&nbsp;
+         				Perfiles
+                    </li>
+                </a>
+            
+
+           
+                <a href="avisos.php" style="text-decoration: none; color: inherit;">
+                    <li <?php if ($menu === 6) { echo 'class="active"'; } ?> >
+                       <img src="../iconos/Group.svg"> &nbsp;&nbsp;
+                       Avisos
+                    </li>
+                </a>
+           
+
+            
+                <a href="actividad.php" style="text-decoration: none; color: inherit;">
+                    <li <?php if ($menu === 7) { echo 'class="active"'; } ?> >
+                        <img src="../iconos/Group 7.svg"> &nbsp;&nbsp;
+                         <b>Actividad</b>
+                    </li>
+                </a>
+           
+
+            
+                <a href="catalogos.php" style="text-decoration: none; color: inherit;">
+                    <li <?php if ($menu === 8) { echo 'class="active"'; } ?> >
+                        <img src="../iconos/catalogos.png"> &nbsp;&nbsp;
+                    <b>Catálogos</b>
+                    </li>
+                </a>
+            
+
+            <a href="../Controllers/cerrar-sesion.php" style="text-decoration: none; color: inherit;">
+                <li>
+                    <img src="../iconos/Vector-6.svg"> &nbsp;&nbsp;
+                    Cerrar sesión
                 </li>
             </a>
+        </ul>
 
-            <a href="usuarios.php" style="text-decoration: none; color: inherit;">
-                <li <?php if (isset($menu) && $menu === 4) { echo 'class="active"'; } ?>>
-                    <img src="../iconos/Vector-4.svg" alt="Usuarios" /> &nbsp;&nbsp;
-                    Usuarios
-                </li>
-            </a>
-
-            <a href="perfiles.php" style="text-decoration: none; color: inherit;">
-                <li <?php if (isset($menu) && $menu === 5) { echo 'class="active"'; } ?>>
-                    <img src="../iconos/Vector-5.svg" alt="Perfiles" /> &nbsp;&nbsp;
-                    Perfiles
-                </li>
-            </a>
-
-            <a href="avisos.php" style="text-decoration: none; color: inherit;">
-                <li <?php if (isset($menu) && $menu === 6) { echo 'class="active"'; } ?>>
-                    <img src="../iconos/Group.svg" alt="Avisos" /> &nbsp;&nbsp;
-                    Avisos
-                </li>
-            </a>
-        <?php endif; ?>
-
-        <!-- Opciones visibles para todos -->
-        <a href="cyc.php" style="text-decoration: none; color: inherit;">
-            <li <?php if (isset($menu) && $menu === 2) { echo 'class="active"'; } ?>>
-                <img src="../iconos/Vector-3.svg" alt="CyC's" /> &nbsp;&nbsp;
-                CyC's
-            </li>
-        </a>
-
-        <a href="actividad.php" style="text-decoration: none; color: inherit;">
-            <li <?php if (isset($menu) && $menu === 7) { echo 'class="active"'; } ?>>
-                <img src="../iconos/Group 7.svg" alt="Actividad" /> &nbsp;&nbsp;
-                <b>Actividad</b>
-            </li>
-        </a>
-
-        <a href="catalogos.php" style="text-decoration: none; color: inherit;">
-            <li <?php if (isset($menu) && $menu === 8) { echo 'class="active"'; } ?>>
-                <img src="../iconos/catalogos.png" alt="Catálogos" /> &nbsp;&nbsp;
-                <b>Catálogos</b>
-            </li>
-        </a>
-
-        <a href="../Controllers/cerrar-sesion.php" style="text-decoration: none; color: inherit;">
-            <li>
-                <img src="../iconos/Vector-6.svg" alt="Cerrar sesión" /> &nbsp;&nbsp;
-                Cerrar sesión
-            </li>
-        </a>
-    </ul>
     </b>
 </div>
 
 <div class="content" id="main-content">
-    <?php // Aquí va el contenido dinámico ?>
+    <?php // El contenido se mostrará dinámicamente aquí, NO QUITAR POR FAVOR !!!!! ?>
 </div>
 
 <script>
     const sidebar      = document.querySelector('.sidebar');
     const content      = document.getElementById('main-content');
     const toggleButton = document.getElementById('menu-toggle');
+    const menuLinks    = document.querySelectorAll('li[data-url]');
 
     function toggleSidebar() {
         const isActive = sidebar.classList.toggle('active');
@@ -272,7 +283,24 @@ if ($stmt->execute()) {
 
     window.addEventListener('resize', adjustLayout);
     window.addEventListener('load', adjustLayout);
+
+    // Cargar contenido dinámico
+    menuLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            const url = link.getAttribute('data-url');
+            fetch(url)
+                .then(response => response.text())
+                .then(html => {
+                    content.innerHTML = html;
+                    adjustLayout();
+                })
+                .catch(err => console.error('Error al cargar el contenido:', err));
+        });
+    });
 </script>
+
+
+
 
 </body>
 </html>
