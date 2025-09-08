@@ -74,83 +74,82 @@ switch ($accion) {
 
             $queryTblCategorias = "
               WITH Horas AS (
-                SELECT '08:00' AS Hora, 8 AS Hr UNION ALL
-                SELECT '09:00', 9 UNION ALL 
-                SELECT '10:00', 10 UNION ALL 
-                SELECT '11:00', 11 UNION ALL 
-                SELECT '12:00', 12 UNION ALL 
-                SELECT '13:00', 13 UNION ALL 
-                SELECT '14:00', 14 UNION ALL 
-                SELECT '15:00', 15 UNION ALL 
-                SELECT '16:00', 16 UNION ALL 
-                SELECT '17:00', 17 UNION ALL 
-                SELECT '18:00', 18 UNION ALL 
-                SELECT '19:00', 19 UNION ALL 
-                SELECT '20:00', 20
+                  SELECT '08:00' AS Hora, 8 AS Hr UNION ALL
+                  SELECT '09:00', 9 UNION ALL 
+                  SELECT '10:00', 10 UNION ALL 
+                  SELECT '11:00', 11 UNION ALL 
+                  SELECT '12:00', 12 UNION ALL 
+                  SELECT '13:00', 13 UNION ALL 
+                  SELECT '14:00', 14 UNION ALL 
+                  SELECT '15:00', 15 UNION ALL 
+                  SELECT '16:00', 16 UNION ALL 
+                  SELECT '17:00', 17 UNION ALL 
+                  SELECT '18:00', 18 UNION ALL 
+                  SELECT '19:00', 19 UNION ALL 
+                  SELECT '20:00', 20
               ),
               Categorias AS (
-                SELECT id, nombre_crisis 
-                FROM cat_crisis
+                  SELECT id, nombre_crisis 
+                  FROM cat_crisis
               ),
               CycCalc AS (
-                SELECT 
-                    cyc.*,
-                    CASE 
-                        WHEN cyc.fecha_programacion IS NULL THEN 
-                            ROUND(TIMESTAMPDIFF(MINUTE, cyc.fecha_registro_cyc, NOW()) / 60.0, 1)
-                        WHEN cyc.fecha_programacion > NOW() THEN 0
-                        ELSE 
-                            CASE 
-                                WHEN EXISTS(
-                                    SELECT 1
-                                    FROM logs l
-                                    WHERE l.description LIKE CONCAT('%Desactivo la grabación con número de ticket: ', cyc.no_ticket, '%')
-                                    AND NOT EXISTS (
-                                        SELECT 1
-                                        FROM logs l2
-                                        WHERE l2.description LIKE CONCAT('%Activó la grabación con número de ticket: ', cyc.no_ticket, '%')
-                                        AND l2.fecha > l.fecha
-                                    )
-                                ) THEN 0
-                                ELSE 
-                                    ROUND(
-                                        (TIMESTAMPDIFF(MINUTE, cyc.fecha_programacion, NOW()) - IFNULL(ina.inactive_minutes, 0)) / 60.0, 1
-                                    )
-                            END
-                    END AS HorasTranscurridas
-                FROM cyc
-                LEFT JOIN (
-                    SELECT 
-                        l_desact.description,
-                        SUM(TIMESTAMPDIFF(MINUTE, l_desact.fecha, l_react.fecha)) AS inactive_minutes,
-                        SUBSTRING_INDEX(SUBSTRING_INDEX(l_desact.description, ': ', -1), ' ', 1) AS ticket_no
-                    FROM logs l_desact
-                    JOIN logs l_react
-                       ON l_react.description LIKE CONCAT('%Activó la grabación con número de ticket: ', SUBSTRING_INDEX(SUBSTRING_INDEX(l_desact.description, ': ', -1), ' ', 1), '%')
-                      AND l_react.fecha > l_desact.fecha
-                    WHERE l_desact.description LIKE '%Desactivo la grabación con número de ticket: %'
-                    GROUP BY ticket_no
-                ) ina ON ina.ticket_no = cyc.no_ticket
-                WHERE cyc.proyecto = ?
+                  SELECT 
+                      cyc.*,
+                      CASE 
+                          WHEN cyc.fecha_programacion IS NULL THEN 
+                              ROUND(TIMESTAMPDIFF(MINUTE, cyc.fecha_registro_cyc, NOW()) / 60.0, 1)
+                          WHEN cyc.fecha_programacion > NOW() THEN 0
+                          ELSE 
+                              CASE 
+                                  WHEN EXISTS(
+                                      SELECT 1
+                                      FROM logs l
+                                      WHERE l.description LIKE CONCAT('%Desactivo la grabación con número de ticket: ', cyc.no_ticket, '%')
+                                      AND NOT EXISTS (
+                                          SELECT 1
+                                          FROM logs l2
+                                          WHERE l2.description LIKE CONCAT('%Activó la grabación con número de ticket: ', cyc.no_ticket, '%')
+                                          AND l2.fecha > l.fecha
+                                      )
+                                  ) THEN 0
+                                  ELSE 
+                                      ROUND(
+                                          (TIMESTAMPDIFF(MINUTE, cyc.fecha_programacion, NOW()) - IFNULL(ina.inactive_minutes, 0)) / 60.0, 1
+                                      )
+                              END
+                      END AS HorasTranscurridas
+                  FROM cyc
+                  LEFT JOIN (
+                      SELECT 
+                          SUM(TIMESTAMPDIFF(MINUTE, l_desact.fecha, l_react.fecha)) AS inactive_minutes,
+                          SUBSTRING_INDEX(SUBSTRING_INDEX(l_desact.description, ': ', -1), ' ', 1) AS ticket_no
+                      FROM logs l_desact
+                      JOIN logs l_react
+                          ON l_react.description LIKE CONCAT('%Activó la grabación con número de ticket: ', SUBSTRING_INDEX(SUBSTRING_INDEX(l_desact.description, ': ', -1), ' ', 1), '%')
+                          AND l_react.fecha > l_desact.fecha
+                      WHERE l_desact.description LIKE '%Desactivo la grabación con número de ticket: %'
+                      GROUP BY ticket_no
+                  ) ina ON ina.ticket_no = cyc.no_ticket
+                  WHERE cyc.proyecto = ?
               )
               SELECT
                   H.Hora,
                   C.nombre_crisis,
                   CASE 
-                       WHEN IFNULL(cc.tipo_cyc, 0) = 1 THEN 'Contingencia'
-                       WHEN cc.tipo_cyc = 2 THEN 'Crisis'
-                       ELSE 'OTRO'
+                      WHEN IFNULL(cc.tipo_cyc, 0) = 1 THEN 'Contingencia'
+                      WHEN cc.tipo_cyc = 2 THEN 'Crisis'
+                      ELSE 'OTRO'
                   END AS tipo_categoria,
                   SUM(IFNULL(cc.HorasTranscurridas, 0)) AS Horas_Transcurridas
               FROM Horas H
               CROSS JOIN Categorias C
               LEFT JOIN CycCalc cc 
-                 ON H.Hr = HOUR(cc.fecha_registro_cyc)
-                 AND cc.categoria_cyc = C.id
-                 AND HOUR(cc.fecha_registro_cyc) BETWEEN 8 AND 20
-                 AND cc.fecha_registro_cyc BETWEEN ? AND ?
-                 " . ($tipo ? "AND cc.tipo_cyc = ?" : "") . "
-                 AND cc.status_cyc IN (1,2)
+                  ON H.Hr = HOUR(cc.fecha_registro_cyc)
+                  AND cc.categoria_cyc = C.id
+                  AND HOUR(cc.fecha_registro_cyc) BETWEEN 8 AND 20
+                  AND cc.fecha_registro_cyc BETWEEN ? AND ?
+                  " . ($tipo ? "AND cc.tipo_cyc = ?" : "") . "
+                  AND cc.status_cyc IN (1,2)
               GROUP BY 
                   H.Hora,
                   C.nombre_crisis,
@@ -167,8 +166,8 @@ switch ($accion) {
                         SUM(
                             CASE 
                                 WHEN cyc.fecha_programacion IS NOT NULL 
-                                     AND cyc.fecha_registro_cyc IS NOT NULL 
-                                     AND cyc.tipo_cyc = 2 
+                                    AND cyc.fecha_registro_cyc IS NOT NULL 
+                                    AND cyc.tipo_cyc = 2 
                                 THEN ROUND(TIMESTAMPDIFF(MINUTE, cyc.fecha_registro_cyc, cyc.fecha_programacion) / 60.0, 1)
                                 ELSE 0
                             END
@@ -178,8 +177,8 @@ switch ($accion) {
                         SUM(
                             CASE 
                                 WHEN cyc.fecha_programacion IS NOT NULL 
-                                     AND cyc.fecha_registro_cyc IS NOT NULL 
-                                     AND cyc.tipo_cyc = 1 
+                                    AND cyc.fecha_registro_cyc IS NOT NULL 
+                                    AND cyc.tipo_cyc = 1 
                                 THEN ROUND(TIMESTAMPDIFF(MINUTE, cyc.fecha_registro_cyc, cyc.fecha_programacion) / 60.0, 1)
                                 ELSE 0
                             END
@@ -189,8 +188,8 @@ switch ($accion) {
                 WHERE HOUR(cyc.fecha_registro_cyc) BETWEEN 8 AND 20
                 AND cyc.proyecto = ?
                 " . ($fechaInicio && $fechaFin 
-                    ? "AND DATE(cyc.fecha_registro_cyc) BETWEEN ? AND ?" 
-                    : "AND DATE(cyc.fecha_registro_cyc) = CURDATE()") . "
+                        ? "AND DATE(cyc.fecha_registro_cyc) BETWEEN ? AND ?" 
+                        : "AND DATE(cyc.fecha_registro_cyc) = CURDATE()") . "
                 " . ($tipo ? "AND cyc.tipo_cyc = ?" : "") . "
                 AND cyc.status_cyc IN (1,2);
             ";
@@ -226,14 +225,8 @@ switch ($accion) {
             if (!$stmtCategorias) throw new Exception("Error en prepare queryTblCategorias: " . $conn->error);
 
             // Parámetros para queryTblCategorias
-            $paramsCat = [$proyecto];
-            $typesCat = "s";
-
-            if ($fechaInicio && $fechaFin) {
-                $paramsCat[] = $fechaInicio;
-                $paramsCat[] = $fechaFin;
-                $typesCat .= "ss";
-            }
+            $paramsCat = [$proyecto, $fechaInicio, $fechaFin]; // Las fechas son obligatorias en esta consulta
+            $typesCat = "sss";
 
             if ($tipo) {
                 $paramsCat[] = $tipo;
