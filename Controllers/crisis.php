@@ -418,11 +418,9 @@ switch ($accion) {
     case 5: // Eliminar ticket (cambiar status a 0)
     $id_cyc = $_POST['id_cyc'] ?? 0;
 
-    // CORRECCIÓN: Se agrega "AND proyecto = ?" a la consulta
     $query = "UPDATE cyc SET status_cyc = 0 WHERE id_cyc = ? AND proyecto = ?";
 
     if ($stmt = $conn->prepare($query)) {
-        // Ahora el "bind_param" coincide con la consulta (un entero 'i' y un string 's')
         $stmt->bind_param("is", $id_cyc, $proyecto);
 
         if ($stmt->execute()) {
@@ -436,13 +434,50 @@ switch ($accion) {
                 $stmtLog->close();
             }
 
-            echo json_encode(['success' => true, 'message' => 'Ticket eliminado correctamente.']);
+            // --- INICIA CAMBIO: Mensaje de éxito con SweetAlert y redirección ---
+            echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+                  <script>
+                    window.onload = () => {
+                        Swal.fire({
+                            title: 'Eliminado',
+                            text: 'El ticket se ha eliminado correctamente.',
+                            icon: 'success',
+                            confirmButtonText: 'Aceptar'
+                        }).then(() => window.location.href = '../Views/cyc.php');
+                    }
+                  </script>";
+            // --- TERMINA CAMBIO ---
+
         } else {
-            echo json_encode(['success' => false, 'error' => $stmt->error]);
+            // --- INICIA CAMBIO: Mensaje de error con SweetAlert y redirección ---
+            echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+                  <script>
+                    window.onload = () => {
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'No se pudo eliminar el ticket. Intenta de nuevo.',
+                            icon: 'error',
+                            confirmButtonText: 'Aceptar'
+                        }).then(() => window.location.href = '../Views/cyc.php');
+                    }
+                  </script>";
+            // --- TERMINA CAMBIO ---
         }
         $stmt->close();
     } else {
-        echo json_encode(['success' => false, 'error' => $conn->error]);
+        // --- INICIA CAMBIO: Mensaje de error con SweetAlert y redirección ---
+        echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+              <script>
+                window.onload = () => {
+                    Swal.fire({
+                        title: 'Error de Conexión',
+                        text: 'No se pudo preparar la consulta.',
+                        icon: 'error',
+                        confirmButtonText: 'Aceptar'
+                    }).then(() => window.location.href = '../Views/cyc.php');
+                }
+              </script>";
+        // --- TERMINA CAMBIO ---
     }
     break;
     case 6: // Alternar estado (1 <-> 2)
