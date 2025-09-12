@@ -180,7 +180,7 @@ function deleteCrisis(id) {
         },
       });
 
-      window.location.href = `../Controllers/crisis.php?accion=4&id=${id}`;
+      window.location.href = `../Controllers/crisis.php?accion=5&id=${id}`;
     }
   });
 }
