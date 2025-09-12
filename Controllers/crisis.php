@@ -415,134 +415,80 @@ switch ($accion) {
         }
         break;
 
-    case 5: // Eliminar ticket (cambiar status a 0)
-    $id_cyc = $_POST['id_cyc'] ?? 0;
-
-    $query = "UPDATE cyc SET status_cyc = 0 WHERE id_cyc = ? AND proyecto = ?";
-
-    if ($stmt = $conn->prepare($query)) {
-        $stmt->bind_param("is", $id_cyc, $proyecto);
-
-        if ($stmt->execute()) {
-            // Log
-            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) 
-                         VALUES (NOW(), ?, ?, ?, ?)";
-            if ($stmtLog = $conn->prepare($queryLog)) {
-                $descripcion = 'El ticket se ha eliminado correctamente, id: ' . $id_cyc;
-                $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario, $descripcion, $proyecto);
-                $stmtLog->execute();
-                $stmtLog->close();
-            }
-
-            // --- INICIA CAMBIO: Mensaje de éxito con SweetAlert y redirección ---
-            echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                  <script>
-                    window.onload = () => {
-                        Swal.fire({
-                            title: 'Eliminado',
-                            text: 'El ticket se ha eliminado correctamente.',
-                            icon: 'success',
-                            confirmButtonText: 'Aceptar'
-                        }).then(() => window.location.href = '../Views/cyc.php');
-                    }
-                  </script>";
-            // --- TERMINA CAMBIO ---
-
-        } else {
-            // --- INICIA CAMBIO: Mensaje de error con SweetAlert y redirección ---
-            echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                  <script>
-                    window.onload = () => {
-                        Swal.fire({
-                            title: 'Error',
-                            text: 'No se pudo eliminar el ticket. Intenta de nuevo.',
-                            icon: 'error',
-                            confirmButtonText: 'Aceptar'
-                        }).then(() => window.location.href = '../Views/cyc.php');
-                    }
-                  </script>";
-            // --- TERMINA CAMBIO ---
-        }
-        $stmt->close();
-    } else {
-        // --- INICIA CAMBIO: Mensaje de error con SweetAlert y redirección ---
-        echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-              <script>
-                window.onload = () => {
-                    Swal.fire({
-                        title: 'Error de Conexión',
-                        text: 'No se pudo preparar la consulta.',
-                        icon: 'error',
-                        confirmButtonText: 'Aceptar'
-                    }).then(() => window.location.href = '../Views/cyc.php');
-                }
-              </script>";
-        // --- TERMINA CAMBIO ---
-    }
-    break;
-    case 6: // Alternar estado (1 <-> 2)
+case 5: // Eliminar ticket (cambiar status a 0)
+    // Obtiene el 'id' desde $_GET, como lo envía la función deleteCrisis()
     $id_cyc = $_GET['id'] ?? 0;
 
-    // Primero obtener el status actual
-    $queryStatus = "SELECT status_cyc FROM cyc WHERE id_cyc = ?";
-    if ($stmtStatus = $conn->prepare($queryStatus)) {
-        $stmtStatus->bind_param("i", $id_cyc);
-        $stmtStatus->execute();
-        $stmtStatus->bind_result($statusActual);
-        $stmtStatus->fetch();
-        $stmtStatus->close();
+    if ($id_cyc > 0) {
+        $query = "UPDATE cyc SET status_cyc = 0 WHERE id_cyc = ? AND proyecto = ?";
 
-        // Alternar el status
-        $nuevoStatus = ($statusActual == 1) ? 2 : 1;
-        $accion = ($nuevoStatus == 1) ? "activado" : "desactivado";
+        if ($stmt = $conn->prepare($query)) {
+            $stmt->bind_param("is", $id_cyc, $proyecto);
 
-        // Actualizar el nuevo estado
-        $queryUpdate = "UPDATE cyc SET status_cyc = ? WHERE id_cyc = ?";
-        if ($stmtUpdate = $conn->prepare($queryUpdate)) {
-            $stmtUpdate->bind_param("ii", $nuevoStatus, $id_cyc);
-
-            if ($stmtUpdate->execute()) {
+            if ($stmt->execute()) {
                 // Log
                 $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) 
                              VALUES (NOW(), ?, ?, ?, ?)";
                 if ($stmtLog = $conn->prepare($queryLog)) {
-                    $descripcion = 'El ticket se ha ' . $accion . ' correctamente, id: ' . $id_cyc;
+                    $descripcion = 'El ticket se ha eliminado correctamente, id: ' . $id_cyc;
                     $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario, $descripcion, $proyecto);
                     $stmtLog->execute();
                     $stmtLog->close();
                 }
-
-                echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                      <script>
-                        window.onload = () => {
-                            Swal.fire({
-                                title: 'Éxito',
-                                text: 'El ticket se ha actualizado correctamente.',
-                                icon: 'success',
-                                confirmButtonText: 'Aceptar'
-                            }).then(() => window.location.href = '../Views/cyc.php');
-                        }
-                      </script>";
-            } else {
-                echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                      <script>
-                        window.onload = () => {
-                            Swal.fire({
-                                title: 'Error',
-                                text: 'Error al actualizar.',
-                                icon: 'error',
-                                confirmButtonText: 'Aceptar'
-                            }).then(() => window.location.href = '../Views/cyc.php');
-                        }
-                      </script>";
             }
-            $stmtUpdate->close();
-        } else {
-            echo json_encode(['success' => false, 'error' => $conn->error]);
+            $stmt->close();
         }
-    } else {
-        echo json_encode(['success' => false, 'error' => 'No se pudo obtener el estado actual.']);
     }
+
+    // Redirige de vuelta a la vista de la tabla.
+    header("Location: ../Views/cyc.php");
+    exit; // Usa exit() para detener el script después de la redirección.
+
+    break;
+    case 6: // Alternar estado (activo <-> programado)
+    // Obtiene el 'id' desde $_GET, como lo envía la función toggleStatus()
+    $id_cyc = $_GET['id'] ?? 0;
+
+    if ($id_cyc > 0) {
+        // Primero, obtener el status actual del ticket validando el proyecto
+        $queryStatus = "SELECT status_cyc FROM cyc WHERE id_cyc = ? AND proyecto = ?";
+        if ($stmtStatus = $conn->prepare($queryStatus)) {
+            $stmtStatus->bind_param("is", $id_cyc, $proyecto);
+            $stmtStatus->execute();
+            $stmtStatus->bind_result($statusActual);
+            $stmtStatus->fetch();
+            $stmtStatus->close();
+
+            if ($statusActual !== null) {
+                // Alternar el status (si es 1 pasa a 2, y si es 2 pasa a 1)
+                $nuevoStatus = ($statusActual == 1) ? 2 : 1; 
+                $accionVerbo = ($statusActual == 1) ? "programado" : "activado";
+
+                // Actualizar el nuevo estado, validando el proyecto
+                $queryUpdate = "UPDATE cyc SET status_cyc = ? WHERE id_cyc = ? AND proyecto = ?";
+                if ($stmtUpdate = $conn->prepare($queryUpdate)) {
+                    $stmtUpdate->bind_param("iis", $nuevoStatus, $id_cyc, $proyecto);
+
+                    if ($stmtUpdate->execute()) {
+                        // Log
+                        $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) VALUES (NOW(), ?, ?, ?, ?)";
+                        if ($stmtLog = $conn->prepare($queryLog)) {
+                            $descripcion = "El ticket con ID $id_cyc se ha $accionVerbo correctamente.";
+                            $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario, $descripcion, $proyecto);
+                            $stmtLog->execute();
+                            $stmtLog->close();
+                        }
+                    }
+                    $stmtUpdate->close();
+                }
+            }
+        }
+    }
+    
+    // Redirige de vuelta a la vista de la tabla.
+    header("Location: ../Views/cyc.php");
+    exit; // Usa exit() para detener el script después de la redirección.
+
     break;
 
     default:
