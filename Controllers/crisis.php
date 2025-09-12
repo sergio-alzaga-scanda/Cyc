@@ -416,33 +416,35 @@ switch ($accion) {
         break;
 
     case 5: // Eliminar ticket (cambiar status a 0)
-        $id_cyc = $_POST['id_cyc'] ?? 0;
+    $id_cyc = $_POST['id_cyc'] ?? 0;
 
-        $query = "UPDATE cyc SET status_cyc = 0 WHERE id_cyc = ? ";
+    // CORRECCIÓN: Se agrega "AND proyecto = ?" a la consulta
+    $query = "UPDATE cyc SET status_cyc = 0 WHERE id_cyc = ? AND proyecto = ?";
 
-        if ($stmt = $conn->prepare($query)) {
-            $stmt->bind_param("is", $id_cyc, $proyecto);
+    if ($stmt = $conn->prepare($query)) {
+        // Ahora el "bind_param" coincide con la consulta (un entero 'i' y un string 's')
+        $stmt->bind_param("is", $id_cyc, $proyecto);
 
-            if ($stmt->execute()) {
-                // Log
-                $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) 
-                             VALUES (NOW(), ?, ?, ?, ?)";
-                if ($stmtLog = $conn->prepare($queryLog)) {
-                    $descripcion = 'El ticket se ha eliminado correctamente, id: ' . $id_cyc;
-                    $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario, $descripcion, $proyecto);
-                    $stmtLog->execute();
-                    $stmtLog->close();
-                }
-
-                echo json_encode(['success' => true, 'message' => 'Ticket eliminado correctamente.']);
-            } else {
-                echo json_encode(['success' => false, 'error' => $stmt->error]);
+        if ($stmt->execute()) {
+            // Log
+            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) 
+                         VALUES (NOW(), ?, ?, ?, ?)";
+            if ($stmtLog = $conn->prepare($queryLog)) {
+                $descripcion = 'El ticket se ha eliminado correctamente, id: ' . $id_cyc;
+                $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario, $descripcion, $proyecto);
+                $stmtLog->execute();
+                $stmtLog->close();
             }
-            $stmt->close();
+
+            echo json_encode(['success' => true, 'message' => 'Ticket eliminado correctamente.']);
         } else {
-            echo json_encode(['success' => false, 'error' => $conn->error]);
+            echo json_encode(['success' => false, 'error' => $stmt->error]);
         }
-        break;
+        $stmt->close();
+    } else {
+        echo json_encode(['success' => false, 'error' => $conn->error]);
+    }
+    break;
     case 6: // Alternar estado (1 <-> 2)
     $id_cyc = $_GET['id'] ?? 0;
 
