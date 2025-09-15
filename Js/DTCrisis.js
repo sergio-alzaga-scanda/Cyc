@@ -162,7 +162,7 @@ function cargarDatosCrisis(crisisData) {
 function deleteCrisis(id) {
   Swal.fire({
     title: "¿Estás seguro?",
-    text: "¿Quieres eliminar esta crisis?",
+    text: "¿Quieres eliminar esta crisis??",
     icon: "warning",
     showCancelButton: true,
     confirmButtonText: "Sí, eliminar",
