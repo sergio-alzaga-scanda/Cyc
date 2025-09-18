@@ -1,4 +1,6 @@
 <?php
+date_default_timezone_set('America/Mexico_City'); // ZONA HORARIA AÑADIDA
+
 session_start();
 
 if (!isset($_SESSION['usuario'])) {
@@ -25,13 +27,13 @@ switch ($accion) {
 
     case 1: // Crear o registrar un ticket
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            $no_ticket         = $_POST['no_ticket'] ?? '';
-            $nombre            = $_POST['nombre'] ?? '';
-            $fecha             = $_POST['fecha_programacion'] ?? null;
+            $no_ticket           = $_POST['no_ticket'] ?? '';
+            $nombre              = $_POST['nombre'] ?? '';
+            $fecha               = $_POST['fecha_programacion'] ?? null;
 
             if ($fecha) {
-                $status       = 2;
-                $fecha_string = trim($fecha);
+                $status           = 2;
+                $fecha_string     = trim($fecha);
                 try {
                     $fecha_obj          = new DateTime($fecha_string);
                     $fecha_programacion = $fecha_obj->format('Y-m-d H:i:s');
@@ -101,24 +103,9 @@ switch ($accion) {
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?)";
 
                     if ($stmt = $conn->prepare($query)) {
-                        // Para bind_param, los tipos deben coincidir:
-                        // s = string, i = int
-                        // Asumiendo criticidad, tipo, ubicacion son enteros
-                        // Ajusta según la estructura real de tu tabla
-
-                        // Para manejar fecha_programacion que puede ser NULL,
-                        // MySQLi no acepta bind_param con null directamente,
-                        // así que usaremos una variable para pasar.
 
                         $fecha_programacion_param = $fecha_programacion ?? null;
 
-                        // bind_param no acepta NULL, hay que usar 's' y pasar '' o pasarlo directamente
-                        // Aquí pasaremos fecha_programacion como string o NULL, 
-                        // y antes de la ejecución asignamos NULL para que MySQL lo interprete bien.
-                        // Sin embargo, para simplificar, vamos a pasar un string o NULL con mysqli_stmt::send_long_data
-                        // Pero lo más común es pasar un string vacío para NULL o el valor.
-
-                        // Por seguridad convertimos NULL a string vacío para bind_param y luego en la consulta MySQL lo interpreta bien.
                         if ($fecha_programacion_param === null) {
                             $fecha_programacion_param = null;
                         }
@@ -144,7 +131,7 @@ switch ($accion) {
                         if ($stmt->execute()) {
                             // Log
                             $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) 
-                                         VALUES (NOW(), ?, ?, ?, ?)";
+                                       VALUES (NOW(), ?, ?, ?, ?)";
                             if ($stmtLog = $conn->prepare($queryLog)) {
                                 $descripcion = 'El ticket se ha registrado correctamente, numero de ticket: ' . $no_ticket;
                                 $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario, $descripcion, $proyecto);
@@ -250,73 +237,69 @@ switch ($accion) {
         break;
 
     case 3: // Obtener datos de un ticket para editar
-    // Activar errores para debug (quítalo en producción)
-    ini_set('display_errors', 1);
-    ini_set('display_startup_errors', 1);
-    error_reporting(E_ALL);
+        ini_set('display_errors', 1);
+        ini_set('display_startup_errors', 1);
+        error_reporting(E_ALL);
 
-    // Obtener el ID del ticket y el proyecto
-    $id_cyc = $_POST['id_cyc'] ?? $_POST['id'] ?? 0;
-    $proyecto = $_SESSION['proyecto'] ?? $_POST['proyecto'] ?? null;
-    $result = [];
+        $id_cyc = $_POST['id_cyc'] ?? $_POST['id'] ?? 0;
+        $proyecto = $_SESSION['proyecto'] ?? $_POST['proyecto'] ?? null;
+        $result = [];
 
-    if (!$proyecto) {
-        echo json_encode(['error' => 'Proyecto no definido']);
-        break;
-    }
-
-    $query = "
-        SELECT 
-            c.*,
-            cc.nombre_crisis,
-            ui.nombre_ubicacion_ivr,
-            p.nombre_proyecto
-        FROM 
-            cyc AS c
-        LEFT JOIN 
-            cat_crisis AS cc ON c.categoria_cyc = cc.id
-        LEFT JOIN 
-            ubicacion_ivr AS ui ON c.ubicacion_cyc = ui.id_ubicacion_ivr
-        LEFT JOIN 
-            cat_proyectos AS p ON c.proyecto = p.id_proyecto
-        WHERE 
-            c.id_cyc = ? AND c.proyecto = ?
-        LIMIT 1
-    ";
-
-    if ($stmt = $conn->prepare($query)) {
-        $stmt->bind_param("is", $id_cyc, $proyecto);
-        $stmt->execute();
-        $res = $stmt->get_result();
-
-        if ($row = $res->fetch_assoc()) {
-            // Decodificar campos JSON si existen
-            $row['canal_cyc'] = json_decode($row['canal_cyc'] ?? '[]', true);
-            $row['bot_cyc'] = json_decode($row['bot_cyc'] ?? '[]', true);
-
-            $result = $row;
+        if (!$proyecto) {
+            echo json_encode(['error' => 'Proyecto no definido']);
+            break;
         }
 
-        $stmt->close();
+        $query = "
+            SELECT 
+                c.*,
+                cc.nombre_crisis,
+                ui.nombre_ubicacion_ivr,
+                p.nombre_proyecto
+            FROM 
+                cyc AS c
+            LEFT JOIN 
+                cat_crisis AS cc ON c.categoria_cyc = cc.id
+            LEFT JOIN 
+                ubicacion_ivr AS ui ON c.ubicacion_cyc = ui.id_ubicacion_ivr
+            LEFT JOIN 
+                cat_proyectos AS p ON c.proyecto = p.id_proyecto
+            WHERE 
+                c.id_cyc = ? AND c.proyecto = ?
+            LIMIT 1
+        ";
 
-        header('Content-Type: application/json');
-        echo json_encode($result);
-    } else {
-        echo json_encode(['error' => 'Error en prepare: ' . $conn->error]);
-    }
+        if ($stmt = $conn->prepare($query)) {
+            $stmt->bind_param("is", $id_cyc, $proyecto);
+            $stmt->execute();
+            $res = $stmt->get_result();
 
-    break;
+            if ($row = $res->fetch_assoc()) {
+                $row['canal_cyc'] = json_decode($row['canal_cyc'] ?? '[]', true);
+                $row['bot_cyc'] = json_decode($row['bot_cyc'] ?? '[]', true);
+                $result = $row;
+            }
+
+            $stmt->close();
+
+            header('Content-Type: application/json');
+            echo json_encode($result);
+        } else {
+            echo json_encode(['error' => 'Error en prepare: ' . $conn->error]);
+        }
+
+        break;
 
     case 4: // Editar ticket
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            $id_cyc             = $_POST['id_cyc'] ?? 0;
-            $no_ticket          = $_POST['no_ticket'] ?? '';
-            $nombre             = $_POST['nombre'] ?? '';
-            $fecha              = $_POST['fecha_programacion'] ?? null;
+            $id_cyc              = $_POST['id'] ?? 0; // CORREGIDO PARA RECIBIR 'id'
+            $no_ticket           = $_POST['no_ticket'] ?? '';
+            $nombre              = $_POST['nombre'] ?? '';
+            $fecha               = $_POST['fecha_programacion'] ?? null;
             
             if ($fecha) {
-                $status       = 2;
-                $fecha_string = trim($fecha);
+                $status           = 2;
+                $fecha_string     = trim($fecha);
                 try {
                     $fecha_obj          = new DateTime($fecha_string);
                     $fecha_programacion = $fecha_obj->format('Y-m-d H:i:s');
@@ -343,7 +326,6 @@ switch ($accion) {
             $canales_json = json_encode($canales);
             $bots_json    = json_encode($bots);
 
-            // Actualizar
             $query = "
                 UPDATE cyc SET
                     nombre = ?,
@@ -365,7 +347,7 @@ switch ($accion) {
 
             if ($stmt = $conn->prepare($query)) {
                 $stmt->bind_param(
-                    "ssiiisssssisss",
+                    "ssiiisssssisssi", // Se ajustó el tipo de id_cyc a 'i'
                     $nombre,
                     $no_ticket,
                     $criticidad,
@@ -386,7 +368,7 @@ switch ($accion) {
                 if ($stmt->execute()) {
                     // Log
                     $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) 
-                                 VALUES (NOW(), ?, ?, ?, ?)";
+                                   VALUES (NOW(), ?, ?, ?, ?)";
                     if ($stmtLog = $conn->prepare($queryLog)) {
                         $descripcion = 'El ticket se ha actualizado correctamente, numero de ticket: ' . $no_ticket;
                         $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario, $descripcion, $proyecto);
@@ -415,81 +397,74 @@ switch ($accion) {
         }
         break;
 
-case 5: // Eliminar ticket (cambiar status a 0)
-    // Obtiene el 'id' desde $_GET, como lo envía la función deleteCrisis()
-    $id_cyc = $_GET['id'] ?? 0;
+    case 5: // Eliminar ticket (cambiar status a 0)
+        $id_cyc = $_GET['id'] ?? 0;
 
-    if ($id_cyc > 0) {
-        $query = "UPDATE cyc SET status_cyc = 0 WHERE id_cyc = ? AND proyecto = ?";
+        if ($id_cyc > 0) {
+            $query = "UPDATE cyc SET status_cyc = 0 WHERE id_cyc = ? AND proyecto = ?";
 
-        if ($stmt = $conn->prepare($query)) {
-            $stmt->bind_param("is", $id_cyc, $proyecto);
+            if ($stmt = $conn->prepare($query)) {
+                $stmt->bind_param("is", $id_cyc, $proyecto);
 
-            if ($stmt->execute()) {
-                // Log
-                $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) 
-                             VALUES (NOW(), ?, ?, ?, ?)";
-                if ($stmtLog = $conn->prepare($queryLog)) {
-                    $descripcion = 'El ticket se ha eliminado correctamente, id: ' . $id_cyc;
-                    $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario, $descripcion, $proyecto);
-                    $stmtLog->execute();
-                    $stmtLog->close();
-                }
-            }
-            $stmt->close();
-        }
-    }
-
-    // Redirige de vuelta a la vista de la tabla.
-    header("Location: ../Views/cyc.php");
-    exit; // Usa exit() para detener el script después de la redirección.
-
-    break;
-    case 6: // Alternar estado (activo <-> programado)
-    // Obtiene el 'id' desde $_GET, como lo envía la función toggleStatus()
-    $id_cyc = $_GET['id'] ?? 0;
-
-    if ($id_cyc > 0) {
-        // Primero, obtener el status actual del ticket validando el proyecto
-        $queryStatus = "SELECT status_cyc FROM cyc WHERE id_cyc = ? AND proyecto = ?";
-        if ($stmtStatus = $conn->prepare($queryStatus)) {
-            $stmtStatus->bind_param("is", $id_cyc, $proyecto);
-            $stmtStatus->execute();
-            $stmtStatus->bind_result($statusActual);
-            $stmtStatus->fetch();
-            $stmtStatus->close();
-
-            if ($statusActual !== null) {
-                // Alternar el status (si es 1 pasa a 2, y si es 2 pasa a 1)
-                $nuevoStatus = ($statusActual == 1) ? 2 : 1; 
-                $accionVerbo = ($statusActual == 1) ? "programado" : "activado";
-
-                // Actualizar el nuevo estado, validando el proyecto
-                $queryUpdate = "UPDATE cyc SET status_cyc = ? WHERE id_cyc = ? AND proyecto = ?";
-                if ($stmtUpdate = $conn->prepare($queryUpdate)) {
-                    $stmtUpdate->bind_param("iis", $nuevoStatus, $id_cyc, $proyecto);
-
-                    if ($stmtUpdate->execute()) {
-                        // Log
-                        $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) VALUES (NOW(), ?, ?, ?, ?)";
-                        if ($stmtLog = $conn->prepare($queryLog)) {
-                            $descripcion = "El ticket con ID $id_cyc se ha $accionVerbo correctamente.";
-                            $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario, $descripcion, $proyecto);
-                            $stmtLog->execute();
-                            $stmtLog->close();
-                        }
+                if ($stmt->execute()) {
+                    // Log
+                    $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) 
+                                     VALUES (NOW(), ?, ?, ?, ?)";
+                    if ($stmtLog = $conn->prepare($queryLog)) {
+                        $descripcion = 'El ticket se ha eliminado correctamente, id: ' . $id_cyc;
+                        $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario, $descripcion, $proyecto);
+                        $stmtLog->execute();
+                        $stmtLog->close();
                     }
-                    $stmtUpdate->close();
+                }
+                $stmt->close();
+            }
+        }
+
+        header("Location: ../Views/cyc.php");
+        exit;
+
+        break;
+    case 6: // Alternar estado (activo <-> programado)
+        $id_cyc = $_GET['id'] ?? 0;
+
+        if ($id_cyc > 0) {
+            $queryStatus = "SELECT status_cyc FROM cyc WHERE id_cyc = ? AND proyecto = ?";
+            if ($stmtStatus = $conn->prepare($queryStatus)) {
+                $stmtStatus->bind_param("is", $id_cyc, $proyecto);
+                $stmtStatus->execute();
+                $stmtStatus->bind_result($statusActual);
+                $stmtStatus->fetch();
+                $stmtStatus->close();
+
+                if ($statusActual !== null) {
+                    $nuevoStatus = ($statusActual == 1) ? 2 : 1;
+                    $accionVerbo = ($statusActual == 1) ? "programado" : "activado";
+
+                    $queryUpdate = "UPDATE cyc SET status_cyc = ? WHERE id_cyc = ? AND proyecto = ?";
+                    if ($stmtUpdate = $conn->prepare($queryUpdate)) {
+                        $stmtUpdate->bind_param("iis", $nuevoStatus, $id_cyc, $proyecto);
+
+                        if ($stmtUpdate->execute()) {
+                            // Log
+                            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) VALUES (NOW(), ?, ?, ?, ?)";
+                            if ($stmtLog = $conn->prepare($queryLog)) {
+                                $descripcion = "El ticket con ID $id_cyc se ha $accionVerbo correctamente.";
+                                $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario, $descripcion, $proyecto);
+                                $stmtLog->execute();
+                                $stmtLog->close();
+                            }
+                        }
+                        $stmtUpdate->close();
+                    }
                 }
             }
         }
-    }
-    
-    // Redirige de vuelta a la vista de la tabla.
-    header("Location: ../Views/cyc.php");
-    exit; // Usa exit() para detener el script después de la redirección.
 
-    break;
+        header("Location: ../Views/cyc.php");
+        exit;
+
+        break;
 
     default:
         echo "Acción no reconocida.";
