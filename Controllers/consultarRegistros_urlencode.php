@@ -3,6 +3,9 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+// Es una buena práctica definir la zona horaria
+date_default_timezone_set('America/Mexico_City');
+
 include("../Controllers/bd.php");
 header('Content-Type: application/json');
 
@@ -35,7 +38,22 @@ if (!isset($_GET['ubicacion']) || !is_numeric($_GET['ubicacion'])) {
 $proyecto  = intval($_GET['proyecto']);
 $ubicacion = intval($_GET['ubicacion']);
 
-// Consulta SQL
+
+// --- INICIA CÓDIGO AÑADIDO ---
+// 1. Actualizar tickets programados cuya fecha de activación ya pasó.
+// Esta consulta busca tickets con status 3 (programado) y una fecha de programación
+// que sea anterior o igual a la fecha y hora actual, y los cambia a status 1 (activo).
+$sql_update = "UPDATE cyc SET status_cyc = 1 WHERE status_cyc = 3 AND fecha_programacion <= NOW()";
+
+$stmt_update = $conn->prepare($sql_update);
+if ($stmt_update) {
+    $stmt_update->execute();
+    $stmt_update->close();
+}
+// --- TERMINA CÓDIGO AÑADIDO ---
+
+
+// 2. Consulta SQL principal para devolver la respuesta (código original)
 $sql = "
 SELECT
     cyc.id_cyc,
@@ -63,12 +81,12 @@ SELECT
     usuarios.nombre_usuario,
     cyc.redaccion_canales,
     cyc.proyecto
-FROM Cyc.cyc AS cyc
-LEFT JOIN Cyc.cat_crisis AS cat_crisis
+FROM cyc AS cyc
+LEFT JOIN cat_crisis AS cat_crisis
     ON cyc.categoria_cyc = cat_crisis.id
-LEFT JOIN Cyc.ubicacion_ivr AS ubicaciones
+LEFT JOIN ubicacion_ivr AS ubicaciones
     ON cyc.ubicacion_cyc = ubicaciones.id_ubicacion_ivr
-LEFT JOIN Cyc.usuarios AS usuarios
+LEFT JOIN usuarios AS usuarios
     ON cyc.id_usuario = usuarios.idUsuarios
 WHERE cyc.proyecto = ? AND cyc.ubicacion_cyc = ?
 AND cyc.status_cyc = 1
