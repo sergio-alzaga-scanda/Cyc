@@ -39,10 +39,7 @@ $proyecto  = intval($_GET['proyecto']);
 $ubicacion = intval($_GET['ubicacion']);
 
 
-// --- INICIA CÓDIGO AÑADIDO ---
 // 1. Actualizar tickets programados cuya fecha de activación ya pasó.
-// Esta consulta busca tickets con status 3 (programado) y una fecha de programación
-// que sea anterior o igual a la fecha y hora actual, y los cambia a status 1 (activo).
 $sql_update = "UPDATE cyc SET status_cyc = 1 WHERE status_cyc = 3 AND fecha_programacion <= NOW()";
 
 $stmt_update = $conn->prepare($sql_update);
@@ -50,10 +47,13 @@ if ($stmt_update) {
     $stmt_update->execute();
     $stmt_update->close();
 }
-// --- TERMINA CÓDIGO AÑADIDO ---
+
+// --- PAUSA DE 3 SEGUNDOS AÑADIDA ---
+// Se espera 3 segundos para dar tiempo a que la base de datos procese el cambio de estatus.
+sleep(3);
 
 
-// 2. Consulta SQL principal para devolver la respuesta (código original)
+// 2. Consulta SQL principal para devolver la respuesta.
 $sql = "
 SELECT
     cyc.id_cyc,
