@@ -27,7 +27,7 @@ switch ($accion) {
             $fecha = $_POST['fecha_programacion'] ?? null;
 
             if ($fecha) {
-                $status = 3; // <-- CORREGIDO: Status 3 para programado
+                $status = 3;
                 $fecha_string     = trim($fecha);
                 try {
                     $fecha_obj          = new DateTime($fecha_string);
@@ -37,11 +37,10 @@ switch ($accion) {
                     exit;
                 }
             } else {
-                $status = 1; // Status 1 para activo
+                $status = 1;
                 $fecha_programacion = null;
             }
             
-            // ... (El resto del código de este case no cambia)
             $no_ticket           = $_POST['no_ticket'] ?? '';
             $nombre              = $_POST['nombre'] ?? '';
             $criticidad          = $_POST['criticidad'] ?? '';
@@ -121,7 +120,7 @@ switch ($accion) {
                 CASE WHEN c.tipo_cyc = 1 THEN 'Crisis' WHEN c.tipo_cyc = 2 THEN 'Contingencia' ELSE 'Desconocido' END AS tipo_cyc,
                 c.ubicacion_cyc, ui.nombre_ubicacion_ivr AS nombre_ubicacion,
                 CASE 
-                    WHEN c.status_cyc = 3 AND c.fecha_programacion IS NOT NULL THEN c.fecha_programacion -- <-- CORREGIDO: Status 3
+                    WHEN c.status_cyc = 3 AND c.fecha_programacion IS NOT NULL THEN c.fecha_programacion
                     ELSE c.fecha_registro_cyc
                 END AS fecha_activacion,
                 p.nombre_proyecto
@@ -153,7 +152,6 @@ switch ($accion) {
         break;
 
     case 3: // Obtener datos de un ticket para editar
-        // ... (Sin cambios en este case)
         $id_cyc = $_POST['id_cyc'] ?? $_POST['id'] ?? 0;
         $proyecto = $_SESSION['proyecto'] ?? $_POST['proyecto'] ?? null;
         $query = "SELECT c.*, cc.nombre_crisis, ui.nombre_ubicacion_ivr, p.nombre_proyecto FROM cyc AS c LEFT JOIN cat_crisis AS cc ON c.categoria_cyc = cc.id LEFT JOIN ubicacion_ivr AS ui ON c.ubicacion_cyc = ui.id_ubicacion_ivr LEFT JOIN cat_proyectos AS p ON c.proyecto = p.id_proyecto WHERE c.id_cyc = ? AND c.proyecto = ? LIMIT 1";
@@ -181,7 +179,7 @@ switch ($accion) {
             $fecha = $_POST['fecha_programacion'] ?? null;
             
             if ($fecha) {
-                $status = 3; // <-- CORREGIDO: Status 3 para programado
+                $status = 3;
                 $fecha_string = trim($fecha);
                 try {
                     $fecha_obj = new DateTime($fecha_string);
@@ -191,11 +189,10 @@ switch ($accion) {
                     exit;
                 }
             } else {
-                $status = 1; // Status 1 para activo
+                $status = 1;
                 $fecha_programacion = null;
             }
 
-            // ... (El resto del código de este case no cambia)
             $id_cyc              = $_POST['id'] ?? 0;
             $no_ticket           = $_POST['no_ticket'] ?? '';
             $nombre              = $_POST['nombre'] ?? '';
@@ -211,7 +208,11 @@ switch ($accion) {
             $bots_json    = json_encode($bots);
             $query = "UPDATE cyc SET nombre = ?, no_ticket = ?, categoria_cyc = ?, tipo_cyc = ?, ubicacion_cyc = ?, redaccion_cyc = ?, canal_cyc = ?, bot_cyc = ?, redaccion_canal_cyc = ?, status_cyc = ?, fecha_programacion = ?, id_usuario = ?, redaccion_canales = ? WHERE id_cyc = ? AND proyecto = ?";
             if ($stmt = $conn->prepare($query)) {
-                $stmt->bind_param("ssiiisssssisssi", $nombre, $no_ticket, $criticidad, $tipo, $ubicacion, $ivr_texto, $canales_json, $bots_json, $canal_digital_texto, $status, $fecha_programacion, $id_usuario, $redaccion_canales, $id_cyc, $proyecto);
+                
+                // --- LÍNEA CORREGIDA ---
+                // El 11vo caracter era 'i' (integer) y se cambió a 's' (string) para la fecha.
+                $stmt->bind_param("ssiiisssssssssi", $nombre, $no_ticket, $criticidad, $tipo, $ubicacion, $ivr_texto, $canales_json, $bots_json, $canal_digital_texto, $status, $fecha_programacion, $id_usuario, $redaccion_canales, $id_cyc, $proyecto);
+                
                 if ($stmt->execute()) {
                     $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) VALUES (NOW(), ?, ?, ?, ?)";
                     if ($stmtLog = $conn->prepare($queryLog)) {
@@ -232,7 +233,8 @@ switch ($accion) {
                             }
                           </script>";
                 } else {
-                    echo "Error al actualizar el registro: " . $stmt->error;
+                    // Si ocurre un error aquí, es la línea que genera el fatal error.
+                    throw new mysqli_sql_exception($stmt->error, $stmt->errno);
                 }
                 $stmt->close();
             } else {
@@ -242,7 +244,6 @@ switch ($accion) {
         break;
 
     case 5: // Eliminar ticket
-        // ... (Sin cambios en este case)
         $id_cyc = $_GET['id'] ?? 0;
         if ($id_cyc > 0) {
             $query = "UPDATE cyc SET status_cyc = 0 WHERE id_cyc = ? AND proyecto = ?";
@@ -270,7 +271,6 @@ switch ($accion) {
                 $stmtStatus->close();
 
                 if ($statusActual !== null) {
-                    // <-- LÓGICA CORREGIDA: Alterna entre 1 (activo) y 3 (programado)
                     $nuevoStatus = ($statusActual == 1) ? 3 : 1; 
                     $accionVerbo = ($statusActual == 1) ? "programado" : "activado";
 
