@@ -81,7 +81,7 @@ switch ($accion) {
         $DtosTbl = [];
         $queryTbl = "SELECT id_proyecto, nombre_proyecto, status 
                      FROM cat_proyectos 
-                     WHERE status > 0
+                     WHERE status > 0 AND proyecto = ? 
                      ORDER BY nombre_proyecto DESC";
 
         $stmt = $conn->prepare($queryTbl);
