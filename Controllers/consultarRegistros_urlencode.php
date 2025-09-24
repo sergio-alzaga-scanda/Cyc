@@ -120,17 +120,16 @@ if (empty($rows)) {
 if (count($rows) > 1) {
     $mensajes = [];
     foreach ($rows as $index => $registro) {
-        $num = $index + 1;
         $redaccion = trim($registro['grabacion']);
-        $mensajes[] = " {$redaccion} .";
+        $mensajes[] = "{$redaccion}.";
     }
     // Tomamos el primer registro como base y sobreescribimos grabacion
     $data = $rows[0];
-    $data['grabacion'] ="Estimado usuario". implode($mensajes);
-    
+    $data['grabacion'] = "Estimado usuario. " . implode(" ", $mensajes);
 } else {
-    // Solo un registro, devolver tal cual
+    // Solo un registro, pero igual anteponer el mensaje
     $data = $rows[0];
+    $data['grabacion'] = "Estimado usuario. " . trim($data['grabacion']);
 }
 
 echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
