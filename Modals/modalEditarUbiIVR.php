@@ -17,18 +17,9 @@
           </div>
         <div class="mb-3">
   <select name="edit_proyecto" id="edit_proyecto" class="form-select" required>
-    <?php
-    // Consulta todos los proyectos activos
-    $queryProyectos = "SELECT id_proyecto, nombre_proyecto FROM cat_proyectos WHERE status = 1 ORDER BY nombre_proyecto ASC";
-    $resultProyectos = $conn->query($queryProyectos);
-
-    while ($row = $resultProyectos->fetch_assoc()) {
-        echo "<option value='{$row['id_proyecto']}'>{$row['nombre_proyecto']}</option>";
-    }
-    ?>
+    <!-- Las opciones se llenarán dinámicamente con JS o PHP -->
   </select>
 </div>
-
          <!-- Modal Footer -->
           <div class="modal-footer d-flex justify-content-center">
     <div class="btn-container">
