@@ -25,7 +25,8 @@ $(document).ready(function () {
                 data-id="${item.id}" 
                 data-nombre="${item.nombre_ubicacion_ivr}" 
                 data-status="${item.status}" 
-                data-proyecto="${item.proyecto}" 
+                data-proyecto="${item.nombre_proyecto}"
+
                 style="background: transparent; border: none;">
                   <img src="../iconos/edit.png" alt="Editar" style="width: 20px; height: 20px;">
               </button>
