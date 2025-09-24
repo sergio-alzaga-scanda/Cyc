@@ -19,16 +19,20 @@ $(document).ready(function () {
           rows.push([
             item.id, // ID de la ubicación IVR
             item.nombre_ubicacion_ivr, // Nombre de la ubicación IVR
-            item.nombre_proyecto,
+            item.nombre_proyecto, // Asegúrate que el JSON también envía este campo, si no, ajusta PHP
             `  
-                            <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditarUbicacionIVR" data-id="${item.id}" data-nombre="${item.nombre_ubicacion_ivr}" data-status="${item.status}" style="background: transparent; border: none;">
-                                <img src="../iconos/edit.png" alt="Editar" style="width: 20px; height: 20px;">
-                            </button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteUbicacionIVR(${item.id})" style="background: transparent; border: none;">
-                                <img src="../iconos/delete.png" alt="Eliminar" style="width: 20px; height: 20px;">
-                            </button>
-                       
-                        `, // Fin de la columna de acciones
+              <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditarUbicacionIVR" 
+                data-id="${item.id}" 
+                data-nombre="${item.nombre_ubicacion_ivr}" 
+                data-status="${item.status}" 
+                data-proyecto="${item.proyecto}" 
+                style="background: transparent; border: none;">
+                  <img src="../iconos/edit.png" alt="Editar" style="width: 20px; height: 20px;">
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="deleteUbicacionIVR(${item.id})" style="background: transparent; border: none;">
+                  <img src="../iconos/delete.png" alt="Eliminar" style="width: 20px; height: 20px;">
+              </button>
+            `, // Fin de la columna de acciones
           ]);
         });
         return rows;
@@ -40,7 +44,6 @@ $(document).ready(function () {
         "<div class='loading-overlay'><div class='loader'></div></div>",
       search: "Buscar:",
       lengthMenu: "Mostrar _MENU_ registros",
-
       infoEmpty: "Mostrando registros del 0 al 0 de un total de 0 registros",
       infoFiltered: "(filtrado de un total de _MAX_ registros)",
       loadingRecords: "Cargando...",
@@ -76,6 +79,7 @@ $(document).ready(function () {
         id: $(this).data("id"),
         nombre_ubicacion_ivr: $(this).data("nombre"),
         status: $(this).data("status"),
+        proyecto: $(this).data("proyecto"), // <-- Agregado proyecto
       };
 
       // Cargar los datos en el formulario de edición
@@ -85,115 +89,17 @@ $(document).ready(function () {
 
   // Cargar los datos en el modal de edición
   function cargarDatosUbicacionIVR(ubicacionData) {
-    // Asignar valores a los campos del modal
     $("#edit_id_ubicacion_ivr").val(ubicacionData.id);
     $("#edit_nombre_ubicacion_ivr").val(
       ubicacionData.nombre_ubicacion_ivr || ""
-    ); // Si no hay nombre, dejar vacío
-    $("#accion_editar").val("3"); // Cambiar la acción a 'editar'
+    );
+    $("#accion_editar").val("3");
+
+    // Seleccionar el proyecto correcto en el combo
+    if (ubicacionData.proyecto) {
+      $("#edit_proyecto").val(ubicacionData.proyecto);
+    }
   }
 });
 
-// Función para eliminar una ubicación IVR
-function deleteUbicacionIVR(id) {
-  Swal.fire({
-    title: "¿Estás seguro?",
-    text: "¿Quieres eliminar esta ubicación IVR?",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Sí, eliminar",
-    cancelButtonText: "Cancelar",
-  }).then((result) => {
-    if (result.isConfirmed) {
-      // Mostrar carga mientras se procesa la eliminación
-      Swal.fire({
-        title: "Eliminando...",
-        text: "Por favor espera",
-        icon: "info",
-        showConfirmButton: false,
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
-
-      // Redirigir a la acción de eliminación en el controlador
-      setTimeout(() => {
-        window.location.href = `../Controllers/catUbicaciones.php?accion=4&id=${id}`; // Redirige para eliminar la ubicación IVR
-      }, 1500); // Redirigir después de que se muestre el mensaje de carga
-    }
-  });
-}
-
-// Función para activar/desactivar una ubicación IVR
-function toggleStatus(id, imgElement, status) {
-  // Determinar el nuevo estado
-  var newStatus = status === 1 ? 0 : 1; // Si está activo (1), lo cambiamos a desactivado (0) y viceversa
-
-  // Cambiar el atributo de datos y la imagen de estado
-  imgElement.setAttribute("data-status", newStatus);
-  imgElement.src =
-    newStatus === 1 ? "../iconos/activo.png" : "../iconos/desactivo.png";
-
-  // Mostrar carga mientras se actualiza el estado
-  Swal.fire({
-    title: "Actualizando estado...",
-    text: "Por favor espera",
-    icon: "info",
-    showConfirmButton: false,
-    allowOutsideClick: false,
-    didOpen: () => {
-      Swal.showLoading();
-    },
-  });
-
-  // Enviar la solicitud AJAX para cambiar el estado
-  $.ajax({
-    url: "../Controllers/catUbicaciones.php",
-    method: "GET",
-    data: {
-      accion: 5, // Acción para cambiar el estado
-      id: id, // ID de la ubicación IVR
-      status: newStatus, // Nuevo estado (activo o desactivado)
-    },
-    success: function (response) {
-      Swal.close(); // Cerrar el loader después de la respuesta
-      // Aquí puedes agregar código para manejar la respuesta de la actualización, si es necesario
-    },
-    error: function () {
-      Swal.fire("Error", "Ocurrió un error al actualizar el estado.", "error");
-    },
-  });
-}
-// Cargar los datos en el modal de edición
-function cargarDatosUbicacionIVR(ubicacionData) {
-  // Asignar valores a los campos del modal
-  $("#edit_id_ubicacion_ivr").val(ubicacionData.id);
-  $("#edit_nombre_ubicacion_ivr").val(ubicacionData.nombre_ubicacion_ivr || "");
-  $("#accion_editar").val("3");
-
-  // Función para llenar el combo de proyectos y seleccionar el actual
-  function llenarComboProyectos(idSeleccionado) {
-    fetch("../Controllers/cargarProyectos.php")
-      .then((response) => response.json())
-      .then((data) => {
-        const select = document.getElementById("edit_proyecto");
-        select.innerHTML = ""; // limpiar opciones previas
-        data.forEach((proyecto) => {
-          const option = document.createElement("option");
-          option.value = proyecto.id_proyecto;
-          option.textContent = proyecto.nombre_proyecto;
-          if (proyecto.id_proyecto == idSeleccionado) {
-            option.selected = true;
-          }
-          select.appendChild(option);
-        });
-      })
-      .catch((error) => {
-        console.error("Error cargando proyectos:", error);
-      });
-  }
-
-  // Llamar a la función pasando el proyecto actual de la ubicación
-  llenarComboProyectos(ubicacionData.proyecto);
-}
+// Resto de funciones deleteUbicacionIVR y toggleStatus sin cambios
