@@ -67,8 +67,7 @@ SELECT
         ELSE 'Desconocido'
     END AS tipo_cyc,
     ubicaciones.nombre_ubicacion_ivr AS ubicacion_cyc,
-    cyc.redaccion_cyc as ivr,
-    cyc.redaccion_cyc as ivr2,
+    cyc.redaccion_cyc as grabacion,
     cyc.canal_cyc,
     cyc.bot_cyc,
     cyc.fecha_registro_cyc,
@@ -127,8 +126,8 @@ if (count($rows) > 1) {
     }
     // Tomamos el primer registro como base y sobreescribimos grabacion
     $data = $rows[0];
-    $data['ivr'] = implode(", ", $mensajes);
-    $data['ivr2'] = implode(", ", $mensajes);
+    $data['grabacion'] = implode(", ", $mensajes);
+    
 } else {
     // Solo un registro, devolver tal cual
     $data = $rows[0];
