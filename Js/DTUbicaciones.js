@@ -101,5 +101,28 @@ $(document).ready(function () {
     }
   }
 });
+function cargarProyectos(selectId) {
+  fetch("../Controllers/catUbicaciones.php?accion=6")
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Respuesta de red no OK");
+      }
+      return response.json();
+    })
+    .then((proyectos) => {
+      const select = document.getElementById(selectId);
+      select.innerHTML = '<option value="">Seleccionar proyecto</option>';
 
+      proyectos.forEach((proyecto) => {
+        const option = document.createElement("option");
+        option.value = proyecto.id_proyecto; // usa el ID, no el nombre
+        option.textContent = proyecto.nombre_proyecto;
+        select.appendChild(option);
+      });
+    })
+    .catch((error) => {
+      console.error("Error al cargar proyectos:", error);
+      Swal.fire("Error", "No se pudieron cargar los proyectos", "error");
+    });
+}
 // Resto de funciones deleteUbicacionIVR y toggleStatus sin cambios

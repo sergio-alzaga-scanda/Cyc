@@ -17,28 +17,17 @@
                     </div>
                     
                     <div class="mb-3">
-  <select name="edit_proyecto" id="edit_proyecto" class="form-select" required>
-    <?php
-    // Consulta todos los proyectos activos
-    $queryProyectos = "SELECT id_proyecto, nombre_proyecto FROM cat_proyectos WHERE status = 1 ORDER BY nombre_proyecto ASC";
-    $resultProyectos = $conn->query($queryProyectos);
-
-    while ($row = $resultProyectos->fetch_assoc()) {
-        echo "<option value='{$row['id_proyecto']}'>{$row['nombre_proyecto']}</option>";
-    }
-    ?>
-  </select>
-</div>
+                        <select name="edit_proyecto" id="edit_proyecto" class="form-select" required>
+                            <option value="">Cargando proyectos...</option>
+                        </select>
+                    </div>
                     
-                    <!-- Modal Footer -->
                     <div class="modal-footer d-flex justify-content-center">
                         <div class="btn-container">
-                            <!-- Botón Guardar -->
                             <button type="submit" class="btn-icon" style="border-radius: 15px;">
                                 <span>Guardar</span>
                                 <img src="../iconos/Group-4.svg" alt="Guardar">
                             </button>
-                            <!-- Botón Cancelar -->
                             <button type="button" class="btn-icon" style="border-radius: 15px;" data-bs-dismiss="modal">
                                 <span>Cancelar</span>
                                 <img src="../iconos/cancelar.png" alt="Cancelar">
@@ -50,33 +39,6 @@
         </div>
     </div>
 </div>
-
-<script>
-// Cargar proyectos cuando se abra el modal de edición
-document.getElementById('modalEditarUbicacionIVR').addEventListener('show.bs.modal', function () {
-    cargarProyectos('edit_proyecto');
-});
-
-// Función para cargar proyectos en el select de edición
-function cargarProyectos(selectId) {
-    fetch('../Controllers/catUbicaciones.php?accion=6')
-        .then(response => response.json())
-        .then(proyectos => {
-            const select = document.getElementById(selectId);
-            select.innerHTML = '<option value="">Seleccionar proyecto</option>';
-            
-            proyectos.forEach(proyecto => {
-                const option = document.createElement('option');
-                option.value = proyecto.nombre_proyecto;
-                option.textContent = proyecto.nombre_proyecto;
-                select.appendChild(option);
-            });
-        })
-        .catch(error => {
-            console.error('Error al cargar proyectos:', error);
-            Swal.fire('Error', 'No se pudieron cargar los proyectos', 'error');
-        });
-}
 </script>
 
 <!-- Estilos CSS adicionales -->
