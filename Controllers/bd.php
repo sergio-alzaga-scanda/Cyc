@@ -1,16 +1,16 @@
 <?php
 // Datos de conexión
-$servername = "localhost";
-$port = 3307;
-$username = "root";
-$password = "";
-$database = "Cyc";
-
 // $servername = "localhost";
-// $port       = 3306;
-// $username   = "root";
-// $password   = "Melco154.,";
-// $database   = "Cyc";
+// $port = 3307;
+// $username = "root";
+// $password = "";
+// $database = "Cyc";
+
+$servername = "localhost";
+$port       = 3306;
+$username   = "root";
+$password   = "Melco154.,";
+$database   = "Cyc";
 
 // Crear conexión con puerto
 $conn = new mysqli($servername, $username, $password, $database, $port);
