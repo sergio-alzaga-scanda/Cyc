@@ -126,7 +126,7 @@ if (count($rows) > 1) {
     }
     // Tomamos el primer registro como base y sobreescribimos grabacion
     $data = $rows[0];
-    $data['grabacion'] ="EStimado usuario". implode($mensajes);
+    $data['grabacion'] ="Estimado usuario". implode($mensajes);
     
 } else {
     // Solo un registro, devolver tal cual
