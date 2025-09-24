@@ -129,7 +129,7 @@ if (count($rows) > 1) {
 } else {
     // Solo un registro, pero igual anteponer el mensaje
     $data = $rows[0];
-    $data['grabacion'] = "Estimado usuario. " . trim($data['grabacion']);
+    $data['grabacion'] = "Estimado usuario, " . trim($data['grabacion']);
 }
 
 echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
