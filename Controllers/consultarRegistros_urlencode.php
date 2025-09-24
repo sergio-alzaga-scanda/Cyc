@@ -68,6 +68,7 @@ SELECT
     END AS tipo_cyc,
     ubicaciones.nombre_ubicacion_ivr AS ubicacion_cyc,
     cyc.redaccion_cyc as grabacion,
+    cyc.redaccion_cyc as grabacion2,
     cyc.canal_cyc,
     cyc.bot_cyc,
     cyc.fecha_registro_cyc,
