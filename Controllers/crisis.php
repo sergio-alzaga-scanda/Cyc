@@ -128,7 +128,7 @@ switch ($accion) {
             JOIN cat_crisis AS cc ON c.categoria_cyc = cc.id
             LEFT JOIN ubicacion_ivr AS ui ON c.ubicacion_cyc = ui.id_ubicacion_ivr
             LEFT JOIN cat_proyectos AS p ON c.proyecto = p.id_proyecto
-            WHERE c.status_cyc > 0 AND c.proyecto = ?
+            WHERE c.status_cyc > 0 
             ORDER BY c.fecha_registro_cyc DESC;
         ";
 
