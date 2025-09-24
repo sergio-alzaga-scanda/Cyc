@@ -8,7 +8,31 @@ $(document).ready(function () {
       },
       dataSrc: function (json) {
         var rows = [];
-        $.each(json, function (index, item) {
+        // Llenar el select de proyectos en el modal de nuevo
+        var selectNuevo = $("#proyecto_nuevo");
+        selectNuevo.empty();
+        $.each(json.proyectos, function (index, proyecto) {
+          selectNuevo.append(
+            $("<option>", {
+              value: proyecto.id,
+              text: proyecto.nombre,
+            })
+          );
+        });
+
+        // Llenar el select de proyectos en el modal de editar
+        var selectEditar = $("#edit_proyecto");
+        selectEditar.empty();
+        $.each(json.proyectos, function (index, proyecto) {
+          selectEditar.append(
+            $("<option>", {
+              value: proyecto.id,
+              text: proyecto.nombre,
+            })
+          );
+        });
+
+        $.each(json.ubicaciones, function (index, item) {
           // Cambiar el icono de estado dependiendo del valor de "status"
           var iconoStatus =
             item.status === 1
@@ -19,21 +43,13 @@ $(document).ready(function () {
           rows.push([
             item.id, // ID de la ubicación IVR
             item.nombre_ubicacion_ivr, // Nombre de la ubicación IVR
-            item.nombre_proyecto, // Asegúrate que el JSON también envía este campo, si no, ajusta PHP
-            `  
-              <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditarUbicacionIVR" 
-                data-id="${item.id}" 
-                data-nombre="${item.nombre_ubicacion_ivr}" 
-                data-status="${item.status}" 
-                data-proyecto="${item.proyecto}"
-
-                style="background: transparent; border: none;">
-                  <img src="../iconos/edit.png" alt="Editar" style="width: 20px; height: 20px;">
-              </button>
-              <button class="btn btn-danger btn-sm" onclick="deleteUbicacionIVR(${item.id})" style="background: transparent; border: none;">
-                  <img src="../iconos/delete.png" alt="Eliminar" style="width: 20px; height: 20px;">
-              </button>
-            `, // Fin de la columna de acciones
+            item.nombre_proyecto, // Nombre del proyecto
+            `<button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditarUbicacionIVR" data-id="${item.id}" data-nombre="${item.nombre_ubicacion_ivr}" data-proyecto="${item.id_proyecto}" data-status="${item.status}" style="background: transparent; border: none;">
+                                <img src="../iconos/edit.png" alt="Editar" style="width: 20px; height: 20px;">
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteUbicacionIVR(${item.id})" style="background: transparent; border: none;">
+                                <img src="../iconos/delete.png" alt="Eliminar" style="width: 20px; height: 20px;">
+                            </button>`,
           ]);
         });
         return rows;
@@ -45,6 +61,7 @@ $(document).ready(function () {
         "<div class='loading-overlay'><div class='loader'></div></div>",
       search: "Buscar:",
       lengthMenu: "Mostrar _MENU_ registros",
+
       infoEmpty: "Mostrando registros del 0 al 0 de un total de 0 registros",
       infoFiltered: "(filtrado de un total de _MAX_ registros)",
       loadingRecords: "Cargando...",
@@ -79,8 +96,8 @@ $(document).ready(function () {
       var ubicacionData = {
         id: $(this).data("id"),
         nombre_ubicacion_ivr: $(this).data("nombre"),
+        id_proyecto: $(this).data("proyecto"),
         status: $(this).data("status"),
-        proyecto: $(this).data("proyecto"), // <-- Agregado proyecto
       };
 
       // Cargar los datos en el formulario de edición
@@ -90,20 +107,15 @@ $(document).ready(function () {
 
   // Cargar los datos en el modal de edición
   function cargarDatosUbicacionIVR(ubicacionData) {
+    // Asignar valores a los campos del modal
     $("#edit_id_ubicacion_ivr").val(ubicacionData.id);
     $("#edit_nombre_ubicacion_ivr").val(
       ubicacionData.nombre_ubicacion_ivr || ""
-    );
-    $("#accion_editar").val("3");
-
-    // Seleccionar el proyecto correcto en el combo
-    if (ubicacionData.proyecto) {
-      $("#edit_proyecto").val(ubicacionData.proyecto);
-    }
+    ); // Si no hay nombre, dejar vacío
+    $("#edit_proyecto").val(ubicacionData.id_proyecto);
+    $("#accion_editar").val("3"); // Cambiar la acción a 'editar'
   }
 });
-
-// Resto de funciones deleteUbicacionIVR y toggleStatus sin cambios
 
 // Función para eliminar una ubicación IVR
 function deleteUbicacionIVR(id) {
