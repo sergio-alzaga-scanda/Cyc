@@ -122,7 +122,7 @@ if (count($rows) > 1) {
     foreach ($rows as $index => $registro) {
         $num = $index + 1;
         $redaccion = trim($registro['grabacion']);
-        $mensajes[] = " {$redaccion}";
+        $mensajes[] = " Estimado usuario {$redaccion} .";
     }
     // Tomamos el primer registro como base y sobreescribimos grabacion
     $data = $rows[0];
