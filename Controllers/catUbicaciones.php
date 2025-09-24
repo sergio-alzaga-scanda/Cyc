@@ -83,7 +83,8 @@ case 2:
     try {
         $queryTbl = "SELECT id_ubicacion_ivr, nombre_ubicacion_ivr, status, proyecto
                      FROM ubicacion_ivr
-                     WHERE status > 0 AND proyecto = ?
+                     WHERE status > 0 
+                     
                      ORDER BY nombre_ubicacion_ivr DESC";
         $stmt = $conn->prepare($queryTbl);
         if (!$stmt) {
