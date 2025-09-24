@@ -1,41 +1,51 @@
-<!-- Modal: Editar Ubicación IVR -->
-<div class="modal fade" id="modalEditarUbicacionIVR" tabindex="-1" aria-labelledby="modalEditarUbicacionIVRLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
+<!-- Modal de Edición de Ubicación IVR -->
+<div class="modal fade" id="modalEditarUbicacionIVR" tabindex="-1" role="dialog" aria-labelledby="modalEditarUbicacionIVRLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
     <div class="modal-content">
-      <form action="../Controllers/catUbicaciones.php" method="POST">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalEditarUbicacionIVRLabel">Editar Ubicación IVR</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-        </div>
-        <div class="modal-body">
-          <input type="hidden" name="accion" id="accion_editar" value="3">
-          <input type="hidden" name="edit_id_ubicacion_ivr" id="edit_id_ubicacion_ivr">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalEditarUbicacionIVRLabel">Editar Ubicación IVR</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Formulario de edición -->
+        <form action="../Controllers/catUbicaciones.php" method="POST" id="form-editar-ubicacion-ivr">
+          <input type="text" name="accion" id="accion_editar" hidden value="3"> <!-- Acción para editar ubicación IVR -->
+          <input name="edit_id_ubicacion_ivr" hidden id="edit_id_ubicacion_ivr"> <!-- ID de la ubicación IVR a editar -->
 
           <div class="mb-3">
-            <label for="edit_nombre_ubicacion_ivr" class="form-label">Nombre de la Ubicación:</label>
-            <input type="text" class="form-control" id="edit_nombre_ubicacion_ivr" name="nombre" required>
+            <input type="text" name="nombre" id="edit_nombre_ubicacion_ivr" required class="form-control form-input" placeholder="Nombre de la ubicación IVR" aria-label="Nombre de la ubicación IVR">
           </div>
+        <div class="mb-3">
+    <select name="proyecto" id="edit_proyecto_select" required class="form-control form-select">
+        <option value="">Seleccione un proyecto</option>
+        <?php
+        include("../Controllers/bd.php");
+        $query = "SELECT id_proyecto, nombre_proyecto FROM proyectos WHERE status = 1 ORDER BY nombre_proyecto";
+        $result = $conn->query($query);
+        while ($row = $result->fetch_assoc()) {
+            echo '<option value="' . $row['id_proyecto'] . '">' . $row['nombre_proyecto'] . '</option>';
+        }
+        ?>
+    </select>
+</div>
+         <!-- Modal Footer -->
+          <div class="modal-footer d-flex justify-content-center">
+    <div class="btn-container">
+        <!-- Botón Guardar y habilitar -->
+        <button type="submit" class="btn-icon" style="border-radius: 15px;">
+            <span>Guardar</span>
+            <img src="../iconos/Group-4.svg" alt="Guardar">
+        </button>
 
-          <div class="mb-3">
-            <label for="edit_proyecto_select" class="form-label">Proyecto:</label>
-            <select class="form-select" id="edit_proyecto_select" name="proyecto" required>
-              <option value="">Seleccione un proyecto</option>
-              <?php
-              include("../Controllers/bd.php");
-              $q = "SELECT id_proyecto, nombre_proyecto FROM proyectos WHERE status = 1 ORDER BY nombre_proyecto";
-              $res = $conn->query($q);
-              while ($rw = $res->fetch_assoc()) {
-                  echo '<option value="' . $rw['id_proyecto'] . '">' . $rw['nombre_proyecto'] . '</option>';
-              }
-              ?>
-            </select>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-success">Guardar Cambios</button>
-        </div>
-      </form>
+        <!-- Botón Cancelar -->
+        <button type="button" class="btn-icon" style="border-radius: 15px;" data-bs-dismiss="modal">
+            <span>Cancelar</span>
+            <img src="../iconos/cancelar.png" alt="Cancelar">
+        </button>
+    </div>
+</div>
+        </form>
+      </div>
     </div>
   </div>
 </div>
