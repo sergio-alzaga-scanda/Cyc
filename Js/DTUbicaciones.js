@@ -165,3 +165,35 @@ function toggleStatus(id, imgElement, status) {
     },
   });
 }
+// Cargar los datos en el modal de edición
+function cargarDatosUbicacionIVR(ubicacionData) {
+  // Asignar valores a los campos del modal
+  $("#edit_id_ubicacion_ivr").val(ubicacionData.id);
+  $("#edit_nombre_ubicacion_ivr").val(ubicacionData.nombre_ubicacion_ivr || "");
+  $("#accion_editar").val("3");
+
+  // Función para llenar el combo de proyectos y seleccionar el actual
+  function llenarComboProyectos(idSeleccionado) {
+    fetch("../Controllers/cargarProyectos.php")
+      .then((response) => response.json())
+      .then((data) => {
+        const select = document.getElementById("edit_proyecto");
+        select.innerHTML = ""; // limpiar opciones previas
+        data.forEach((proyecto) => {
+          const option = document.createElement("option");
+          option.value = proyecto.id_proyecto;
+          option.textContent = proyecto.nombre_proyecto;
+          if (proyecto.id_proyecto == idSeleccionado) {
+            option.selected = true;
+          }
+          select.appendChild(option);
+        });
+      })
+      .catch((error) => {
+        console.error("Error cargando proyectos:", error);
+      });
+  }
+
+  // Llamar a la función pasando el proyecto actual de la ubicación
+  llenarComboProyectos(ubicacionData.proyecto);
+}
