@@ -1,5 +1,5 @@
 
-<!-- Modal -->
+!-- Modal -->
 <div class="modal fade" id="NuevaUbicacion" tabindex="-1" role="dialog" aria-labelledby="NuevaUbicacionLabel" aria-hidden="true">
   <div class="modal-dialog " role="document">
     <div class="modal-content">
@@ -15,24 +15,33 @@
           <div class="mb-3">
             <input type="text" name="nombre" id="nombre" required class="form-control form-input" placeholder="Nombre de la ubicación" aria-label="Nombre de la ubicación">
           </div>
-          
-          
+
+          <div class="mb-3">
+            <select name="proyecto" id="proyecto" class="form-select" required>
+              <?php
+                // Consulta todos los proyectos activos para el select
+                $queryProyectos = "SELECT id_proyecto, nombre_proyecto FROM cat_proyectos WHERE status = 1 ORDER BY nombre_proyecto ASC";
+                $resultProyectos = $conn->query($queryProyectos);
+                while ($row = $resultProyectos->fetch_assoc()) {
+                    echo "<option value='{$row['id_proyecto']}'>{$row['nombre_proyecto']}</option>";
+                }
+              ?>
+            </select>
+          </div>
+
           <div class="modal-footer d-flex justify-content-center">
-    <div class="btn-container">
-        <!-- Botón Guardar y habilitar -->
-        <button type="submit" class="btn-icon" style="border-radius: 15px;">
-            <span>Guardar</span>
-            <img src="../iconos/Group-4.svg" alt="Guardar">
-        </button>
+            <div class="btn-container">
+              <button type="submit" class="btn-icon" style="border-radius: 15px;">
+                <span>Guardar</span>
+                <img src="../iconos/Group-4.svg" alt="Guardar">
+              </button>
 
-        <!-- Botón Cancelar -->
-        <button type="button" class="btn-icon" style="border-radius: 15px;" data-bs-dismiss="modal">
-            <span>Cancelar</span>
-            <img src="../iconos/cancelar.png" alt="Cancelar">
-        </button>
-    </div>
-</div>
-
+              <button type="button" class="btn-icon" style="border-radius: 15px;" data-bs-dismiss="modal">
+                <span>Cancelar</span>
+                <img src="../iconos/cancelar.png" alt="Cancelar">
+              </button>
+            </div>
+          </div>
         </form>
       </div>
     </div>

@@ -15,6 +15,19 @@
           <div class="mb-3">
             <input type="text" name="nombre" id="edit_nombre_ubicacion_ivr" required class="form-control form-input" placeholder="Nombre de la ubicación IVR" aria-label="Nombre de la ubicación IVR">
           </div>
+        <div class="mb-3">
+  <select name="edit_proyecto" id="edit_proyecto" class="form-select" required>
+    <?php
+    // Consulta todos los proyectos activos
+    $queryProyectos = "SELECT id_proyecto, nombre_proyecto FROM cat_proyectos WHERE status = 1 ORDER BY nombre_proyecto ASC";
+    $resultProyectos = $conn->query($queryProyectos);
+
+    while ($row = $resultProyectos->fetch_assoc()) {
+        echo "<option value='{$row['id_proyecto']}'>{$row['nombre_proyecto']}</option>";
+    }
+    ?>
+  </select>
+</div>
 
          <!-- Modal Footer -->
           <div class="modal-footer d-flex justify-content-center">

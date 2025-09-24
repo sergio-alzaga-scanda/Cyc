@@ -221,6 +221,7 @@ include("../Modals/modalEditarProyecto.php");
                                 <tr>
                                     <th>ID</th>
                                     <th>Nombre</th>
+                                    <th>Proyecto</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
