@@ -122,7 +122,6 @@ function cargarProyectos(selectId) {
     })
     .catch((error) => {
       console.error("Error al cargar proyectos:", error);
-      Swal.fire("Error", "No se pudieron cargar los proyectos", "error");
     });
 }
 // Resto de funciones deleteUbicacionIVR y toggleStatus sin cambios
