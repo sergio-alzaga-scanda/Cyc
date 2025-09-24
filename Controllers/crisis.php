@@ -22,95 +22,130 @@ $accion = $_POST['accion'] ?? $_GET['accion'] ?? null;
 
 switch ($accion) {
 
-    case 1: // Crear o registrar un ticket
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            $fecha = $_POST['fecha_programacion'] ?? null;
+case 1: // Crear o registrar un ticket
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        
+        // Establece la zona horaria adecuada
+        date_default_timezone_set('America/Mexico_City'); // Cambia según tu región
 
-            if ($fecha) {
-                $status = 3;
-                $fecha_string     = trim($fecha);
-                try {
-                    $fecha_obj          = new DateTime($fecha_string);
-                    $fecha_programacion = $fecha_obj->format('Y-m-d H:i:s');
-                } catch (Exception $e) {
-                    echo "Error al procesar la fecha: " . $e->getMessage();
-                    exit;
-                }
-            } else {
-                $status = 1;
-                $fecha_programacion = null;
+        $fecha = $_POST['fecha_programacion'] ?? null;
+
+        if ($fecha) {
+            $status = 3;
+            $fecha_string     = trim($fecha);
+            try {
+                $fecha_obj          = new DateTime($fecha_string);
+                $fecha_programacion = $fecha_obj->format('Y-m-d H:i:s');
+            } catch (Exception $e) {
+                echo "Error al procesar la fecha: " . $e->getMessage();
+                exit;
             }
-            
-            $no_ticket           = $_POST['no_ticket'] ?? '';
-            $nombre              = $_POST['nombre'] ?? '';
-            $criticidad          = $_POST['criticidad'] ?? '';
-            $tipo                = $_POST['tipo'] ?? '';
-            $ubicacion           = $_POST['ubicacion'] ?? '';
-            $ivr_texto           = $_POST['ivr'] ?? '';
-            $redaccion_canales   = $_POST['redaccion_canales'] ?? '';
-            $canales             = $_POST['canal'] ?? [];
-            $bots                = $_POST['bot'] ?? [];
-            $canal_digital_texto = $_POST['canal-digital-texto'] ?? '';
-            $canales_json = json_encode($canales);
-            $bots_json    = json_encode($bots);
-            $query_check = "SELECT COUNT(*) FROM cyc WHERE no_ticket = ? AND status_cyc IN (1, 3) AND proyecto = ?";
-
-            if ($stmt_check = $conn->prepare($query_check)) {
-                $stmt_check->bind_param("ss", $no_ticket, $proyecto);
-                $stmt_check->execute();
-                $stmt_check->bind_result($ticket_exists);
-                $stmt_check->fetch();
-                $stmt_check->close();
-
-                if ($ticket_exists > 0) {
-                    echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                          <script>
-                            window.onload = () => {
-                                Swal.fire({
-                                    title: 'Error',
-                                    text: 'El número de ticket ya existe.',
-                                    icon: 'error',
-                                    confirmButtonText: 'Cerrar'
-                                }).then(() => window.history.back());
-                            }
-                          </script>";
-                    exit;
-                } else {
-                    $query = "INSERT INTO cyc (nombre, no_ticket, categoria_cyc, tipo_cyc, ubicacion_cyc, redaccion_cyc, canal_cyc, bot_cyc, redaccion_canal_cyc, fecha_registro_cyc, status_cyc, fecha_programacion, id_usuario, redaccion_canales, proyecto) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?)";
-                    if ($stmt = $conn->prepare($query)) {
-                        $stmt->bind_param("ssiiissssssiss", $nombre, $no_ticket, $criticidad, $tipo, $ubicacion, $ivr_texto, $canales_json, $bots_json, $canal_digital_texto, $status, $fecha_programacion, $id_usuario, $redaccion_canales, $proyecto);
-                        if ($stmt->execute()) {
-                            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) VALUES (NOW(), ?, ?, ?, ?)";
-                            if ($stmtLog = $conn->prepare($queryLog)) {
-                                $descripcion = 'El ticket se ha registrado correctamente, numero de ticket: ' . $no_ticket;
-                                $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario, $descripcion, $proyecto);
-                                $stmtLog->execute();
-                                $stmtLog->close();
-                            }
-                            echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                                  <script>
-                                    window.onload = () => {
-                                        Swal.fire({
-                                            title: 'Éxito',
-                                            text: 'El ticket se ha registrado correctamente.',
-                                            icon: 'success',
-                                            confirmButtonText: 'Aceptar'
-                                        }).then(() => window.location.href = '../Views/cyc.php');
-                                    }
-                                  </script>";
-                        } else {
-                            echo "Error al insertar el registro: " . $stmt->error;
-                        }
-                        $stmt->close();
-                    } else {
-                        echo "Error en la preparación de la consulta: " . $conn->error;
-                    }
-                }
-            } else {
-                echo "Error en la preparación de la consulta: " . $conn->error;
-            }
+        } else {
+            $status = 1;
+            $fecha_programacion = null;
         }
-        break;
+
+        // Obtener la fecha de registro con la zona horaria correcta
+        $fecha_registro = date('Y-m-d H:i:s');
+
+        $no_ticket           = $_POST['no_ticket'] ?? '';
+        $nombre              = $_POST['nombre'] ?? '';
+        $criticidad          = $_POST['criticidad'] ?? '';
+        $tipo                = $_POST['tipo'] ?? '';
+        $ubicacion           = $_POST['ubicacion'] ?? '';
+        $ivr_texto           = $_POST['ivr'] ?? '';
+        $redaccion_canales   = $_POST['redaccion_canales'] ?? '';
+        $canales             = $_POST['canal'] ?? [];
+        $bots                = $_POST['bot'] ?? [];
+        $canal_digital_texto = $_POST['canal-digital-texto'] ?? '';
+        $canales_json        = json_encode($canales);
+        $bots_json           = json_encode($bots);
+
+        $query_check = "SELECT COUNT(*) FROM cyc WHERE no_ticket = ? AND status_cyc IN (1, 3) AND proyecto = ?";
+
+        if ($stmt_check = $conn->prepare($query_check)) {
+            $stmt_check->bind_param("ss", $no_ticket, $proyecto);
+            $stmt_check->execute();
+            $stmt_check->bind_result($ticket_exists);
+            $stmt_check->fetch();
+            $stmt_check->close();
+
+            if ($ticket_exists > 0) {
+                echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+                      <script>
+                        window.onload = () => {
+                            Swal.fire({
+                                title: 'Error',
+                                text: 'El número de ticket ya existe.',
+                                icon: 'error',
+                                confirmButtonText: 'Cerrar'
+                            }).then(() => window.history.back());
+                        }
+                      </script>";
+                exit;
+            } else {
+                $query = "INSERT INTO cyc (
+                            nombre, no_ticket, categoria_cyc, tipo_cyc, ubicacion_cyc, redaccion_cyc,
+                            canal_cyc, bot_cyc, redaccion_canal_cyc, fecha_registro_cyc, status_cyc,
+                            fecha_programacion, id_usuario, redaccion_canales, proyecto
+                          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+                if ($stmt = $conn->prepare($query)) {
+                    $stmt->bind_param(
+                        "ssiiissssssiss",
+                        $nombre,
+                        $no_ticket,
+                        $criticidad,
+                        $tipo,
+                        $ubicacion,
+                        $ivr_texto,
+                        $canales_json,
+                        $bots_json,
+                        $canal_digital_texto,
+                        $fecha_registro,          // <--- fecha local desde PHP
+                        $status,
+                        $fecha_programacion,
+                        $id_usuario,
+                        $redaccion_canales,
+                        $proyecto
+                    );
+
+                    if ($stmt->execute()) {
+                        $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto)
+                                     VALUES (?, ?, ?, ?, ?)";
+
+                        if ($stmtLog = $conn->prepare($queryLog)) {
+                            $descripcion = 'El ticket se ha registrado correctamente, numero de ticket: ' . $no_ticket;
+                            $fecha_log   = date('Y-m-d H:i:s'); // También fecha local
+                            $stmtLog->bind_param("sisss", $fecha_log, $id_usuario, $nombre_usuario, $descripcion, $proyecto);
+                            $stmtLog->execute();
+                            $stmtLog->close();
+                        }
+
+                        echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+                              <script>
+                                window.onload = () => {
+                                    Swal.fire({
+                                        title: 'Éxito',
+                                        text: 'El ticket se ha registrado correctamente.',
+                                        icon: 'success',
+                                        confirmButtonText: 'Aceptar'
+                                    }).then(() => window.location.href = '../Views/cyc.php');
+                                }
+                              </script>";
+                    } else {
+                        echo "Error al insertar el registro: " . $stmt->error;
+                    }
+                    $stmt->close();
+                } else {
+                    echo "Error en la preparación de la consulta: " . $conn->error;
+                }
+            }
+        } else {
+            echo "Error en la preparación de la consulta: " . $conn->error;
+        }
+    }
+    break;
 
     case 2: // Obtener tabla de tickets
         $DtosTbl = [];
