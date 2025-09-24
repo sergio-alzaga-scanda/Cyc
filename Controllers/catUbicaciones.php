@@ -81,16 +81,15 @@ switch ($accion) {
 case 2:
     $DtosTbl = array();
     try {
-        $queryTbl = "SELECT id_ubicacion_ivr, nombre_ubicacion_ivr, status, proyecto
-                     FROM ubicacion_ivr
-                     WHERE status > 0 
-                     
-                     ORDER BY nombre_ubicacion_ivr DESC";
+        $queryTbl = "SELECT u.id_ubicacion_ivr, u.nombre_ubicacion_ivr, u.status, u.proyecto, p.nombre_proyecto
+                     FROM ubicacion_ivr u
+                     LEFT JOIN cat_proyectos p ON u.proyecto = p.id_proyecto
+                     WHERE u.status > 0
+                     ORDER BY u.nombre_ubicacion_ivr DESC";
         $stmt = $conn->prepare($queryTbl);
         if (!$stmt) {
             throw new Exception("Prepare failed: " . $conn->error);
         }
-        $stmt->bind_param("s", $proyecto);
         $stmt->execute();
         $result = $stmt->get_result();
 
@@ -99,7 +98,8 @@ case 2:
                 'id' => $rowTbl['id_ubicacion_ivr'],
                 'nombre_ubicacion_ivr' => $rowTbl['nombre_ubicacion_ivr'],
                 'status' => $rowTbl['status'],
-                'proyecto' => $rowTbl['proyecto'] // <-- Aquí agregamos proyecto
+                'proyecto' => $rowTbl['proyecto'],
+                'nombre_proyecto' => $rowTbl['nombre_proyecto']  // Esto es clave
             );
         }
 
