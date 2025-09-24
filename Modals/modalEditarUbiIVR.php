@@ -58,25 +58,7 @@ document.getElementById('modalEditarUbicacionIVR').addEventListener('show.bs.mod
 });
 
 // Función para cargar proyectos en el select de edición
-function cargarProyectos(selectId) {
-    fetch('../Controllers/catUbicaciones.php?accion=6')
-        .then(response => response.json())
-        .then(proyectos => {
-            const select = document.getElementById(selectId);
-            select.innerHTML = '<option value="">Seleccionar proyecto</option>';
-            
-            proyectos.forEach(proyecto => {
-                const option = document.createElement('option');
-                option.value = proyecto.nombre_proyecto;
-                option.textContent = proyecto.nombre_proyecto;
-                select.appendChild(option);
-            });
-        })
-        .catch(error => {
-            console.error('Error al cargar proyectos:', error);
-            Swal.fire('Error', 'No se pudieron cargar los proyectos', 'error');
-        });
-}
+
 </script>
 
 <!-- Estilos CSS adicionales -->
