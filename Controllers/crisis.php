@@ -61,6 +61,9 @@ case 1: // Crear o registrar un ticket
         $canales_json        = json_encode($canales);
         $bots_json           = json_encode($bots);
 
+        // 🔹 Limpiar saltos de línea de redaccion_canales
+        $redaccion_canales = preg_replace("/[\r\n]+/", " ", trim($redaccion_canales));
+
         $query_check = "SELECT COUNT(*) FROM cyc WHERE no_ticket = ? AND status_cyc IN (1, 3) AND proyecto = ?";
 
         if ($stmt_check = $conn->prepare($query_check)) {
@@ -92,31 +95,31 @@ case 1: // Crear o registrar un ticket
 
                 if ($stmt = $conn->prepare($query)) {
                     $stmt->bind_param(
-    "ssiiissssssisss",  // ← ahora con 15 letras
-    $nombre,
-    $no_ticket,
-    $criticidad,
-    $tipo,
-    $ubicacion,
-    $ivr_texto,
-    $canales_json,
-    $bots_json,
-    $canal_digital_texto,
-    $fecha_registro,         // ← nuevo parámetro string
-    $status,
-    $fecha_programacion,
-    $id_usuario,
-    $redaccion_canales,
-    $proyecto
-);
+                        "ssiiissssssisss",  // ← ahora con 15 letras
+                        $nombre,
+                        $no_ticket,
+                        $criticidad,
+                        $tipo,
+                        $ubicacion,
+                        $ivr_texto,
+                        $canales_json,
+                        $bots_json,
+                        $canal_digital_texto,
+                        $fecha_registro,         
+                        $status,
+                        $fecha_programacion,
+                        $id_usuario,
+                        $redaccion_canales,
+                        $proyecto
+                    );
 
                     if ($stmt->execute()) {
                         $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto)
                                      VALUES (?, ?, ?, ?, ?)";
 
                         if ($stmtLog = $conn->prepare($queryLog)) {
-                            $descripcion = 'El ticket se ha registrado correctamente, numero de ticket: ' . $no_ticket;
-                            $fecha_log   = date('Y-m-d H:i:s'); // También fecha local
+                            $descripcion = 'El ticket se ha registrado correctamente, número de ticket: ' . $no_ticket;
+                            $fecha_log   = date('Y-m-d H:i:s');
                             $stmtLog->bind_param("sisss", $fecha_log, $id_usuario, $nombre_usuario, $descripcion, $proyecto);
                             $stmtLog->execute();
                             $stmtLog->close();
@@ -134,18 +137,19 @@ case 1: // Crear o registrar un ticket
                                 }
                               </script>";
                     } else {
-                        echo "Error al insertar el registro: " . $stmt->error;
+                        echo 'Error al insertar el registro: ' . $stmt->error;
                     }
                     $stmt->close();
                 } else {
-                    echo "Error en la preparación de la consulta: " . $conn->error;
+                    echo 'Error en la preparación de la consulta: ' . $conn->error;
                 }
             }
         } else {
-            echo "Error en la preparación de la consulta: " . $conn->error;
+            echo 'Error en la preparación de la consulta: ' . $conn->error;
         }
     }
     break;
+
 
     case 2: // Obtener tabla de tickets
         $DtosTbl = [];
@@ -210,73 +214,111 @@ case 1: // Crear o registrar un ticket
         break;
 
     case 4: // Editar ticket
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            $fecha = $_POST['fecha_programacion'] ?? null;
-            
-            if ($fecha) {
-                $status = 3;
-                $fecha_string = trim($fecha);
-                try {
-                    $fecha_obj = new DateTime($fecha_string);
-                    $fecha_programacion = $fecha_obj->format('Y-m-d H:i:s');
-                } catch (Exception $e) {
-                    echo "Error al procesar la fecha: " . $e->getMessage();
-                    exit;
-                }
-            } else {
-                $status = 1;
-                $fecha_programacion = null;
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        $fecha = $_POST['fecha_programacion'] ?? null;
+        
+        if ($fecha) {
+            $status = 3;
+            $fecha_string = trim($fecha);
+            try {
+                $fecha_obj = new DateTime($fecha_string);
+                $fecha_programacion = $fecha_obj->format('Y-m-d H:i:s');
+            } catch (Exception $e) {
+                echo "Error al procesar la fecha: " . $e->getMessage();
+                exit;
             }
-
-            $id_cyc              = $_POST['id'] ?? 0;
-            $no_ticket           = $_POST['no_ticket'] ?? '';
-            $nombre              = $_POST['nombre'] ?? '';
-            $criticidad          = $_POST['criticidad'] ?? '';
-            $tipo                = $_POST['tipo'] ?? '';
-            $ubicacion           = $_POST['ubicacion'] ?? '';
-            $ivr_texto           = $_POST['ivr'] ?? '';
-            $redaccion_canales   = $_POST['redaccion_canales'] ?? '';
-            $canales             = $_POST['canal'] ?? [];
-            $bots                = $_POST['bot'] ?? [];
-            $canal_digital_texto = $_POST['canal-digital-texto'] ?? '';
-            $canales_json = json_encode($canales);
-            $bots_json    = json_encode($bots);
-            $query = "UPDATE cyc SET nombre = ?, no_ticket = ?, categoria_cyc = ?, tipo_cyc = ?, ubicacion_cyc = ?, redaccion_cyc = ?, canal_cyc = ?, bot_cyc = ?, redaccion_canal_cyc = ?, status_cyc = ?, fecha_programacion = ?, id_usuario = ?, redaccion_canales = ? WHERE id_cyc = ? AND proyecto = ?";
-            if ($stmt = $conn->prepare($query)) {
-                
-                // --- LÍNEA CORREGIDA ---
-                // El 11vo caracter era 'i' (integer) y se cambió a 's' (string) para la fecha.
-                $stmt->bind_param("ssiiisssssssssi", $nombre, $no_ticket, $criticidad, $tipo, $ubicacion, $ivr_texto, $canales_json, $bots_json, $canal_digital_texto, $status, $fecha_programacion, $id_usuario, $redaccion_canales, $id_cyc, $proyecto);
-                
-                if ($stmt->execute()) {
-                    $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) VALUES (NOW(), ?, ?, ?, ?)";
-                    if ($stmtLog = $conn->prepare($queryLog)) {
-                        $descripcion = 'El ticket se ha actualizado correctamente, numero de ticket: ' . $no_ticket;
-                        $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario, $descripcion, $proyecto);
-                        $stmtLog->execute();
-                        $stmtLog->close();
-                    }
-                    echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                          <script>
-                            window.onload = () => {
-                                Swal.fire({
-                                    title: 'Éxito',
-                                    text: 'El ticket se ha actualizado correctamente.',
-                                    icon: 'success',
-                                    confirmButtonText: 'Aceptar'
-                                }).then(() => window.location.href = '../Views/cyc.php');
-                            }
-                          </script>";
-                } else {
-                    // Si ocurre un error aquí, es la línea que genera el fatal error.
-                    throw new mysqli_sql_exception($stmt->error, $stmt->errno);
-                }
-                $stmt->close();
-            } else {
-                echo "Error en la preparación de la consulta: " . $conn->error;
-            }
+        } else {
+            $status = 1;
+            $fecha_programacion = null;
         }
-        break;
+
+        $id_cyc              = $_POST['id'] ?? 0;
+        $no_ticket           = $_POST['no_ticket'] ?? '';
+        $nombre              = $_POST['nombre'] ?? '';
+        $criticidad          = $_POST['criticidad'] ?? '';
+        $tipo                = $_POST['tipo'] ?? '';
+        $ubicacion           = $_POST['ubicacion'] ?? '';
+        $ivr_texto           = $_POST['ivr'] ?? '';
+        $redaccion_canales   = $_POST['redaccion_canales'] ?? '';
+        $canales             = $_POST['canal'] ?? [];
+        $bots                = $_POST['bot'] ?? [];
+        $canal_digital_texto = $_POST['canal-digital-texto'] ?? '';
+        $canales_json = json_encode($canales);
+        $bots_json    = json_encode($bots);
+
+        // 🔹 Limpiar saltos de línea de redaccion_canales
+        $redaccion_canales = preg_replace("/[\r\n]+/", " ", trim($redaccion_canales));
+
+        $query = "UPDATE cyc 
+                    SET nombre = ?, 
+                        no_ticket = ?, 
+                        categoria_cyc = ?, 
+                        tipo_cyc = ?, 
+                        ubicacion_cyc = ?, 
+                        redaccion_cyc = ?, 
+                        canal_cyc = ?, 
+                        bot_cyc = ?, 
+                        redaccion_canal_cyc = ?, 
+                        status_cyc = ?, 
+                        fecha_programacion = ?, 
+                        id_usuario = ?, 
+                        redaccion_canales = ? 
+                  WHERE id_cyc = ? AND proyecto = ?";
+
+        if ($stmt = $conn->prepare($query)) {
+
+            // --- LÍNEA CORREGIDA ---
+            // Se mantiene 's' para la fecha, ya que es un string
+            $stmt->bind_param(
+                "ssiiisssssssssi",
+                $nombre,
+                $no_ticket,
+                $criticidad,
+                $tipo,
+                $ubicacion,
+                $ivr_texto,
+                $canales_json,
+                $bots_json,
+                $canal_digital_texto,
+                $status,
+                $fecha_programacion,
+                $id_usuario,
+                $redaccion_canales,
+                $id_cyc,
+                $proyecto
+            );
+            
+            if ($stmt->execute()) {
+                $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) 
+                             VALUES (NOW(), ?, ?, ?, ?)";
+                if ($stmtLog = $conn->prepare($queryLog)) {
+                    $descripcion = 'El ticket se ha actualizado correctamente, número de ticket: ' . $no_ticket;
+                    $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario, $descripcion, $proyecto);
+                    $stmtLog->execute();
+                    $stmtLog->close();
+                }
+
+                echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+                      <script>
+                        window.onload = () => {
+                            Swal.fire({
+                                title: 'Éxito',
+                                text: 'El ticket se ha actualizado correctamente.',
+                                icon: 'success',
+                                confirmButtonText: 'Aceptar'
+                            }).then(() => window.location.href = '../Views/cyc.php');
+                        }
+                      </script>";
+            } else {
+                throw new mysqli_sql_exception($stmt->error, $stmt->errno);
+            }
+            $stmt->close();
+        } else {
+            echo "Error en la preparación de la consulta: " . $conn->error;
+        }
+    }
+    break;
+
 
     case 5: // Eliminar ticket
         $id_cyc = $_GET['id'] ?? 0;
