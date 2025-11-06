@@ -30,6 +30,12 @@ if (!isset($_GET['ubicacion']) || !is_numeric($_GET['ubicacion'])) {
 }
 $ubicacion = intval($_GET['ubicacion']);
 
+// --- FUNCIÓN PARA LIMPIAR SALTOS DE LÍNEA ---
+function limpiarGrabacion($texto) {
+    $texto = str_replace(["\n", "\r"], '', $texto);
+    return trim($texto);
+}
+
 // Consulta SQL con los joins
 $sql = "
 SELECT
@@ -81,8 +87,13 @@ if ($stmt = $conn->prepare($sql)) {
         } else {
             $resultado = [];
             while ($row = $result->fetch_assoc()) {
+                // Limpiar saltos de línea en el campo redaccion_cyc
+                if (isset($row['redaccion_cyc'])) {
+                    $row['redaccion_cyc'] = limpiarGrabacion($row['redaccion_cyc']);
+                }
                 $resultado[] = $row;
             }
+
             echo json_encode($resultado, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         }
 

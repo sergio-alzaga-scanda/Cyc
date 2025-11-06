@@ -3,7 +3,7 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// Es una buena práctica definir la zona horaria
+// Zona horaria
 date_default_timezone_set('America/Mexico_City');
 
 include("../Controllers/bd.php");
@@ -38,7 +38,6 @@ if (!isset($_GET['ubicacion']) || !is_numeric($_GET['ubicacion'])) {
 $proyecto  = intval($_GET['proyecto']);
 $ubicacion = intval($_GET['ubicacion']);
 
-
 // 1. Actualizar tickets programados cuya fecha de activación ya pasó.
 $sql_update = "UPDATE cyc SET status_cyc = 1 WHERE status_cyc = 3 AND fecha_programacion <= NOW()";
 
@@ -48,12 +47,10 @@ if ($stmt_update) {
     $stmt_update->close();
 }
 
-// --- PAUSA DE 3 SEGUNDOS AÑADIDA ---
-// Se espera 3 segundos para dar tiempo a que la base de datos procese el cambio de estatus.
+// Pausa de 3 segundos
 sleep(3);
 
-
-// 2. Consulta SQL principal para devolver la respuesta.
+// 2. Consulta principal
 $sql = "
 SELECT
     cyc.id_cyc,
@@ -67,7 +64,7 @@ SELECT
         ELSE 'Desconocido'
     END AS tipo_cyc,
     ubicaciones.nombre_ubicacion_ivr AS ubicacion_cyc,
-    cyc.redaccion_cyc as grabacion,
+    cyc.redaccion_cyc AS grabacion,
     cyc.canal_cyc,
     cyc.bot_cyc,
     cyc.fecha_registro_cyc,
@@ -92,7 +89,6 @@ WHERE cyc.proyecto = ? AND cyc.ubicacion_cyc = ?
 AND cyc.status_cyc = 1
 ";
 
-// Preparar y ejecutar con mysqli
 $stmt = $conn->prepare($sql);
 if (!$stmt) {
     header('HTTP/1.0 500 Internal Server Error');
@@ -116,20 +112,24 @@ if (empty($rows)) {
     exit;
 }
 
+// --- LIMPIAR saltos de línea de 'grabacion' ---
+function limpiarGrabacion($texto) {
+    $texto = str_replace(["\n", "\r"], '', $texto);
+    return trim($texto);
+}
+
 // Concatenar grabaciones en un solo campo si hay más de un registro
 if (count($rows) > 1) {
     $mensajes = [];
     foreach ($rows as $index => $registro) {
-        $redaccion = trim($registro['grabacion']);
+        $redaccion = limpiarGrabacion($registro['grabacion']);
         $mensajes[] = "{$redaccion}.";
     }
-    // Tomamos el primer registro como base y sobreescribimos grabacion
     $data = $rows[0];
     $data['grabacion'] = "Estimado usuario. " . implode(" ", $mensajes);
 } else {
-    // Solo un registro, pero igual anteponer el mensaje
     $data = $rows[0];
-    $data['grabacion'] = "Estimado usuario, " . trim($data['grabacion']);
+    $data['grabacion'] = "Estimado usuario, " . limpiarGrabacion($data['grabacion']);
 }
 
 echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
