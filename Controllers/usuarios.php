@@ -269,28 +269,28 @@ switch ($accion) {
         break;
 
     case 4:
-    $id_cyc = $_GET['id']; // ID del usuario a eliminar
-
+    $id_usuario = $_GET['id']; // ID del usuario a eliminar
+    
     try {
-        // 1️⃣ Obtener datos del usuario primero
-        $queryGetUser = "SELECT nombre_usuario, correo_usuario, idUsuarios FROM usuarios WHERE idUsuarios = ? AND proyecto = ?";
+        
+        $queryGetUser = "SELECT nombre_usuario, correo_usuario, idUsuarios FROM usuarios WHERE idUsuarios = ? ";
         $stmtGetUser = $conn->prepare($queryGetUser);
         if ($stmtGetUser === false) {
             throw new Exception("Error en la preparación de la consulta de usuario: " . $conn->error);
         }
-        $stmtGetUser->bind_param("is", $id_cyc, $proyecto);
+        $stmtGetUser->bind_param("i", $id_cyc);
         $stmtGetUser->execute();
         $resultUser = $stmtGetUser->get_result();
         $userData = $resultUser->fetch_assoc();
 
         if ($userData) {
-            // 2️⃣ Usuario existe, desactivarlo
-            $queryUpdate = "UPDATE usuarios SET status = 0 WHERE idUsuarios = ? AND proyecto = ?";
+      
+            $queryUpdate = "UPDATE usuarios SET status = 0 WHERE idUsuarios = ? ";
             $stmtUpdate = $conn->prepare($queryUpdate);
             if ($stmtUpdate === false) {
                 throw new Exception("Error en la preparación de la actualización: " . $conn->error);
             }
-            $stmtUpdate->bind_param("is", $id_cyc, $proyecto);
+            $stmtUpdate->bind_param("i", $id_cyc);
             $stmtUpdate->execute();
 
             // 3️⃣ Preparar descripción del log
@@ -316,7 +316,6 @@ switch ($accion) {
         $stmtLog->execute();
         $stmtLog->close();
 
-        // 5️⃣ Mostrar mensaje de éxito (aunque el usuario no exista, el log lo registra)
         echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
               <script type='text/javascript'>
                 window.onload = function() {
