@@ -223,138 +223,143 @@
 
 </style>
 <script>
-let crisisDataGlobal = {}; // Guardamos temporalmente los datos de la crisis
+$(document).ready(function() {
 
-// Función para actualizar la criticidad según categoría
-function actualizarCriticidad() {
-    const categoriaSelect = document.getElementById('categoria_edit');
-    const criticidadLabel = document.getElementById('criticidad-label-edit');
-    const selectedOption = categoriaSelect.selectedOptions[0];
-    criticidadLabel.textContent = selectedOption ? selectedOption.dataset.criticidad : '';
-}
+    let crisisDataGlobal = {}; // Guardamos temporalmente los datos de la crisis
 
-// Evento change del proyecto para cargar ubicaciones
-document.getElementById('edit_proyecto').addEventListener('change', function() {
-    const proyectoId = this.value;
-    const ubicacionSelect = document.getElementById('ubicacion_edit');
+    // Función para actualizar la criticidad según categoría
+    function actualizarCriticidad() {
+        const categoriaSelect = document.getElementById('categoria_edit');
+        const criticidadLabel = document.getElementById('criticidad-label-edit');
+        const selectedOption = categoriaSelect.selectedOptions[0];
+        criticidadLabel.textContent = selectedOption ? selectedOption.dataset.criticidad : '';
+    }
 
-    // Limpiar opciones actuales
-    ubicacionSelect.innerHTML = '<option selected disabled class="d-none">Seleccione una opción</option>';
+    // Función para cargar ubicaciones de un proyecto
+    function cargarUbicaciones(proyectoId, ubicacionSeleccionada = null) {
+        const ubicacionSelect = document.getElementById('ubicacion_edit');
+        ubicacionSelect.innerHTML = '<option selected disabled class="d-none">Seleccione una opción</option>';
 
-    if (!proyectoId) return;
+        if (!proyectoId) return;
 
-    fetch(`../Controllers/getUbicaciones.php?proyecto=${encodeURIComponent(proyectoId)}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.length > 0) {
-                data.forEach(ubic => {
+        fetch(`../Controllers/getUbicaciones.php?proyecto=${encodeURIComponent(proyectoId)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.length > 0) {
+                    data.forEach(ubic => {
+                        const option = document.createElement('option');
+                        option.value = ubic.id_ubicacion_ivr;
+                        option.textContent = ubic.nombre_ubicacion_ivr;
+
+                        // Seleccionar la ubicación que estaba asignada en la crisis
+                        if (ubicacionSeleccionada && ubic.id_ubicacion_ivr == ubicacionSeleccionada) {
+                            option.selected = true;
+                        }
+
+                        ubicacionSelect.appendChild(option);
+                    });
+                } else {
                     const option = document.createElement('option');
-                    option.value = ubic.id_ubicacion_ivr;
-                    option.textContent = ubic.nombre_ubicacion_ivr;
-
-                    // Si estamos editando, seleccionamos la ubicación que ya tenía la crisis
-                    if (crisisDataGlobal.ubicacion_cyc && ubic.id_ubicacion_ivr == crisisDataGlobal.ubicacion_cyc) {
-                        option.selected = true;
-                    }
-
+                    option.value = '';
+                    option.textContent = 'No hay ubicaciones disponibles';
                     ubicacionSelect.appendChild(option);
-                });
-            } else {
-                const option = document.createElement('option');
-                option.value = '';
-                option.textContent = 'No hay ubicaciones disponibles';
-                ubicacionSelect.appendChild(option);
-            }
-        })
-        .catch(error => console.error('Error al obtener ubicaciones:', error));
-});
+                }
+            })
+            .catch(error => console.error('Error al obtener ubicaciones:', error));
+    }
 
-// Evento click para editar crisis
-$(document).on('click', '.btn-warning', function () {
-    const crisisId = $(this).data('id');
-    console.log('ID de crisis a editar:', crisisId);
+    // Evento change del proyecto
+    $('#edit_proyecto').on('change', function() {
+        const proyectoId = $(this).val();
+        cargarUbicaciones(proyectoId);
+    });
 
-    // Mostrar splash de carga
-    $('#splash').fadeIn();
+    // Evento click para abrir modal de edición
+    $(document).on('click', '.btn-warning', function() {
+        const crisisId = $(this).data('id');
+        console.log('ID de crisis a editar:', crisisId);
 
-    $.ajax({
-        url: '../Controllers/crisis.php',
-        method: 'POST',
-        dataType: 'json', 
-        data: { accion: 3, id: crisisId },
-        success: function (crisisData) {
-            console.log('Datos recibidos:', crisisData);
+        // Mostrar splash de carga
+        $('#splash').fadeIn();
 
-            // Guardamos globalmente para usar en el change de proyecto
-            crisisDataGlobal = crisisData;
+        $.ajax({
+            url: '../Controllers/crisis.php',
+            method: 'POST',
+            dataType: 'json',
+            data: { accion: 3, id: crisisId },
+            success: function(crisisData) {
+                console.log('Datos recibidos:', crisisData);
 
-            // Llenar campos básicos
-            $('#id').val(crisisData.id_cyc);
-            $('#no_ticket_edit').val(crisisData.no_ticket);
-            $('#nombre_edit').val(crisisData.nombre);
+                crisisDataGlobal = crisisData;
 
-            $('#categoria_edit').val(String(crisisData.categoria_cyc));
-            $('#tipo_edit').val(String(crisisData.tipo_cyc));
-            $('#ivr_edit').val(crisisData.redaccion_cyc || '');
-            $('#redaccion_canales_edit').val(crisisData.redaccion_canales || '');
+                // Llenar campos básicos
+                $('#id').val(crisisData.id_cyc);
+                $('#no_ticket_edit').val(crisisData.no_ticket);
+                $('#nombre_edit').val(crisisData.nombre);
 
-            // Fecha de programación (si existe)
-            if (crisisData.fecha_programacion) {
-                const [fecha, hora] = crisisData.fecha_programacion.split(' ');
-                const fechaFormateada = `${fecha}T${hora.slice(0,5)}`;
-                $('#fecha_programacion_2').val(fechaFormateada);
-            } else {
-                $('#fecha_programacion_2').val('');
-            }
+                $('#categoria_edit').val(String(crisisData.categoria_cyc));
+                $('#tipo_edit').val(String(crisisData.tipo_cyc));
+                $('#ivr_edit').val(crisisData.redaccion_cyc || '');
+                $('#redaccion_canales_edit').val(crisisData.redaccion_canales || '');
 
-            // Canales digitales
-            const canal = Array.isArray(crisisData.canal_cyc) ? crisisData.canal_cyc : [];
-            const bot = Array.isArray(crisisData.bot_cyc) ? crisisData.bot_cyc : [];
-            $('#canal_edit').val(canal);
-            $('#bot_edit').val(bot);
+                // Fecha de programación
+                if (crisisData.fecha_programacion) {
+                    const [fecha, hora] = crisisData.fecha_programacion.split(' ');
+                    const fechaFormateada = `${fecha}T${hora.slice(0,5)}`;
+                    $('#fecha_programacion_2').val(fechaFormateada);
+                } else {
+                    $('#fecha_programacion_2').val('');
+                }
 
-            // Refrescar selectpickers
-            $('.selectpicker').selectpicker('refresh');
+                // Canales digitales
+                const canal = Array.isArray(crisisData.canal_cyc) ? crisisData.canal_cyc : [];
+                const bot = Array.isArray(crisisData.bot_cyc) ? crisisData.bot_cyc : [];
+                $('#canal_edit').val(canal);
+                $('#bot_edit').val(bot);
+                $('.selectpicker').selectpicker('refresh');
 
-            // Mostrar contenido de canal digital si hay datos
-            const tieneCanalDigital = (canal.length > 0 || bot.length > 0 || crisisData.redaccion_canales);
-            if (tieneCanalDigital) {
-                $('#habilitar-canal-digital-edit').prop('checked', true);
-                $('#contenido-canal-digital-edit').show();
-            } else {
-                $('#habilitar-canal-digital-edit').prop('checked', false);
-                $('#contenido-canal-digital-edit').hide();
-            }
+                // Mostrar contenido de canal digital si hay datos
+                const tieneCanalDigital = (canal.length > 0 || bot.length > 0 || crisisData.redaccion_canales);
+                if (tieneCanalDigital) {
+                    $('#habilitar-canal-digital-edit').prop('checked', true);
+                    $('#contenido-canal-digital-edit').show();
+                } else {
+                    $('#habilitar-canal-digital-edit').prop('checked', false);
+                    $('#contenido-canal-digital-edit').hide();
+                }
 
-            // Actualizar criticidad
-            actualizarCriticidad();
+                // Actualizar criticidad
+                actualizarCriticidad();
 
-            // Asignar proyecto y disparar change para cargar ubicaciones
-            $('#edit_proyecto').val(String(crisisData.proyecto)).trigger('change');
+                // Primero asignamos el proyecto
+                $('#edit_proyecto').val(String(crisisData.proyecto));
 
-            // Mostrar modal después de todo
-            setTimeout(() => {
-                $('#editModal').modal('show');
+                // Cargar las ubicaciones del proyecto y seleccionar la ubicación actual
+                cargarUbicaciones(crisisData.proyecto, crisisData.ubicacion_cyc);
+
+                // Mostrar modal después de llenar todo
+                setTimeout(() => {
+                    $('#editModal').modal('show');
+                    $('#splash').fadeOut();
+                }, 300);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error en AJAX:', error);
+                console.log('Respuesta del servidor:', xhr.responseText);
+                alert('Error al cargar los datos para la edición.');
                 $('#splash').fadeOut();
-            }, 300);
-        },
-        error: function (xhr, status, error) {
-            console.error('Error en AJAX:', error);
-            console.log('Respuesta del servidor:', xhr.responseText);
-            alert('Error al cargar los datos para la edición.');
-            $('#splash').fadeOut();
+            }
+        });
+    });
+
+    // Mostrar/ocultar bloque de canal digital
+    $('#habilitar-canal-digital-edit').on('change', function() {
+        if ($(this).is(':checked')) {
+            $('#contenido-canal-digital-edit').slideDown();
+        } else {
+            $('#contenido-canal-digital-edit').slideUp();
         }
     });
-});
 
-
-
-// Evento para mostrar/ocultar bloque de canal digital
-$('#habilitar-canal-digital-edit').on('change', function() {
-    if ($(this).is(':checked')) {
-        $('#contenido-canal-digital-edit').slideDown();
-    } else {
-        $('#contenido-canal-digital-edit').slideUp();
-    }
 });
 </script>
