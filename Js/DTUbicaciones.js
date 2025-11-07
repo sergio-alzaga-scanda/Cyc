@@ -1,24 +1,16 @@
 $(document).ready(function () {
+  // ----- CONFIGURACIÓN DE LA TABLA -----
   var table = $("#table-ubicaciones").DataTable({
     ajax: {
       url: "../Controllers/catUbicaciones.php",
       method: "POST",
-      data: {
-        accion: 2,
-      },
+      data: { accion: 2 },
       dataSrc: function (json) {
         var rows = [];
         $.each(json, function (index, item) {
-          var iconoStatus =
-            item.status === 1
-              ? `<img src="../iconos/activo.png" alt="Activo" style="width: 50px; height: 25px;" data-status="1" data-id="${item.id}" onclick="toggleStatus(${item.id}, this, ${item.status})">`
-              : `<img src="../iconos/desactivo.png" alt="Desactivado" style="width: 50px; height: 25px;" data-status="0" data-id="${item.id}" onclick="toggleStatus(${item.id}, this, ${item.status})">`;
-
-          // Botones de acción
           const proyectoSeguro = item.proyecto
             ? item.proyecto.replace(/'/g, "\\'")
             : "";
-
           rows.push([
             item.id,
             item.nombre_ubicacion_ivr,
@@ -35,10 +27,10 @@ $(document).ready(function () {
                   <img src="../iconos/edit.png" alt="Editar" style="width: 20px; height: 20px;">
               </button>
               <button class="btn btn-danger btn-sm"
-  onclick="deleteUbicacionIVR(${item.id}, '${item.proyecto}')"
-  style="background: transparent; border: none;">
-  <img src="../iconos/delete.png" alt="Eliminar" style="width: 20px; height: 20px;">
-</button>
+                onclick="deleteUbicacionIVR(${item.id}, '${proyectoSeguro}')"
+                style="background: transparent; border: none;">
+                  <img src="../iconos/delete.png" alt="Eliminar" style="width: 20px; height: 20px;">
+              </button>
             `,
           ]);
         });
@@ -46,30 +38,17 @@ $(document).ready(function () {
       },
     },
     processing: true,
+    dom: "ptlr",
+    pageLength: 10,
     language: {
       search: "Buscar:",
       lengthMenu: "Mostrar _MENU_ registros",
-      infoEmpty: "Mostrando registros del 0 al 0 de un total de 0 registros",
-      infoFiltered: "(filtrado de un total de _MAX_ registros)",
       zeroRecords: "No se encontraron resultados",
       emptyTable: "No hay datos disponibles en la tabla",
-      paginate: {
-        first: "Primero",
-        previous: "Anterior",
-        next: "Siguiente",
-        last: "Último",
-      },
     },
-    dom: "ptlr",
-    searching: true,
-    lengthMenu: [
-      [10, 25, 50, -1],
-      [10, 25, 50, "Todos"],
-    ],
-    pageLength: 10,
   });
 
-  // Botón de editar
+  // ----- EVENTO EDITAR -----
   $("#table-ubicaciones").on(
     "click",
     'button[data-bs-target="#modalEditarUbicacionIVR"]',
@@ -84,6 +63,7 @@ $(document).ready(function () {
     }
   );
 
+  // Función interna para cargar datos en el modal
   function cargarDatosUbicacionIVR(ubicacionData) {
     $("#edit_id_ubicacion_ivr").val(ubicacionData.id);
     $("#edit_nombre_ubicacion_ivr").val(
@@ -96,7 +76,11 @@ $(document).ready(function () {
   }
 });
 
-// Cargar proyectos
+// --------------------------
+// 🚀 FUNCIONES GLOBALES
+// --------------------------
+
+// Cargar proyectos dinámicamente
 function cargarProyectos(selectId) {
   fetch("../Controllers/catUbicaciones.php?accion=6")
     .then((response) => response.json())
@@ -113,7 +97,15 @@ function cargarProyectos(selectId) {
     .catch((error) => console.error("Error al cargar proyectos:", error));
 }
 
+// 🗑️ Eliminar (borrado lógico)
 function deleteUbicacionIVR(id, proyecto) {
+  console.log("Intentando eliminar:", id, proyecto);
+
+  if (typeof Swal === "undefined") {
+    alert("SweetAlert2 no está cargado");
+    return;
+  }
+
   Swal.fire({
     title: "¿Estás seguro?",
     text: "Esta acción desactivará la ubicación IVR.",
@@ -130,27 +122,18 @@ function deleteUbicacionIVR(id, proyecto) {
       )
         .then((response) => response.json())
         .then((data) => {
+          console.log("Respuesta del servidor:", data);
           if (data.success) {
-            Swal.fire({
-              title: "Eliminado",
-              text: data.message,
-              icon: "success",
-              confirmButtonText: "Aceptar",
-            }).then(() => {
+            Swal.fire("Eliminado", data.message, "success").then(() => {
               $("#table-ubicaciones").DataTable().ajax.reload(null, false);
             });
           } else {
-            Swal.fire({
-              title: "Error",
-              text: data.message,
-              icon: "error",
-              confirmButtonText: "Aceptar",
-            });
+            Swal.fire("Error", data.message || "No se pudo eliminar", "error");
           }
         })
         .catch((error) => {
-          console.error("Error al eliminar:", error);
-          Swal.fire("Error", "No se pudo conectar con el servidor.", "error");
+          console.error("Error:", error);
+          Swal.fire("Error", "Error de conexión con el servidor.", "error");
         });
     }
   });
