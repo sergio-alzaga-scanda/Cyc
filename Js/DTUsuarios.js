@@ -15,6 +15,7 @@ $(document).ready(function () {
             item.correo_usuario,
             item.puesto_usuario,
             item.nombre_perfil,
+            item.id_proyecto,
             `  
               <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditUsuarios"
                 data-id="${item.idUsuarios}"
@@ -24,7 +25,7 @@ $(document).ready(function () {
                 data-perfil="${item.perfil_usuario}"
                 data-telefono="${item.telefono_usuario}"
                 data-status="${item.status}"
-                data-proyecto="${item.id_proyecto}"  <!-- Cambiado a id_proyecto -->
+                data-proyecto="${item.id_proyecto}" 
                 style="background: transparent; border: none;">
                 <img src="../iconos/edit.png" alt="Editar" style="width: 20px; height: 20px;">
               </button>
@@ -99,7 +100,7 @@ $(document).ready(function () {
         perfil_usuario: $(this).data("perfil"),
         telefono_usuario: $(this).data("telefono"),
         status: $(this).data("status"),
-        proyecto: $(this).data("proyecto"), // id_proyecto
+        id_proyecto: $(this).data("id_proyecto"), // id_proyecto
       };
 
       cargarDatosUsuario(usuarioData);
@@ -125,7 +126,7 @@ function cargarDatosUsuario(usuarioData) {
   document.querySelector("#edit_status").value = usuarioData.status || "1";
 
   document.querySelector("#edit_proyecto_usuario").value =
-    usuarioData.proyecto || "";
+    usuarioData.id_proyecto || "";
 }
 
 // Función para eliminar un usuario
