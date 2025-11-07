@@ -222,11 +222,23 @@
 
 </style>
 <script>
+let crisisDataGlobal = {}; // Guardamos temporalmente los datos de la crisis
 
+// Función para actualizar la criticidad según categoría
+function actualizarCriticidad() {
+    const categoriaSelect = document.getElementById('categoria_edit');
+    const criticidadLabel = document.getElementById('criticidad-label-edit');
+    const selectedOption = categoriaSelect.selectedOptions[0];
+    criticidadLabel.textContent = selectedOption ? selectedOption.dataset.criticidad : '';
+}
+
+// Evento change del proyecto para cargar ubicaciones
 document.getElementById('edit_proyecto').addEventListener('change', function() {
     const proyectoId = this.value;
     const ubicacionSelect = document.getElementById('ubicacion_edit');
-    ubicacionSelect.innerHTML = '<option value="">Seleccione una opción</option>';
+
+    // Limpiar opciones actuales
+    ubicacionSelect.innerHTML = '<option selected disabled class="d-none">Seleccione una opción</option>';
 
     if (!proyectoId) return;
 
@@ -238,6 +250,12 @@ document.getElementById('edit_proyecto').addEventListener('change', function() {
                     const option = document.createElement('option');
                     option.value = ubic.id_ubicacion_ivr;
                     option.textContent = ubic.nombre_ubicacion_ivr;
+
+                    // Si estamos editando, seleccionamos la ubicación que ya tenía la crisis
+                    if (crisisDataGlobal.ubicacion_cyc && ubic.id_ubicacion_ivr == crisisDataGlobal.ubicacion_cyc) {
+                        option.selected = true;
+                    }
+
                     ubicacionSelect.appendChild(option);
                 });
             } else {
@@ -250,9 +268,9 @@ document.getElementById('edit_proyecto').addEventListener('change', function() {
         .catch(error => console.error('Error al obtener ubicaciones:', error));
 });
 
-
+// Evento click para editar crisis
 $(document).on('click', '.btn-warning', function () {
-    var crisisId = $(this).data('id');
+    const crisisId = $(this).data('id');
     console.log('ID de crisis a editar:', crisisId);
 
     // Mostrar splash de carga
@@ -266,6 +284,9 @@ $(document).on('click', '.btn-warning', function () {
         success: function (crisisData) {
             console.log('Datos recibidos:', crisisData);
 
+            // Guardamos globalmente para usar en el change de proyecto
+            crisisDataGlobal = crisisData;
+
             // Llenar campos básicos
             $('#id').val(crisisData.id_cyc);
             $('#no_ticket_edit').val(crisisData.no_ticket);
@@ -273,14 +294,8 @@ $(document).on('click', '.btn-warning', function () {
 
             $('#categoria_edit').val(String(crisisData.categoria_cyc));
             $('#tipo_edit').val(String(crisisData.tipo_cyc));
-            $('#ubicacion_edit').val(String(crisisData.ubicacion_cyc));
-            $('#edit_proyecto').val(String(crisisData.proyecto));
-
             $('#ivr_edit').val(crisisData.redaccion_cyc || '');
             $('#redaccion_canales_edit').val(crisisData.redaccion_canales || '');
-
-            // Actualizar criticidad
-            actualizarCriticidad();
 
             // Fecha de programación (si existe)
             if (crisisData.fecha_programacion) {
@@ -294,29 +309,29 @@ $(document).on('click', '.btn-warning', function () {
             // Canales digitales
             const canal = Array.isArray(crisisData.canal_cyc) ? crisisData.canal_cyc : [];
             const bot = Array.isArray(crisisData.bot_cyc) ? crisisData.bot_cyc : [];
-
             $('#canal_edit').val(canal);
             $('#bot_edit').val(bot);
 
-            // Refrescar selectpickers si existen
+            // Refrescar selectpickers
             $('.selectpicker').selectpicker('refresh');
 
             // Mostrar contenido de canal digital si hay datos
-            const tieneCanalDigital = (
-                (canal && canal.length > 0) ||
-                (bot && bot.length > 0) ||
-                crisisData.redaccion_canales
-            );
+            const tieneCanalDigital = (canal.length > 0 || bot.length > 0 || crisisData.redaccion_canales);
+            if (tieneCanalDigital) {
+                $('#habilitar-canal-digital-edit').prop('checked', true);
+                $('#contenido-canal-digital-edit').show();
+            } else {
+                $('#habilitar-canal-digital-edit').prop('checked', false);
+                $('#contenido-canal-digital-edit').hide();
+            }
 
-            $('#habilitar-canal-digital-edit').on('change', function() {
-    if ($(this).is(':checked')) {
-        $('#bloque-canal-digital-edit').slideDown();
-    } else {
-        $('#bloque-canal-digital-edit').slideUp();
-    }
-});
+            // Actualizar criticidad
+            actualizarCriticidad();
 
-            // Mostrar modal después de llenar todo
+            // Asignar proyecto y disparar change para cargar ubicaciones
+            $('#edit_proyecto').val(String(crisisData.proyecto)).trigger('change');
+
+            // Mostrar modal después de todo
             setTimeout(() => {
                 $('#editModal').modal('show');
                 $('#splash').fadeOut();
@@ -329,5 +344,14 @@ $(document).on('click', '.btn-warning', function () {
             $('#splash').fadeOut();
         }
     });
+});
+
+// Evento para mostrar/ocultar bloque de canal digital
+$('#habilitar-canal-digital-edit').on('change', function() {
+    if ($(this).is(':checked')) {
+        $('#contenido-canal-digital-edit').slideDown();
+    } else {
+        $('#contenido-canal-digital-edit').slideUp();
+    }
 });
 </script>
