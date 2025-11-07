@@ -121,7 +121,7 @@ switch ($accion) {
             JOIN 
                 perfil AS p ON u.perfil_usuario = p.id_Perfil
             WHERE 
-                u.status > 0 AND u.proyecto = ?
+                u.status > 0 
             ORDER BY 
                 u.fecha_creacion DESC;
             ";
