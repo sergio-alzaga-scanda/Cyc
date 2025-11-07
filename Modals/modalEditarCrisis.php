@@ -12,15 +12,15 @@
       </div>
       <div class="modal-body">
         <form action="../Controllers/crisis.php" method="POST" id="form-cyc-edit">
-          <input type="hidden" name="accion" id="accion" value="4">
-          <input type="hidden" name="id" id="id">
+          <input type="text" name="accion" id="accion" hidden value="4">
+          <input type="text" name="id" id="id" hidden>
 
           <div class="row g-3 mb-3">
             <div class="col-md-3">
-              <input type="text" name="no_ticket" readonly id="no_ticket_edit" required class="form-control" placeholder="Número de ticket">
+              <input type="text" name="no_ticket" readonly id="no_ticket_edit" required class="form-control" placeholder="Numero de ticket" aria-label="Numero de ticket">
             </div>
             <div class="col-md-9">
-              <input type="text" name="nombre" id="nombre_edit" required class="form-control" placeholder="Nombre">
+              <input type="text" name="nombre" id="nombre_edit" required class="form-control" placeholder="Nombre" aria-label="Nombre">
             </div>
           </div>
 
@@ -31,55 +31,94 @@
             </div>
             <div class="col-md-3" id="fecha-bloque-edit">
               <div class="input-group">
-                <input type="datetime-local" name="fecha_programacion" class="form-control" id="fecha_programacion_2">
+                <input type="datetime-local" name="fecha_programacion" class="form-control" id="fecha_programacion_2" aria-describedby="fecha-icono">
               </div>
             </div>
           </div>
 
-          <div class="row g-3 mb-3">
-            <div class="col-md-2">
-              <select class="form-select" name="categoria" required id="categoria_edit">
-                <option selected disabled class="d-none">Categoría</option>
-                <?php foreach ($crisis as $row) : ?>
-                  <option value="<?= $row['id']; ?>" data-criticidad="<?= $row['criticidad']; ?>"><?= $row['nombre_crisis']; ?></option>
-                <?php endforeach; ?>
-              </select>
+          <div class="mb-4">
+            <div class="row g-3 mb-3">
+              <div class="col-md-2">
+                <select class="form-select" name="criticidad" required id="categoria_edit">
+                  <option selected disabled class="d-none">Categoría</option>
+                  <?php
+                    foreach ($crisis as $row) {
+                        echo '<option value="' . $row['id'] . '" data-criticidad="' . $row['criticidad'] . '">' . $row['nombre_crisis'] . '</option>';
+                    }
+                  ?>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label for="criticidad-label-edit" id="criticidad-label-edit" style="text-align: center;" class="form-label"></label>
+              </div>
+              <div class="col-md-2">
+                <select class="form-select" required name="tipo" id="tipo_edit">
+                  <option selected disabled class="d-none">Tipo</option>
+                  <option value="1">Contingencia</option>
+                  <option value="2">Crisis</option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <select class="form-select" required name="ubicacion" id="ubicacion_edit">
+                  <option selected disabled class="d-none">Ubicación</option>
+                  <?php foreach ($ubicaciones as $row) : ?>
+                    <option value="<?php echo $row['id_ubicacion_ivr']; ?>"><?php echo $row['nombre_ubicacion_ivr']; ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <select class="form-select" required name="proyecto" id="edit_proyecto">
+                  <option selected disabled class="d-none">Proyecto</option>
+                  <?php
+                    foreach ($proyectos as $row_proyecto) {
+                        echo '<option value="' . $row_proyecto['id_proyecto'] . '">' . $row_proyecto['nombre_proyecto'] . '</option>';
+                    }
+                  ?>
+                </select>
+              </div>
             </div>
-
-            <div class="col-md-2">
-              <label id="criticidad-label-edit" class="form-label text-center"></label>
-            </div>
-
-            <div class="col-md-2">
-              <select class="form-select" required name="tipo" id="tipo_edit">
-                <option selected disabled class="d-none">Tipo</option>
-                <option value="1">Contingencia</option>
-                <option value="2">Crisis</option>
-              </select>
-            </div>
-
-            <div class="col-md-2">
-              <select class="form-select" required name="proyecto" id="edit_proyecto">
-                <option selected disabled class="d-none">Proyecto</option>
-                <?php foreach ($proyectos as $row_proyecto) : ?>
-                  <option value="<?= $row_proyecto['id_proyecto']; ?>"><?= $row_proyecto['nombre_proyecto']; ?></option>
-                <?php endforeach; ?>
-              </select>
-            </div>
-
-            <div class="col-md-2">
-              <select class="form-select" required name="ubicacion" id="ubicacion_edit">
-                <option selected disabled class="d-none">Ubicación</option>
-                <?php foreach ($ubicaciones as $row) : ?>
-                  <option value="<?= $row['id_ubicacion_ivr']; ?>" data-proyecto="<?= $row['proyecto_id']; ?>"><?= $row['nombre_ubicacion_ivr']; ?></option>
-                <?php endforeach; ?>
-              </select>
+            <div class="mt-3">
+              <label for="ivr_edit" class="form-label fw-bold">Redacción para grabación en IVR</label>
+              <textarea required class="form-control" name="ivr" id="ivr_edit" rows="3"></textarea>
             </div>
           </div>
 
-          <div class="mt-3">
-            <label for="ivr_edit" class="form-label fw-bold">Redacción para grabación en IVR</label>
-            <textarea required class="form-control" name="ivr" id="ivr_edit" rows="3"></textarea>
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" name="habilitar-canal-digital" id="habilitar-canal-digital-edit">
+            <label class="form-check-label" for="habilitar-canal-digital-edit">Habilitar canal digital</label>
+          </div>
+
+          <div id="contenido-canal-digital-edit" style="display: none;">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <select class="form-select selectpicker" id="canal_edit" name="canal[]" multiple data-live-search="true">
+                  <option selected disabled class="d-none">Canales digitales</option>
+                  <?php
+                    foreach ($canales as $row) {
+                        echo '<option value="' . $row['nombre_canal'] . '">' . $row['nombre_canal'] . '</option>';
+                    }
+                  ?>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <select class="form-select selectpicker" id="bot_edit" name="bot[]" multiple data-live-search="true">
+                  <option selected disabled class="d-none">Bots</option>
+                  <?php
+                    foreach ($bots as $row) {
+                        echo '<option value="' . $row['nombre_bot'] . '">' . $row['nombre_bot'] . '</option>';
+                    }
+                  ?>
+                </select>
+              </div>
+            </div>
+            <div class="form-check mt-3">
+              <input class="form-check-input" type="checkbox" name="mismo-canal" id="mismo-canal-edit">
+              <label class="form-label" for="mismo-canal-edit">La redacción para el canal es la misma que la redacción del IVR</label>
+            </div>
+            <div class="mt-3">
+              <label for="redaccion_canales_edit" class="form-label fw-bold">Redacción para grabación en canal digital</label>
+              <textarea class="form-control" name="redaccion_canales" id="redaccion_canales_edit" rows="3"></textarea>
+            </div>
           </div>
 
           <div class="modal-footer d-flex justify-content-center">
@@ -94,13 +133,11 @@
               </button>
             </div>
           </div>
-
         </form>
       </div>
     </div>
   </div>
 </div>
-
 
 <style type="text/css">
   /* Estilos (sin cambios) */
@@ -193,87 +230,6 @@ $(document).on('click', '.btn-warning', function () {
             $('#splash').fadeOut();
         }
     });
-});
-
-// Función para filtrar ubicaciones según el proyecto
-function actualizarUbicaciones(proyectoId, ubicacionSeleccionada = null) {
-    $('#ubicacion_edit option').each(function () {
-        var proyecto = $(this).data('proyecto');
-        if (!proyecto) return; // opción por defecto
-        $(this).toggle(proyecto == proyectoId);
-    });
-    if (ubicacionSeleccionada) {
-        $('#ubicacion_edit').val(ubicacionSeleccionada);
-    } else {
-        $('#ubicacion_edit').val('');
-    }
-}
-
-// Evento click para abrir modal y cargar datos
-$(document).on('click', '.btn-warning', function () {
-    var crisisId = $(this).data('id');
-    mostrarSplash();
-
-    $.ajax({
-        url: '../Controllers/crisis.php',
-        method: 'POST',
-        dataType: 'json',
-        data: { accion: 3, id: crisisId },
-        success: function (crisisData) {
-            // Datos básicos
-            $('#id').val(crisisData.id_cyc);
-            $('#no_ticket_edit').val(crisisData.no_ticket);
-            $('#nombre_edit').val(crisisData.nombre);
-            $('#categoria_edit').val(crisisData.categoria_cyc);
-            $('#tipo_edit').val(crisisData.tipo_cyc);
-            $('#edit_proyecto').val(crisisData.proyecto);
-            $('#ivr_edit').val(crisisData.redaccion_cyc || '');
-
-            // Manejo de checkbox y fecha/hora
-            if (crisisData.fecha_programacion) {
-                $('#programar_edit').prop('checked', true);
-                // Convertir formato a datetime-local
-                var fechaInput = crisisData.fecha_programacion.slice(0,16).replace(' ', 'T');
-                $('#fecha_programacion_2').val(fechaInput);
-            } else {
-                $('#programar_edit').prop('checked', false);
-                $('#fecha_programacion_2').val('');
-            }
-
-            // Actualizar ubicaciones según proyecto seleccionado
-            actualizarUbicaciones(crisisData.proyecto, crisisData.ubicacion_cyc);
-
-            // Mostrar modal
-            $('#editModal').modal('show');
-            ocultarSplash();
-        },
-        error: function () {
-            alert('Error al cargar datos.');
-            ocultarSplash();
-        }
-    });
-});
-
-// Evento cambio de proyecto para filtrar ubicaciones
-$('#edit_proyecto').on('change', function() {
-    actualizarUbicaciones($(this).val());
-});
-
-// Evento para mostrar u ocultar campo de fecha según checkbox
-$('#programar_edit').on('change', function() {
-    if ($(this).is(':checked')) {
-        $('#fecha-bloque-edit').show();
-    } else {
-        $('#fecha-bloque-edit').hide();
-        $('#fecha_programacion_2').val('');
-    }
-});
-
-// Inicializar: ocultar bloque de fecha si checkbox no está marcado
-$(document).ready(function() {
-    if (!$('#programar_edit').is(':checked')) {
-        $('#fecha-bloque-edit').hide();
-    }
 });
 
 // Listener para el checkbox de habilitar canal digital

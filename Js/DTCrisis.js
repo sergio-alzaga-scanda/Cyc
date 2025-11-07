@@ -25,7 +25,7 @@ $(document).ready(function () {
             item.nombre_ubicacion,
             item.fecha_activacion,
             `
-              <button class="btn btn-warning btn-sm" data-id="${item.id_cyc}" style="background: transparent; border: none;">
+              <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal" data-id="${item.id_cyc}" style="background: transparent; border: none;">
                 <img src="../iconos/edit.png" alt="Editar" style="width: 20px; height: 20px;">
               </button>
               <button class="btn btn-danger btn-sm" onclick="deleteCrisis(${item.id_cyc})" style="background: transparent; border: none;">
@@ -66,7 +66,6 @@ $(document).ready(function () {
     pageLength: 10,
   });
 
-  // Filtros de fecha
   $("#startDate, #endDate").on("change", function () {
     var startDate = $("#startDate").val();
     var endDate = $("#endDate").val();
@@ -97,138 +96,158 @@ $(document).ready(function () {
     }
   });
 
-  // Filtro por texto
   $("#searchText").on("keyup", function () {
     table.search(this.value).draw();
   });
 
-  // Filtros por tipo y status
-  $('input[name="contingencyType"], input[name="statusType"]').on(
-    "change",
-    function () {
-      var filterValue = this.value;
-      var columnIndex = 4; // columna tipo
-      if (filterValue === "ambos") {
-        table.column(columnIndex).search("").draw();
-      } else {
-        table.column(columnIndex).search(filterValue).draw();
-      }
+  $('input[name="contingencyType"]').on("change", function () {
+    var filterValue = this.value;
+    if (filterValue === "ambos") {
+      table.column(4).search("").draw();
+    } else {
+      table.column(4).search(filterValue).draw();
     }
-  );
+  });
 
-  // Reset filtros
+  $('input[name="statusType"]').on("change", function () {
+    var filterValue = this.value;
+    if (filterValue === "ambos") {
+      table.column(4).search("").draw();
+    } else {
+      table.column(4).search(filterValue).draw();
+    }
+  });
+
   $("#resetFiltersBtn").on("click", function () {
     $("#endDate").val("");
     $("#startDate").val("");
     $("#searchText").val("");
     $("#proyecto").val("");
-    $('input[name="contingencyType"], input[name="statusType"]').prop(
-      "checked",
-      false
-    );
+    $('input[name="contingencyType"]').prop("checked", false);
     table.search("").columns().search("").draw();
   });
-
-  // ================= MODAL DE EDICIÓN =================
-  // Mostrar splash
-  function mostrarSplash() {
-    $("#splash").fadeIn();
-  }
-  function ocultarSplash() {
-    $("#splash").fadeOut();
-  }
-
-  // Actualizar ubicaciones según proyecto
-  function actualizarUbicaciones(proyectoId, ubicacionSeleccionada = null) {
-    $("#ubicacion_edit option").each(function () {
-      var proyecto = $(this).data("proyecto");
-      if (!proyecto) return;
-      $(this).toggle(proyecto == proyectoId);
-    });
-    if (ubicacionSeleccionada) {
-      $("#ubicacion_edit").val(ubicacionSeleccionada);
-    } else {
-      $("#ubicacion_edit").val("");
-    }
-  }
-
-  // Cargar datos en modal
-  function cargarDatosModal(crisisData) {
-    $("#id").val(crisisData.id_cyc);
-    $("#no_ticket_edit").val(crisisData.no_ticket);
-    $("#nombre_edit").val(crisisData.nombre);
-    $("#categoria_edit").val(crisisData.categoria_cyc);
-    $("#tipo_edit").val(crisisData.tipo_cyc);
-    $("#edit_proyecto").val(crisisData.proyecto);
-    $("#ivr_edit").val(crisisData.redaccion_cyc || "");
-
-    // Checkbox y fecha
-    if (crisisData.fecha_programacion) {
-      $("#programar_edit").prop("checked", true);
-      var fechaInput = crisisData.fecha_programacion
-        .slice(0, 16)
-        .replace(" ", "T");
-      $("#fecha_programacion_2").val(fechaInput);
-      $("#fecha-bloque-edit").show();
-    } else {
-      $("#programar_edit").prop("checked", false);
-      $("#fecha_programacion_2").val("");
-      $("#fecha-bloque-edit").hide();
-    }
-
-    // Ubicaciones
-    actualizarUbicaciones(crisisData.proyecto, crisisData.ubicacion_cyc);
-
-    // Canales y bots
-    const canalesSeleccionados = crisisData.canal_cyc || [];
-    $('[name="canal[]"]').each((i, el) => {
-      $(el).prop("checked", canalesSeleccionados.includes($(el).val()));
-    });
-    const botsSeleccionados = crisisData.bot_cyc || [];
-    $('[name="bot[]"]').each((i, el) => {
-      $(el).prop("checked", botsSeleccionados.includes($(el).val()));
-    });
-
-    $("#editModal").modal("show");
-  }
-
-  // Evento click en editar
-  $(document).on("click", ".btn-warning", function () {
-    var crisisId = $(this).data("id");
-    mostrarSplash();
-    $.ajax({
-      url: "../Controllers/crisis.php",
-      method: "POST",
-      dataType: "json",
-      data: { accion: 3, id: crisisId },
-      success: function (data) {
-        cargarDatosModal(data);
-        ocultarSplash();
-      },
-      error: function () {
-        alert("Error al cargar los datos de la crisis.");
-        ocultarSplash();
-      },
-    });
-  });
-
-  // Cambio de proyecto en modal
-  $("#edit_proyecto").on("change", function () {
-    actualizarUbicaciones($(this).val());
-  });
-
-  // Checkbox programar
-  $("#programar_edit").on("change", function () {
-    if ($(this).is(":checked")) {
-      $("#fecha-bloque-edit").show();
-    } else {
-      $("#fecha-bloque-edit").hide();
-      $("#fecha_programacion_2").val("");
-    }
-  });
-
-  // Inicialización
-  if (!$("#programar_edit").is(":checked")) {
-    $("#fecha-bloque-edit").hide();
-  }
 });
+
+function cargarDatosCrisis(crisisData) {
+  document.querySelector("#no_ticket_edit").value = crisisData.no_ticket || "";
+  document.querySelector("#nombre_edit").value = crisisData.nombre || "";
+  document.querySelector("#ubicacion_edit").value =
+    crisisData.ubicacion_cyc || "";
+  document.querySelector("#ivr_edit").value = crisisData.redaccion_cyc || "";
+  document.querySelector("#redaccion_canales_edit").value =
+    crisisData.redaccion_canales || "";
+  document.querySelector("#proyecto").value = crisisData.proyecto || "";
+
+  const checkboxProgramas = document.querySelector("#programar_edit");
+  if (crisisData.fecha_programacion) {
+    checkboxProgramas.checked = true;
+    document.querySelector("#fecha_programacion_edit").value =
+      crisisData.fecha_programacion;
+  } else {
+    checkboxProgramas.checked = false;
+    document.querySelector("#fecha_programacion_edit").value = "";
+  }
+
+  const canalesSeleccionados = crisisData.canal_cyc || [];
+  document.querySelectorAll('[name="canal[]"]').forEach((checkbox) => {
+    checkbox.checked = canalesSeleccionados.includes(checkbox.value);
+  });
+
+  const botsSeleccionados = crisisData.bot_cyc || [];
+  document.querySelectorAll('[name="bot[]"]').forEach((checkbox) => {
+    checkbox.checked = botsSeleccionados.includes(checkbox.value);
+  });
+}
+
+function deleteCrisis(id) {
+  Swal.fire({
+    title: "¿Estás seguro?",
+    text: "¿Quieres eliminar esta crisis??",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      Swal.fire({
+        title: "Eliminando...",
+        text: "Por favor espera",
+        icon: "info",
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
+      window.location.href = `../Controllers/crisis.php?accion=5&id=${id}`;
+    }
+  });
+}
+
+function toggleStatus(id, imgElement, status_cyc) {
+  status_cyc = Number(status_cyc);
+  const nuevoStatus = status_cyc === 1 ? 0 : 1;
+
+  const mensaje =
+    status_cyc === 1
+      ? "¿Estás seguro que deseas deshabilitar la grabación? Esto será eliminado inmediatamente de Five9"
+      : "¿Estás seguro que deseas habilitar la grabación? Esto será publicado inmediatamente en Five9";
+
+  Swal.fire({
+    title: "¿Estás seguro?",
+    text: mensaje,
+    icon: "info",
+    showCancelButton: true,
+    confirmButtonText: "Confirmar",
+    cancelButtonText: "Cancelar",
+    confirmButtonColor: "#4B4A4B",
+    cancelButtonColor: "#4B4A4B",
+    customClass: {
+      confirmButton: "swal2-bold-button",
+      cancelButton: "swal2-bold-button",
+    },
+    didOpen: () => {
+      document.querySelector(
+        ".swal2-confirm"
+      ).innerHTML = `Confirmar <img src="../iconos/Group-4.svg" alt="info icon" style="width: 20px; height: 20px; margin-left: 8px;">`;
+      document.querySelector(
+        ".swal2-cancel"
+      ).innerHTML = `Cancelar <img src="../iconos/cancelar.png" alt="cancel icon" style="width: 20px; height: 20px; margin-left: 8px;">`;
+    },
+  }).then((result) => {
+    if (result.isConfirmed) {
+      imgElement.setAttribute("data-status", nuevoStatus);
+      imgElement.src =
+        nuevoStatus === 1 ? "../iconos/activo.png" : "../iconos/desactivo.png";
+      imgElement.alt = nuevoStatus === 1 ? "Activo" : "Desactivado";
+
+      Swal.fire({
+        title: "Actualizando estado...",
+        text: "Por favor espera",
+        icon: "info",
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
+      window.location.href = `../Controllers/crisis.php?accion=6&id=${id}`;
+    }
+  });
+
+  if (!document.querySelector("style#swal-custom-style")) {
+    document.head.insertAdjacentHTML(
+      "beforeend",
+      `
+      <style id="swal-custom-style">
+        .swal2-bold-button {
+          font-weight: bold;
+          color: white !important;
+        }
+      </style>
+    `
+    );
+  }
+}
