@@ -124,4 +124,49 @@ function cargarProyectos(selectId) {
       console.error("Error al cargar proyectos:", error);
     });
 }
-// Resto de funciones deleteUbicacionIVR y toggleStatus sin cambios
+function deleteUbicacionIVR(id) {
+  Swal.fire({
+    title: "¿Estás seguro?",
+    text: "Esta acción desactivará la ubicación IVR.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Enviar la solicitud al controlador PHP
+      fetch(`../Controllers/catUbicaciones.php?accion=4&id=${id}`, {
+        method: "GET",
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Error en la respuesta del servidor");
+          }
+          return response.text();
+        })
+        .then((data) => {
+          // Mostrar mensaje de éxito y recargar la tabla
+          Swal.fire({
+            title: "Eliminado",
+            text: "La ubicación IVR ha sido desactivada correctamente.",
+            icon: "success",
+            confirmButtonText: "Aceptar",
+          }).then(() => {
+            // Recargar la tabla sin refrescar toda la página
+            $("#table-ubicaciones").DataTable().ajax.reload(null, false);
+          });
+        })
+        .catch((error) => {
+          console.error("Error al eliminar:", error);
+          Swal.fire({
+            title: "Error",
+            text: "No se pudo eliminar la ubicación IVR.",
+            icon: "error",
+            confirmButtonText: "Aceptar",
+          });
+        });
+    }
+  });
+}
