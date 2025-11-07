@@ -3,9 +3,7 @@ $(document).ready(function () {
     ajax: {
       url: "../Controllers/usuarios.php",
       method: "POST",
-      data: {
-        accion: 2,
-      },
+      data: { accion: 2 },
       dataSrc: function (json) {
         var rows = [];
         $.each(json, function (index, item) {
@@ -18,23 +16,32 @@ $(document).ready(function () {
             item.puesto_usuario,
             item.nombre_perfil,
             `  
-                            <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditUsuarios" data-id="${item.idUsuarios}" data-nombre="${item.nombre_usuario}" data-correo="${item.correo_usuario}" data-puesto="${item.puesto_usuario}" data-perfil="${item.perfil_usuario}" data-telefono="${item.telefono_usuario}" data-status="${item.status}" style="background: transparent; border: none;">
-                                <img src="../iconos/edit.png" alt="Editar" style="width: 20px; height: 20px;">
-                            </button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteUsuario(${item.idUsuarios})" style="background: transparent; border: none;">
-                                <img src="../iconos/delete.png" alt="Eliminar" style="width: 20px; height: 20px;">
-                            </button>
-                            ${iconoStatus}
-                        `,
+              <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditUsuarios"
+                data-id="${item.idUsuarios}"
+                data-nombre="${item.nombre_usuario}"
+                data-correo="${item.correo_usuario}"
+                data-puesto="${item.puesto_usuario}"
+                data-perfil="${item.perfil_usuario}"
+                data-telefono="${item.telefono_usuario}"
+                data-status="${item.status}"
+                data-proyecto="${item.id_proyecto}"  <!-- Cambiado a id_proyecto -->
+                style="background: transparent; border: none;">
+                <img src="../iconos/edit.png" alt="Editar" style="width: 20px; height: 20px;">
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="deleteUsuario(${item.idUsuarios})" style="background: transparent; border: none;">
+                <img src="../iconos/delete.png" alt="Eliminar" style="width: 20px; height: 20px;">
+              </button>
+              ${iconoStatus}
+            `,
           ]);
         });
         return rows;
       },
     },
-    processing: true, // Activa el procesamiento
+    processing: true,
     language: {
       processing:
-        "<div class='loading-overlay'><div class='loader'></div></div>", // Agrega un indicador de carga
+        "<div class='loading-overlay'><div class='loader'></div></div>",
       search: "Buscar:",
       lengthMenu: "Mostrar _MENU_ registros",
       info: "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
@@ -69,19 +76,17 @@ $(document).ready(function () {
     table.ajax.reload();
   });
 
-  // Filtrar por texto de búsqueda
   $("#searchText").on("keyup", function () {
     table.search(this.value).draw();
   });
 
-  // Restablecer filtros
   $("#resetFiltersBtn").on("click", function () {
     $("#searchText").val("");
     $('input[name="statusType"]').prop("checked", false);
-    table.search("").column(5).search("").draw(); // Limpia todos los filtros
+    table.search("").column(5).search("").draw();
   });
 
-  // Manejar el evento de clic en el botón de editar
+  // Abrir modal y cargar datos
   $("#usuariosTable").on(
     "click",
     'button[data-bs-target="#modalEditUsuarios"]',
@@ -94,9 +99,9 @@ $(document).ready(function () {
         perfil_usuario: $(this).data("perfil"),
         telefono_usuario: $(this).data("telefono"),
         status: $(this).data("status"),
+        proyecto: $(this).data("proyecto"), // id_proyecto
       };
 
-      // Cargar los datos en el formulario de edición
       cargarDatosUsuario(usuarioData);
     }
   );
@@ -104,8 +109,8 @@ $(document).ready(function () {
 
 // Función para cargar los datos en el formulario de edición
 function cargarDatosUsuario(usuarioData) {
-  document.querySelector("#accion").value = "3"; // Cambiar la acción a 'editar'
-  document.querySelector("#edit_id_usuario").value = usuarioData.idUsuarios; // Asignar el ID del usuario
+  document.querySelector("#accion").value = "3";
+  document.querySelector("#edit_id_usuario").value = usuarioData.idUsuarios;
 
   document.querySelector("#edit_nombre_usuario").value =
     usuarioData.nombre_usuario || "";
@@ -115,17 +120,11 @@ function cargarDatosUsuario(usuarioData) {
     usuarioData.puesto_usuario || "";
   document.querySelector("#edit_telefono_usuario").value =
     usuarioData.telefono_usuario || "";
-
-  // Establecer el perfil del usuario
   document.querySelector("#edit_perfil_usuario").value =
     usuarioData.perfil_usuario || "";
-
-  // Establecer el estado
   document.querySelector("#edit_status").value = usuarioData.status || "1";
-
-  // Establecer el proyecto asignado
   document.querySelector("#edit_proyecto_usuario").value =
-    usuarioData.proyecto || ""; // <-- Aquí se selecciona el proyecto guardado
+    usuarioData.proyecto || ""; // id_proyecto
 }
 
 // Función para eliminar un usuario
@@ -139,7 +138,6 @@ function deleteUsuario(id) {
     cancelButtonText: "Cancelar",
   }).then((result) => {
     if (result.isConfirmed) {
-      // Mostrar carga mientras se procesa la eliminación
       Swal.fire({
         title: "Eliminando...",
         text: "Por favor espera",
@@ -150,7 +148,6 @@ function deleteUsuario(id) {
           Swal.showLoading();
         },
       });
-
       window.location.href = `../Controllers/usuarios.php?accion=4&id=${id}`;
     }
   });

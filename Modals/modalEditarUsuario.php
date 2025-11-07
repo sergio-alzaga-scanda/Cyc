@@ -9,7 +9,7 @@
       <div class="modal-body">
         <!-- Formulario -->
         <form action="../Controllers/usuarios.php" method="POST" id="form-usuario">
-          <input type="text" name="accion" hidden value="3">
+          <input type="text" name="accion" id="accion" hidden value="3">
           <input type="text" name="id_usuario" id="edit_id_usuario" hidden>
 
           <div class="mb-3">
@@ -40,15 +40,15 @@
           </div>
           <!-- Proyecto -->
           <div class="mb-3">
-  <select class="form-select form-input" required name="proyecto_usuario" id="edit_proyecto_usuario">
-    <option selected disabled class="d-none">Selecciona un proyecto</option>
-    <?php
-      foreach ($proyectos as $row) {
-          echo '<option value="' . $row['idProyecto'] . '">' . $row['nombreProyecto'] . '</option>';
-      }
-    ?>
-  </select>
-</div>
+            <select class="form-select form-input" required name="proyecto_usuario" id="edit_proyecto_usuario">
+              <option selected disabled class="d-none">Selecciona un proyecto</option>
+              <?php
+                foreach ($proyectos as $row) {
+                    echo '<option value="' . $row['id_proyecto'] . '">' . $row['nombre_proyecto'] . '</option>';
+                }
+              ?>
+            </select>
+          </div>
           <!-- Contraseña (opcional) -->
           <div class="mb-3">
             <input type="password" name="password_usuario" id="edit_password_usuario" class="form-control form-input" placeholder="Contraseña (opcional)">
@@ -74,6 +74,10 @@
     </div>
   </div>
 </div>
+
+<!-- Añadir el icono de "ojo" para la visualización -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
 
 <script>
   // Al abrir modal, asignar valores del usuario
