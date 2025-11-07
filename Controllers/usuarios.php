@@ -100,7 +100,7 @@ switch ($accion) {
     }
     break;
 
-    case 2:
+   case 2:
     $DtosTbl = array();
 
     try {
@@ -115,12 +115,16 @@ switch ($accion) {
             u.telefono_usuario,
             u.status,
             u.fecha_creacion,
-            p.nombre_perfil
+            p.nombre_perfil,
+            pr.id_proyecto,
+            pr.nombre_proyecto
         FROM 
             usuarios AS u
         JOIN 
             perfil AS p ON u.perfil_usuario = p.id_Perfil
-        Where u.status > 0
+        LEFT JOIN
+            proyectos AS pr ON u.proyecto_usuario = pr.id_proyecto
+        WHERE u.status > 0
         ORDER BY 
             u.fecha_creacion DESC;
         ";
@@ -130,12 +134,11 @@ switch ($accion) {
             die("Error en la preparación: " . $conn->error);
         }
 
-        // No hay parámetros que enlazar porque ya no hay WHERE
         $stmt->execute();
-
         $result = $stmt->get_result();
 
         while ($rowTbl = $result->fetch_assoc()) {
+            // Formatear fecha
             if ($rowTbl['fecha_creacion']) {
                 $fechaSinMilisegundos = substr($rowTbl['fecha_creacion'], 0, 19);
                 $date = DateTime::createFromFormat('Y-m-d H:i:s', $fechaSinMilisegundos);
@@ -152,7 +155,9 @@ switch ($accion) {
                 'nombre_perfil'    => $rowTbl['nombre_perfil'],
                 'perfil_usuario'   => $rowTbl['perfil_usuario'],
                 'status'           => $rowTbl['status'],
-                'fecha_creacion'   => $rowTbl['fecha_creacion']
+                'fecha_creacion'   => $rowTbl['fecha_creacion'],
+                'id_proyecto'      => $rowTbl['id_proyecto'],       // agregado
+                'nombre_proyecto'  => $rowTbl['nombre_proyecto']    // agregado
             );
         }
 
@@ -165,7 +170,6 @@ switch ($accion) {
         echo json_encode(['error' => $e->getMessage()]);
     }
     break;
-
 
     case 3:
     $idUsuario       = $_POST['id_usuario'];
