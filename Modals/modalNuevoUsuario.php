@@ -66,7 +66,7 @@ if ($proyecto_data->execute()) {
           </div>
 
           <!-- Selección de proyecto, oculto por defecto -->
-          <div class="mb-3" id="proyecto-container" style="display:none;">
+          <div class="mb-3" id="proyecto-container" >
             <select class="form-select form-input" name="proyecto" id="proyecto">
               <option selected disabled class="d-none">Selecciona un proyecto</option>
               <?php foreach ($proyectos as $p): ?>

@@ -20,7 +20,7 @@ $fechaHoraActual = $fechaActual;
 $accion = $_POST['accion'] ?? $_GET['accion'] ?? null;
 
 switch ($accion) {
-    case 1:
+     
     case 1:
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $nombre_usuario   = $_POST['nombre_usuario'];
