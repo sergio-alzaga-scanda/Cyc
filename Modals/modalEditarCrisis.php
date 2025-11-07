@@ -346,6 +346,8 @@ $(document).on('click', '.btn-warning', function () {
     });
 });
 
+
+
 // Evento para mostrar/ocultar bloque de canal digital
 $('#habilitar-canal-digital-edit').on('change', function() {
     if ($(this).is(':checked')) {
