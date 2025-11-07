@@ -51,7 +51,7 @@
 </div> -->
 
 <div class="mb-3">
-            <input type="text" name="telefono_usuario" id="edit_proyecto_usuario" required class="form-control form-input" placeholder="Proyecto">
+            <input type="text" name="edit_proyecto_usuario" id="edit_proyecto_usuario" required class="form-control form-input" placeholder="Proyecto">
           </div>
 
           <!-- Contraseña (opcional) -->
