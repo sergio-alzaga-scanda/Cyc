@@ -30,7 +30,7 @@ if ($stmt->execute()) {
 $stmt->close();
 
 // -------------------- Obtener UBICACIONES -------------------- //
-$stmt = $conn->prepare("SELECT * FROM ubicacion_ivr WHERE status >= 1 AND proyecto = ?");
+$stmt = $conn->prepare("SELECT * FROM ubicacion_ivr WHERE status >= 1");
 $stmt->bind_param("s", $proyecto_id);
 if ($stmt->execute()) {
     $result = $stmt->get_result();
