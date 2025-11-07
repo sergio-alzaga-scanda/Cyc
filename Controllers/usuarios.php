@@ -123,7 +123,7 @@ switch ($accion) {
         JOIN 
             perfil AS p ON u.perfil_usuario = p.id_Perfil
         LEFT JOIN
-            cat_proyectos AS pr ON u.proyecto_usuario = pr.id_proyecto
+            cat_proyectos AS pr ON u.proyecto = pr.id_proyecto
         WHERE u.status > 0
         ORDER BY 
             u.fecha_creacion DESC;
