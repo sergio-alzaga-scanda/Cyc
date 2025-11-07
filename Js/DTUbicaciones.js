@@ -19,8 +19,8 @@ $(document).ready(function () {
           rows.push([
             item.id, // ID de la ubicación IVR
             item.nombre_ubicacion_ivr, // Nombre de la ubicación IVR
-            item.nombre_proyecto, // Asegúrate que el JSON también envía este campo, si no, ajusta PHP
-            `  
+            item.nombre_proyecto, // Nombre del proyecto
+            `
               <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditarUbicacionIVR" 
                 data-id="${item.id}" 
                 data-nombre="${item.nombre_ubicacion_ivr}" 
@@ -29,7 +29,7 @@ $(document).ready(function () {
                 style="background: transparent; border: none;">
                   <img src="../iconos/edit.png" alt="Editar" style="width: 20px; height: 20px;">
               </button>
-              <button class="btn btn-danger btn-sm" onclick="deleteUbicacionIVR(${item.id})" style="background: transparent; border: none;">
+              <button class="btn btn-danger btn-sm" onclick="deleteUbicacionIVR(${item.id}, '${item.proyecto}')" style="background: transparent; border: none;">
                   <img src="../iconos/delete.png" alt="Eliminar" style="width: 20px; height: 20px;">
               </button>
             `, // Fin de la columna de acciones
@@ -79,7 +79,7 @@ $(document).ready(function () {
         id: $(this).data("id"),
         nombre_ubicacion_ivr: $(this).data("nombre"),
         status: $(this).data("status"),
-        proyecto: $(this).data("proyecto"), // <-- Agregado proyecto
+        proyecto: $(this).data("proyecto"),
       };
 
       // Cargar los datos en el formulario de edición
@@ -101,6 +101,8 @@ $(document).ready(function () {
     }
   }
 });
+
+// Cargar proyectos dinámicamente en un <select>
 function cargarProyectos(selectId) {
   fetch("../Controllers/catUbicaciones.php?accion=6")
     .then((response) => {
@@ -124,7 +126,9 @@ function cargarProyectos(selectId) {
       console.error("Error al cargar proyectos:", error);
     });
 }
-function deleteUbicacionIVR(id) {
+
+// 🗑️ Eliminar (borrado lógico) ubicación IVR
+function deleteUbicacionIVR(id, proyecto) {
   Swal.fire({
     title: "¿Estás seguro?",
     text: "Esta acción desactivará la ubicación IVR.",
@@ -136,27 +140,36 @@ function deleteUbicacionIVR(id) {
     cancelButtonText: "Cancelar",
   }).then((result) => {
     if (result.isConfirmed) {
-      // Enviar la solicitud al controlador PHP
-      fetch(`../Controllers/catUbicaciones.php?accion=4&id=${id}`, {
-        method: "GET",
-      })
+      fetch(
+        `../Controllers/catUbicaciones.php?accion=4&id=${id}&proyecto=${proyecto}`,
+        {
+          method: "GET",
+        }
+      )
         .then((response) => {
           if (!response.ok) {
             throw new Error("Error en la respuesta del servidor");
           }
-          return response.text();
+          return response.json();
         })
         .then((data) => {
-          // Mostrar mensaje de éxito y recargar la tabla
-          Swal.fire({
-            title: "Eliminado",
-            text: "La ubicación IVR ha sido desactivada correctamente.",
-            icon: "success",
-            confirmButtonText: "Aceptar",
-          }).then(() => {
-            // Recargar la tabla sin refrescar toda la página
-            $("#table-ubicaciones").DataTable().ajax.reload(null, false);
-          });
+          if (data.success) {
+            Swal.fire({
+              title: "Eliminado",
+              text: "La ubicación IVR ha sido desactivada correctamente.",
+              icon: "success",
+              confirmButtonText: "Aceptar",
+            }).then(() => {
+              $("#table-ubicaciones").DataTable().ajax.reload(null, false);
+            });
+          } else {
+            Swal.fire({
+              title: "Error",
+              text: data.message || "No se pudo eliminar la ubicación IVR.",
+              icon: "error",
+              confirmButtonText: "Aceptar",
+            });
+          }
         })
         .catch((error) => {
           console.error("Error al eliminar:", error);
