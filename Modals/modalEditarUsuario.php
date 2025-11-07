@@ -43,7 +43,7 @@
             <select class="form-select form-input" required name="proyecto_usuario" id="edit_proyecto_usuario">
                 <option selected disabled class="d-none">Seleccione un proyecto</option>
                 <?php foreach ($proyectos as $row): ?>
-                    <option value="<?= $row['id_proyecto'] ?>"><?= $row['nombre_proyecto'] ?></option>
+                    <option value="<?= $row['id_proyecto']  ?>"><?= $row['nombre_proyecto'] ?></option>
                 <?php endforeach; ?>
             </select>
           </div>
