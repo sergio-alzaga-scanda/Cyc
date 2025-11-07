@@ -1,85 +1,53 @@
 <?php
+include("../Controllers/bd.php");
+
+$proyecto_id = $_GET['proyecto'] ?? null;
+if (!$proyecto_id) {
+    echo json_encode(['error' => 'No se recibió proyecto']);
+    exit;
+}
+
+$data = [];
+
+// CRISIS
+$stmt = $conn->prepare("SELECT id, nombre_crisis, criticidad FROM cat_crisis WHERE status >= 1 AND proyecto = ? ORDER BY nombre_crisis ASC");
+$stmt->bind_param("s", $proyecto_id);
+$stmt->execute();
+$data['crisis'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
+
+// UBICACIONES
+$stmt = $conn->prepare("SELECT id_ubicacion_ivr, nombre_ubicacion_ivr FROM ubicacion_ivr WHERE status >= 1 AND proyecto = ?");
+$stmt->bind_param("s", $proyecto_id);
+$stmt->execute();
+$data['ubicaciones'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
+
+// CANALES
+$stmt = $conn->prepare("SELECT nombre_canal FROM canal_digital WHERE status >= 1 AND proyecto = ? ORDER BY nombre_canal ASC");
+$stmt->bind_param("s", $proyecto_id);
+$stmt->execute();
+$data['canales'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
+
+// BOTS
+$stmt = $conn->prepare("SELECT nombre_bot FROM bot WHERE status >= 1 AND proyecto = ? ORDER BY nombre_bot ASC");
+$stmt->bind_param("s", $proyecto_id);
+$stmt->execute();
+$data['bots'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
+
+echo json_encode($data);
+
+?>
+
+
+<?php
 include("../Controllers/bd.php"); // Debe contener $conn (objeto mysqli)
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
-
-$crisis = [];
-$ubicaciones = [];
-$canales = [];
-$proyectos = [];
-$bots = [];
-
-$proyecto_id = $_SESSION['proyecto'] ?? null;
-
-// Verifica que haya un proyecto en sesión
-if (!$proyecto_id) {
-    echo "No hay proyecto en la sesión.";
-    exit;
-}
-
-// -------------------- Obtener CRISIS -------------------- //
-$stmt = $conn->prepare("SELECT * FROM cat_crisis WHERE status >= 1 AND proyecto = ? ORDER BY nombre_crisis ASC");
-$stmt->bind_param("s", $proyecto_id);
-
-if ($stmt->execute()) {
-    $result = $stmt->get_result();
-    $crisis = $result->fetch_all(MYSQLI_ASSOC);
-} else {
-    echo "Error al obtener las crisis: " . $stmt->error;
-}
-$stmt->close();
-
-// -------------------- Obtener UBICACIONES -------------------- //
-$stmt = $conn->prepare("SELECT * FROM ubicacion_ivr WHERE status >= 1 AND proyecto = ?");
-$stmt->bind_param("s", $proyecto_id);
-
-if ($stmt->execute()) {
-    $result = $stmt->get_result();
-    $ubicaciones = $result->fetch_all(MYSQLI_ASSOC);
-} else {
-    echo "Error al obtener las ubicaciones: " . $stmt->error;
-}
-$stmt->close();
-
-// -------------------- Obtener CANALES -------------------- //
-$stmt = $conn->prepare("SELECT * FROM canal_digital WHERE status >= 1 AND proyecto = ? ORDER BY nombre_canal ASC");
-$stmt->bind_param("s", $proyecto_id);
-
-if ($stmt->execute()) {
-    $result = $stmt->get_result();
-    $canales = $result->fetch_all(MYSQLI_ASSOC);
-} else {
-    echo "Error al obtener los canales: " . $stmt->error;
-}
-$stmt->close();
-
-// -------------------- Obtener PROYECTOS -------------------- //
-$stmt = $conn->prepare("SELECT * FROM cat_proyectos WHERE status >= 1 AND proyecto = ? ORDER BY nombre_proyecto ASC");
-$stmt->bind_param("s", $proyecto_id);
-
-if ($stmt->execute()) {
-    $result = $stmt->get_result();
-    $proyectos = $result->fetch_all(MYSQLI_ASSOC);
-} else {
-    echo "Error al obtener los proyectos: " . $stmt->error;
-}
-$stmt->close();
-
-// -------------------- Obtener BOTS -------------------- //
-$stmt = $conn->prepare("SELECT * FROM bot WHERE status >= 1 AND proyecto = ? ORDER BY nombre_bot ASC");
-$stmt->bind_param("s", $proyecto_id);
-
-if ($stmt->execute()) {
-    $result = $stmt->get_result();
-    $bots = $result->fetch_all(MYSQLI_ASSOC);
-} else {
-    echo "Error al obtener los bots: " . $stmt->error;
-}
-$stmt->close();
 ?>
-
-
 
 <!-- Modal -->
 <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true">
@@ -93,6 +61,7 @@ $stmt->close();
         <!-- Formulario -->
         <form action="../Controllers/crisis.php" method="POST" id="form-cyc">
           <input type="text" name="accion" id="accion" hidden value="1">
+
           <div class="row g-3 mb-3">
             <div class="col-md-3">
               <input type="text" name="no_ticket" id="no_ticket" required class="form-control" placeholder="No. de ticket" aria-label="No. de ticket">
@@ -104,7 +73,7 @@ $stmt->close();
 
           <div class="row g-3 mb-3">
             <div class="col-md-3">
-              <input class="form-check-input" name="programar" id="programar" type="checkbox" id="programar">
+              <input class="form-check-input" name="programar" id="programar" type="checkbox">
               <label class="form-check-label" style="padding-top: 2px;" for="programar">Programar CoC</label>
             </div>
             <div class="col-md-3" id="fecha-bloque" style="display: none;">
@@ -114,109 +83,66 @@ $stmt->close();
             </div>
           </div>
 
-          <!-- Sección 1 -->
-          <div class="mb-4">
-           <div class="row g-3 mb-3">
-  <div class="col-md-2">
-  <label for="categoria" class="form-label">Categoría</label>
-  <select class="form-select" name="criticidad" required id="categoria">
-    <option value="">Seleccione una opción</option>
-    <?php
-      if (!empty($crisis)) {
-          foreach ($crisis as $row) {
-              echo '<option value="' . $row['id'] . '" data-criticidad="' . htmlspecialchars($row['criticidad']) . '">' . htmlspecialchars($row['nombre_crisis']) . '</option>';
-          }
-      } else {
-          echo '<option value="">No hay crisis disponibles</option>';
-      }
-    ?>
-  </select>
-</div>
-<div class="col-md-2">
-    <label for="tipo" class="form-label">Criticidad</label><br>
-    <label for="criticidad" id="criticidad-label" style="text-align: center;" class="form-label"></label>
-  </div>
-<div class="col-md-2">
-  <label for="tipo" class="form-label">Tipo</label>
-  <select class="form-select" required  name="tipo" id="tipo">
-    <option value="">Seleccione una opción</option> <!-- Opción vacía -->
-    <option value="1">Contingencia</option>
-    <option value="2">Crisis</option>
-  </select>
-</div>
-
-<div class="col-md-2">
-  <label for="ubicacion" class="form-label">Ubicación de CoC</label>
-  <select class="form-select" required name="ubicacion" id="ubicacion">
-    <option value="">Seleccione una opción</option>
-    <?php
-      if (!empty($ubicaciones)) {
-          foreach ($ubicaciones as $row) {
-              echo '<option value="' . $row['id_ubicacion_ivr'] . '">' . htmlspecialchars($row['nombre_ubicacion_ivr']) . '</option>';
-          }
-      } else {
-          echo '<option value="">No hay ubicaciones disponibles</option>';
-      }
-    ?>
-  </select>
-</div>
-
-
-<!-- Nuevo combo agregado para 'Prioridad' -->
-<div class="col-md-2">
-  <label for="proyecto" class="form-label">Proyecto</label>
-  <select class="form-select" name="proyecto" id="proyecto">
-    <option value="">Seleccione una opción</option>
-    <?php
-      if (!empty($proyectos)) {
-          foreach ($proyectos as $row) {
-              echo '<option value="' . $row['id_proyecto'] . '">' . htmlspecialchars($row['nombre_proyecto']) . '</option>';
-          }
-      } else {
-          echo '<option value="">No hay proyectos disponibles</option>';
-      }
-    ?>
-  </select>
-</div>
-
-
-</div>
-
-            <div class="mt-3">
-              <label for="ivr" class="form-label fw-bold">Redacción para grabación en IVR</label>
-              <textarea required class="form-control" name="ivr" id="ivr" rows="3"></textarea>
+          <!-- Selección de proyecto -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label for="proyecto" class="form-label">Proyecto</label>
+              <select class="form-select" name="proyecto" id="proyecto" required>
+                <option value="">Seleccione un proyecto</option>
+                <?php
+                  $proyectos_query = $conn->query("SELECT id_proyecto, nombre_proyecto FROM cat_proyectos WHERE status >= 1 ORDER BY nombre_proyecto ASC");
+                  while ($row = $proyectos_query->fetch_assoc()) {
+                      echo '<option value="' . $row['id_proyecto'] . '">' . htmlspecialchars($row['nombre_proyecto']) . '</option>';
+                  }
+                ?>
+              </select>
             </div>
           </div>
 
-          <!-- Sección 2 -->
-          <div class="form-check mb-3">
+          <!-- Sección de combos dependientes -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-3">
+              <label for="categoria" class="form-label">Categoría</label>
+              <select class="form-select" name="criticidad" id="categoria" required>
+                <option value="">Seleccione un proyecto primero</option>
+              </select>
+            </div>
+
+            <div class="col-md-3">
+              <label for="ubicacion" class="form-label">Ubicación de CoC</label>
+              <select class="form-select" name="ubicacion" id="ubicacion" required>
+                <option value="">Seleccione un proyecto primero</option>
+              </select>
+            </div>
+
+            <div class="col-md-3">
+              <label for="canal" class="form-label">Canales digitales</label>
+              <select class="form-select selectpicker" name="canal[]" id="canal" multiple data-live-search="true">
+                <option selected disabled class="d-none">Seleccione un proyecto primero</option>
+              </select>
+            </div>
+
+            <div class="col-md-3">
+              <label for="bot" class="form-label">Bots</label>
+              <select class="form-select selectpicker" name="bot[]" id="bot" multiple data-live-search="true">
+                <option selected disabled class="d-none">Seleccione un proyecto primero</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- IVR -->
+          <div class="mt-3">
+            <label for="ivr" class="form-label fw-bold">Redacción para grabación en IVR</label>
+            <textarea required class="form-control" name="ivr" id="ivr" rows="3"></textarea>
+          </div>
+
+          <!-- Canal digital -->
+          <div class="form-check mb-3 mt-3">
             <input class="form-check-input" type="checkbox" name="habilitar-canal-digital" id="habilitar-canal-digital">
             <label class="form-check-label" for="habilitar-canal-digital">Habilitar canal digital</label>
           </div>
 
           <div id="contenido-canal-digital" style="display: none;">
-            <div class="row g-3">
-              <div class="col-md-4">
-                <select class="form-select selectpicker" id="canal" name="canal[]" multiple data-live-search="true">
-                  <option selected disabled class="d-none">Canales digitales</option>
-                  <?php
-                    foreach ($canales as $row) {
-                        echo '<option value="' . $row['nombre_canal'] . '">' . $row['nombre_canal'] . '</option>';
-                    }
-                  ?>
-                </select>
-              </div>
-              <div class="col-md-4">
-                <select class="form-select selectpicker" id="bot" name="bot[]" multiple data-live-search="true">
-                  <option selected disabled class="d-none">Bots</option>
-                  <?php
-                    foreach ($bots as $row) {
-                        echo '<option value="' . $row['nombre_bot'] . '">' . $row['nombre_bot'] . '</option>';
-                    }
-                  ?>
-                </select>
-              </div>
-            </div>
             <div class="form-check mt-3">
               <input class="form-check-input" type="checkbox" name="mismo-canal" id="mismo-canal">
               <label class="form-check-label" for="mismo-canal">La redacción para el canal es la misma que la redacción del IVR</label>
@@ -228,28 +154,68 @@ $stmt->close();
           </div>
 
           <!-- Botones -->
-      </div>
-      <div class="modal-footer d-flex justify-content-center">
-     <div class="btn-container">
-        <!-- Botón Guardar y habilitar -->
-        <button type="button" class="btn-icon" style="border-radius: 15px;" id="btn-submit">
-            <span>Guardar y habilitar</span>
-            <img src="../iconos/guardar.png" alt="Guardar">
-        </button>
-
-        <!-- Botón Cancelar -->
-        <button type="button" class="btn-icon" style="border-radius: 15px;" data-bs-dismiss="modal">
-            <span>Cancelar</span>
-            <img src="../iconos/cancelar.png" alt="Cancelar">
-        </button>
-    </div>
-</div>
+          <div class="modal-footer d-flex justify-content-center">
+            <div class="btn-container">
+              <button type="button" class="btn-icon" style="border-radius: 15px;" id="btn-submit">
+                  <span>Guardar y habilitar</span>
+                  <img src="../iconos/guardar.png" alt="Guardar">
+              </button>
+              <button type="button" class="btn-icon" style="border-radius: 15px;" data-bs-dismiss="modal">
+                  <span>Cancelar</span>
+                  <img src="../iconos/cancelar.png" alt="Cancelar">
+              </button>
+            </div>
           </div>
+
         </form>
       </div>
     </div>
   </div>
 </div>
+
+<!-- Script AJAX para llenar combos -->
+<script>
+document.getElementById('proyecto').addEventListener('change', function() {
+    const proyectoId = this.value;
+    if (!proyectoId) return;
+
+    fetch(`getProyectoData.php?proyecto=${proyectoId}`)
+        .then(res => res.json())
+        .then(data => {
+            // CRISIS
+            const crisisSelect = document.getElementById('categoria');
+            crisisSelect.innerHTML = '<option value="">Seleccione una opción</option>';
+            data.crisis.forEach(c => {
+                crisisSelect.innerHTML += `<option value="${c.id}" data-criticidad="${c.criticidad}">${c.nombre_crisis}</option>`;
+            });
+
+            // UBICACIONES
+            const ubicacionSelect = document.getElementById('ubicacion');
+            ubicacionSelect.innerHTML = '<option value="">Seleccione una opción</option>';
+            data.ubicaciones.forEach(u => {
+                ubicacionSelect.innerHTML += `<option value="${u.id_ubicacion_ivr}">${u.nombre_ubicacion_ivr}</option>`;
+            });
+
+            // CANALES
+            const canalSelect = document.getElementById('canal');
+            canalSelect.innerHTML = '';
+            data.canales.forEach(c => {
+                canalSelect.innerHTML += `<option value="${c.nombre_canal}">${c.nombre_canal}</option>`;
+            });
+
+            // BOTS
+            const botSelect = document.getElementById('bot');
+            botSelect.innerHTML = '';
+            data.bots.forEach(b => {
+                botSelect.innerHTML += `<option value="${b.nombre_bot}">${b.nombre_bot}</option>`;
+            });
+
+            // Actualizar selectpicker si usas Bootstrap
+            if (typeof $('.selectpicker') !== 'undefined') $('.selectpicker').selectpicker('refresh');
+        });
+});
+</script>
+
 
 <!-- Enlace al archivo JS -->
 <script src="../js/nuevoCyC.js"></script>
