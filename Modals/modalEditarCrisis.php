@@ -61,14 +61,6 @@
       </select>
     </div>
     <div class="col-md-2">
-      <select class="form-select" required name="ubicacion_edit" id="ubicacion_edit">
-        <option selected disabled class="d-none">Ubicación</option>
-        <?php foreach ($ubicaciones as $row) : ?>
-          <option value="<?php echo $row['id_ubicacion_ivr']; ?>"><?php echo $row['nombre_ubicacion_ivr']; ?></option>
-        <?php endforeach; ?>
-      </select>
-    </div>
-    <div class="col-md-2">
       <select class="form-select" required name="edit_proyecto" id="edit_proyecto">
         <option selected disabled class="d-none">Proyecto</option>
         <?php
@@ -78,6 +70,15 @@
         ?>
       </select>
     </div>
+    <div class="col-md-2">
+      <select class="form-select" required name="ubicacion_edit" id="ubicacion_edit">
+        <option selected disabled class="d-none">Ubicación</option>
+        <?php foreach ($ubicaciones as $row) : ?>
+          <option value="<?php echo $row['id_ubicacion_ivr']; ?>"><?php echo $row['nombre_ubicacion_ivr']; ?></option>
+        <?php endforeach; ?>
+      </select>
+    </div>
+    
   </div>
   <div class="mt-3">
     <label for="ivr" class="form-label fw-bold">Redacción para grabación en IVR</label>
