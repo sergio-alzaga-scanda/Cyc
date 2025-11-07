@@ -75,6 +75,8 @@ if ($proyecto_data->execute()) {
             </select>
           </div>
 
+          
+
           <div class="mb-3">
             <select class="form-select form-input" required name="status" id="status">
               <option value="1" selected>Activo</option>

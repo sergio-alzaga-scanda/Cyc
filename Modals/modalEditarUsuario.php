@@ -39,16 +39,20 @@
             </select>
           </div>
           <!-- Proyecto -->
-         <div class="mb-3">
+         <!-- <div class="mb-3">
   <select class="form-select form-input" required name="proyecto_usuario" id="edit_proyecto_usuario">
     <option value="" selected disabled>Selecciona un proyecto</option>
     <?php
-      foreach ($proyectos as $row) {
-          echo '<option value="' . $row['id_proyecto'] . '">' . $row['nombre_proyecto'] . '</option>';
-      }
+    //  foreach ($proyectos as $row) {
+     //     echo '<option value="' . $row['id_proyecto'] . '">' . $row['nombre_proyecto'] . '</option>';
+     // }
     ?>
   </select>
-</div>
+</div> -->
+
+<div class="mb-3">
+            <input type="text" name="telefono_usuario" id="edit_proyecto_usuario" required class="form-control form-input" placeholder="Proyecto">
+          </div>
 
           <!-- Contraseña (opcional) -->
           <div class="mb-3">
