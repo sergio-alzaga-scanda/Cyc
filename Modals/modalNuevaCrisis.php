@@ -29,16 +29,7 @@ if ($stmt->execute()) {
 }
 $stmt->close();
 
-// -------------------- Obtener UBICACIONES -------------------- //
-$stmt = $conn->prepare("SELECT * FROM ubicacion_ivr WHERE status >= 1");
-$stmt->bind_param("s", $proyecto_id);
-if ($stmt->execute()) {
-    $result = $stmt->get_result();
-    $ubicaciones = $result->fetch_all(MYSQLI_ASSOC);
-} else {
-    echo "Error al obtener las ubicaciones: " . $stmt->error;
-}
-$stmt->close();
+
 
 // -------------------- Obtener CANALES -------------------- //
 $stmt = $conn->prepare("SELECT * FROM canal_digital WHERE status >= 1 AND proyecto = ? ORDER BY nombre_canal ASC");
