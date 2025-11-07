@@ -168,106 +168,99 @@ switch ($accion) {
 
 
     case 3:
-        $idUsuario       = $_POST['id_usuario'];
-        $nombreUsuario   = $_POST['nombre_usuario'];
-        $correoUsuario   = $_POST['correo_usuario'];
-        $puestoUsuario   = $_POST['puesto_usuario'];
-        $telefonoUsuario = $_POST['telefono_usuario'];
-        $perfilUsuario   = $_POST['perfil_usuario'];
-        $status          = $_POST['status'];
-        $passwordUsuario = $_POST['password_usuario'] ?? '';
+    $idUsuario       = $_POST['id_usuario'];
+    $nombreUsuario   = $_POST['nombre_usuario'];
+    $correoUsuario   = $_POST['correo_usuario'];
+    $puestoUsuario   = $_POST['puesto_usuario'];
+    $telefonoUsuario = $_POST['telefono_usuario'];
+    $perfilUsuario   = $_POST['perfil_usuario'];
+    $status          = $_POST['status'];
+    $passwordUsuario = $_POST['password_usuario'] ?? '';
+    $proyectoUsuario = $_POST['proyecto_usuario']; // NUEVO
 
-        if ($passwordUsuario) {
-            $passwordHash = password_hash($passwordUsuario, PASSWORD_DEFAULT);
-        } else {
-            $queryGetPass = "SELECT pass FROM usuarios WHERE idUsuarios = ? AND proyecto = ?";
-            $stmtGetPass = $conn->prepare($queryGetPass);
-            if ($stmtGetPass === false) {
-                die("Error en la preparación de consulta: " . $conn->error);
-            }
-            $stmtGetPass->bind_param("is", $idUsuario, $proyecto);
-            $stmtGetPass->execute();
-            $resultPass = $stmtGetPass->get_result();
-            $passwordHash = $resultPass->fetch_row()[0];
-            $stmtGetPass->close();
-        }
+    if ($passwordUsuario) {
+        $passwordHash = password_hash($passwordUsuario, PASSWORD_DEFAULT);
+    } else {
+        $queryGetPass = "SELECT pass FROM usuarios WHERE idUsuarios = ? AND proyecto = ?";
+        $stmtGetPass = $conn->prepare($queryGetPass);
+        $stmtGetPass->bind_param("is", $idUsuario, $proyecto);
+        $stmtGetPass->execute();
+        $resultPass = $stmtGetPass->get_result();
+        $passwordHash = $resultPass->fetch_row()[0];
+        $stmtGetPass->close();
+    }
 
-        try {
-            $query = "
-                UPDATE usuarios
-                SET 
-                    nombre_usuario   = ?,
-                    correo_usuario   = ?,
-                    puesto_usuario   = ?,
-                    telefono_usuario = ?,
-                    perfil_usuario   = ?,
-                    status           = ?,
-                    pass             = ?
-                WHERE idUsuarios = ? AND proyecto = ?;
-            ";
+    try {
+        $query = "
+            UPDATE usuarios
+            SET 
+                nombre_usuario   = ?,
+                correo_usuario   = ?,
+                puesto_usuario   = ?,
+                telefono_usuario = ?,
+                perfil_usuario   = ?,
+                status           = ?,
+                pass             = ?,
+                proyecto         = ?
+            WHERE idUsuarios = ? AND proyecto = ?;
+        ";
 
-            $stmt = $conn->prepare($query);
-            if ($stmt === false) {
-                die("Error en la preparación de la consulta: " . $conn->error);
-            }
-            $stmt->bind_param(
-                "sssssisiss",
-                $nombreUsuario,
-                $correoUsuario,
-                $puestoUsuario,
-                $telefonoUsuario,
-                $perfilUsuario,
-                $status,
-                $passwordHash,
-                $idUsuario,
-                $proyecto
-            );
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param(
+            "sssssisiss",
+            $nombreUsuario,
+            $correoUsuario,
+            $puestoUsuario,
+            $telefonoUsuario,
+            $perfilUsuario,
+            $status,
+            $passwordHash,
+            $proyectoUsuario,  // NUEVO
+            $idUsuario,
+            $proyecto
+        );
 
-            $stmt->execute();
+        $stmt->execute();
 
-            $descripcion = 'Ha editado al usuario: ' . $nombreUsuario . ' con correo: ' . $correoUsuario . ' ID: ' . $idUsuario;
+        $descripcion = 'Ha editado al usuario: ' . $nombreUsuario . ' con correo: ' . $correoUsuario . ' ID: ' . $idUsuario . ', proyecto: ' . $proyectoUsuario;
+        $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) VALUES (NOW(), ?, ?, ?, ?)";
+        $stmtLog = $conn->prepare($queryLog);
+        $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario_login, $descripcion, $proyecto);
+        $stmtLog->execute();
 
-            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) VALUES (NOW(), ?, ?, ?, ?)";
-            $stmtLog = $conn->prepare($queryLog);
-            if ($stmtLog === false) {
-                die("Error en la preparación del log: " . $conn->error);
-            }
-            $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario_login, $descripcion, $proyecto);
-            $stmtLog->execute();
+        echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+              <script type='text/javascript'>
+                window.onload = function() {
+                    Swal.fire({
+                        title: 'Éxito',
+                        text: 'El registro se editó correctamente.',
+                        icon: 'success',
+                        confirmButtonText: 'Aceptar'
+                    }).then(function() {
+                        window.location.href = '../Views/usuarios.php';
+                    });
+                }
+              </script>";
 
-            echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                  <script type='text/javascript'>
-                    window.onload = function() {
-                        Swal.fire({
-                            title: 'Éxito',
-                            text: 'El registro se editó correctamente.',
-                            icon: 'success',
-                            confirmButtonText: 'Aceptar'
-                        }).then(function() {
-                            window.location.href = '../Views/usuarios.php';
-                        });
-                    }
-                  </script>";
+        $stmt->close();
+        $stmtLog->close();
 
-            $stmt->close();
-            $stmtLog->close();
-
-        } catch (Exception $e) {
-            echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                  <script type='text/javascript'>
-                    window.onload = function() {
-                        Swal.fire({
-                            title: 'Error',
-                            text: 'Ocurrió un error al editar el registro',
-                            icon: 'error',
-                            confirmButtonText: 'Aceptar'
-                        }).then(function() {
-                            window.location.href = '../Views/usuarios.php';
-                        });
-                    }
-                  </script>";
-        }
-        break;
+    } catch (Exception $e) {
+        echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+              <script type='text/javascript'>
+                window.onload = function() {
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Ocurrió un error al editar el registro: " . addslashes($e->getMessage()) . "',
+                        icon: 'error',
+                        confirmButtonText: 'Aceptar'
+                    }).then(function() {
+                        window.location.href = '../Views/usuarios.php';
+                    });
+                }
+              </script>";
+    }
+    break;
 
 case 4:
     $id_usuario = $_GET['id']; // ID del usuario a eliminar
