@@ -39,9 +39,9 @@
             </select>
           </div>
 
-          <div class="mb-3">
+          <!-- <div class="mb-3">
             <input type="text" name="edit_proyecto_usuario" readonly id="edit_proyecto_usuario" required class="form-control form-input" placeholder="Proyecto">
-          </div>
+          </div> -->
 
           <!-- Contraseña (opcional) -->
           <div class="mb-3">
