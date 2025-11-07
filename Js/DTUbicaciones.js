@@ -34,11 +34,11 @@ $(document).ready(function () {
                 style="background: transparent; border: none;">
                   <img src="../iconos/edit.png" alt="Editar" style="width: 20px; height: 20px;">
               </button>
-              <button class="btn btn-danger btn-sm" 
-                onclick="deleteUbicacionIVR(${item.id}, '${proyectoSeguro}')" 
-                style="background: transparent; border: none;">
-                  <img src="../iconos/delete.png" alt="Eliminar" style="width: 20px; height: 20px;">
-              </button>
+              <button class="btn btn-danger btn-sm"
+  onclick="deleteUbicacionIVR(${item.id}, '${item.proyecto}')"
+  style="background: transparent; border: none;">
+  <img src="../iconos/delete.png" alt="Eliminar" style="width: 20px; height: 20px;">
+</button>
             `,
           ]);
         });
@@ -113,15 +113,7 @@ function cargarProyectos(selectId) {
     .catch((error) => console.error("Error al cargar proyectos:", error));
 }
 
-// 🗑️ Función de borrado lógico
 function deleteUbicacionIVR(id, proyecto) {
-  console.log("Intentando eliminar ID:", id, "Proyecto:", proyecto);
-
-  if (typeof Swal === "undefined") {
-    alert("SweetAlert2 no está cargado. Asegúrate de incluir el script.");
-    return;
-  }
-
   Swal.fire({
     title: "¿Estás seguro?",
     text: "Esta acción desactivará la ubicación IVR.",
@@ -138,22 +130,27 @@ function deleteUbicacionIVR(id, proyecto) {
       )
         .then((response) => response.json())
         .then((data) => {
-          console.log("Respuesta del servidor:", data);
           if (data.success) {
             Swal.fire({
               title: "Eliminado",
-              text: "La ubicación IVR ha sido desactivada correctamente.",
+              text: data.message,
               icon: "success",
+              confirmButtonText: "Aceptar",
             }).then(() => {
               $("#table-ubicaciones").DataTable().ajax.reload(null, false);
             });
           } else {
-            Swal.fire("Error", data.message || "No se pudo eliminar.", "error");
+            Swal.fire({
+              title: "Error",
+              text: data.message,
+              icon: "error",
+              confirmButtonText: "Aceptar",
+            });
           }
         })
         .catch((error) => {
-          console.error("Error en la solicitud:", error);
-          Swal.fire("Error", "Error de conexión con el servidor.", "error");
+          console.error("Error al eliminar:", error);
+          Swal.fire("Error", "No se pudo conectar con el servidor.", "error");
         });
     }
   });

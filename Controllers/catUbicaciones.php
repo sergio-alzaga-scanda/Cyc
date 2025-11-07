@@ -181,60 +181,50 @@ case 2:
 
 
     case 4:
-        $id_ubicacion_ivr = $_GET['id'];
-        try {
-            $query = "UPDATE ubicacion_ivr SET status = 0 WHERE id_ubicacion_ivr = ? AND proyecto = ?";
-            $stmt = $conn->prepare($query);
-            if (!$stmt) {
-                throw new Exception("Prepare failed: " . $conn->error);
-            }
-            $stmt->bind_param("is", $id_ubicacion_ivr, $proyecto);
-            $stmt->execute();
+    header('Content-Type: application/json; charset=utf-8');
 
-            // Log
-            $descripcion = 'Ha eliminado una Ubicación IVR con ID: ' . $id_ubicacion_ivr;
-            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) VALUES (NOW(), ?, ?, ?)";
-            $stmtLog = $conn->prepare($queryLog);
-            if (!$stmtLog) {
-                throw new Exception("Prepare failed (log): " . $conn->error);
-            }
+    $id_ubicacion_ivr = $_GET['id'] ?? null;
+    $proyecto = $_GET['proyecto'] ?? null;
+
+    if (!$id_ubicacion_ivr || !$proyecto) {
+        echo json_encode([
+            "success" => false,
+            "message" => "Faltan parámetros: id o proyecto."
+        ]);
+        exit;
+    }
+
+    try {
+        $query = "UPDATE ubicacion_ivr SET status = 0 WHERE id_ubicacion_ivr = ? AND proyecto = ?";
+        $stmt = $conn->prepare($query);
+        if (!$stmt) {
+            throw new Exception("Error en prepare(): " . $conn->error);
+        }
+        $stmt->bind_param("is", $id_ubicacion_ivr, $proyecto);
+        $stmt->execute();
+
+        // Registrar log
+        $descripcion = 'Ha eliminado una Ubicación IVR con ID: ' . $id_ubicacion_ivr;
+        $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description) VALUES (NOW(), ?, ?, ?)";
+        $stmtLog = $conn->prepare($queryLog);
+        if ($stmtLog) {
             $stmtLog->bind_param("iss", $id_usuario, $nombre_usuario_login, $descripcion);
             $stmtLog->execute();
             $stmtLog->close();
-
-            echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                  <script type='text/javascript'>
-                    window.onload = function() {
-                        Swal.fire({
-                            title: 'Éxito',
-                            text: 'La ubicación IVR se eliminó correctamente.',
-                            icon: 'success',
-                            confirmButtonText: 'Aceptar'
-                        }).then(function() {
-                            window.location.href = '../Views/catalogos.php';
-                        });
-                    }
-                  </script>";
-
-            $stmt->close();
-            $conn->close();
-
-        } catch (Exception $e) {
-            echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                  <script type='text/javascript'>
-                    window.onload = function() {
-                        Swal.fire({
-                            title: 'Error',
-                            text: 'No se pudo eliminar la ubicación IVR.',
-                            icon: 'error',
-                            confirmButtonText: 'Aceptar'
-                        }).then(function() {
-                            window.location.href = '../Views/catalogos.php';
-                        });
-                    }
-                  </script>";
         }
-        break;
+
+        echo json_encode(["success" => true, "message" => "Ubicación IVR eliminada correctamente."]);
+    } catch (Exception $e) {
+        echo json_encode([
+            "success" => false,
+            "message" => "Error al eliminar: " . $e->getMessage()
+        ]);
+    } finally {
+        if (isset($stmt)) $stmt->close();
+        $conn->close();
+    }
+    break;
+
 
     case 5:
         $id_ubicacion_ivr = $_GET['id'];
