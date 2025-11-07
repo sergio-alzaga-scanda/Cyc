@@ -124,21 +124,8 @@ function cargarDatosUsuario(usuarioData) {
     usuarioData.perfil_usuario || "";
   document.querySelector("#edit_status").value = usuarioData.status || "1";
 
-  // Seleccionar proyecto correctamente
-  if (usuarioData.proyecto) {
-    proyectoSelect.value = usuarioData.proyecto.toString(); // convierte a string
-    // Si por algún motivo no funciona, selecciona manualmente
-    if (proyectoSelect.value !== usuarioData.proyecto.toString()) {
-      for (let option of proyectoSelect.options) {
-        if (option.value == usuarioData.proyecto) {
-          option.selected = true;
-          break;
-        }
-      }
-    }
-  } else {
-    proyectoSelect.selectedIndex = 0; // opción por defecto
-  }
+  document.querySelector("#edit_proyecto_usuario").value =
+    usuarioData.id_proyecto || "";
 }
 
 // Función para eliminar un usuario
