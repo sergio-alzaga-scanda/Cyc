@@ -101,8 +101,8 @@ $(document).ready(function () {
         perfil_usuario: $(this).data("perfil"),
         telefono_usuario: $(this).data("telefono"),
         status: $(this).data("status"),
-        id_proyecto: $(this).data("id_proyecto"), // id_proyecto
-        nombre_proyecto: $(this).data("nombre_proyecto"), //nombre_proyecto
+        id_proyecto: $(this).data("id_proyecto"),
+        nombre_proyecto: $(this).data("nombre_proyecto"),
       };
 
       cargarDatosUsuario(usuarioData);
@@ -110,9 +110,8 @@ $(document).ready(function () {
   );
 });
 
+// Función para llenar el modal
 function cargarDatosUsuario(usuarioData) {
-  const proyectoSelect = document.querySelector("#edit_proyecto_usuario");
-
   document.querySelector("#accion").value = "3";
   document.querySelector("#edit_id_usuario").value = usuarioData.idUsuarios;
   document.querySelector("#edit_nombre_usuario").value =
@@ -127,9 +126,11 @@ function cargarDatosUsuario(usuarioData) {
     usuarioData.perfil_usuario || "";
   document.querySelector("#edit_status").value = usuarioData.status || "1";
 
+  // Este input es solo el ID del proyecto si lo necesitas
   document.querySelector("#edit_proyecto_usuario2").value =
     usuarioData.id_proyecto || "";
 
+  // Este input muestra el nombre del proyecto
   document.querySelector("#edit_proyecto_usuario").value =
     usuarioData.nombre_proyecto || "";
 }
