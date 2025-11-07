@@ -122,6 +122,10 @@ function cargarDatosUsuario(usuarioData) {
 
   // Establecer el estado
   document.querySelector("#edit_status").value = usuarioData.status || "1";
+
+  // Establecer el proyecto asignado
+  document.querySelector("#edit_proyecto_usuario").value =
+    usuarioData.proyecto || ""; // <-- Aquí se selecciona el proyecto guardado
 }
 
 // Función para eliminar un usuario
