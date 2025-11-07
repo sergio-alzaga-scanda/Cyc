@@ -268,37 +268,36 @@ switch ($accion) {
         }
         break;
 
-    case 4:
+case 4:
     $id_usuario = $_GET['id']; // ID del usuario a eliminar
     
     try {
-        
-        $queryGetUser = "SELECT nombre_usuario, correo_usuario, idUsuarios FROM usuarios WHERE idUsuarios = ? ";
+        // 1️⃣ Obtener datos del usuario
+        $queryGetUser = "SELECT nombre_usuario, correo_usuario, idUsuarios FROM usuarios WHERE idUsuarios = ?";
         $stmtGetUser = $conn->prepare($queryGetUser);
         if ($stmtGetUser === false) {
             throw new Exception("Error en la preparación de la consulta de usuario: " . $conn->error);
         }
-        $stmtGetUser->bind_param("i", $id_cyc);
+        $stmtGetUser->bind_param("i", $id_usuario);
         $stmtGetUser->execute();
         $resultUser = $stmtGetUser->get_result();
         $userData = $resultUser->fetch_assoc();
 
         if ($userData) {
-      
-            $queryUpdate = "UPDATE usuarios SET status = 0 WHERE idUsuarios = ? ";
+            // 2️⃣ Desactivar usuario (borrado lógico)
+            $queryUpdate = "UPDATE usuarios SET status = 0 WHERE idUsuarios = ?";
             $stmtUpdate = $conn->prepare($queryUpdate);
             if ($stmtUpdate === false) {
                 throw new Exception("Error en la preparación de la actualización: " . $conn->error);
             }
-            $stmtUpdate->bind_param("i", $id_cyc);
+            $stmtUpdate->bind_param("i", $id_usuario);
             $stmtUpdate->execute();
+            $stmtUpdate->close();
 
             // 3️⃣ Preparar descripción del log
             $descripcion = 'Eliminó el usuario ' . $userData['nombre_usuario'] .
                            ' con correo: ' . $userData['correo_usuario'] .
                            ' ID: ' . $userData['idUsuarios'];
-
-            $stmtUpdate->close();
         } else {
             // Usuario no encontrado
             $descripcion = "Intentó eliminar un usuario que no existe o no pertenece al proyecto.";
@@ -316,12 +315,13 @@ switch ($accion) {
         $stmtLog->execute();
         $stmtLog->close();
 
+        // 5️⃣ Mensaje SweetAlert
         echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
               <script type='text/javascript'>
                 window.onload = function() {
                     Swal.fire({
                         title: 'Éxito',
-                        text: 'El proceso se completó correctamente.',
+                        text: 'El usuario se eliminó correctamente.',
                         icon: 'success',
                         confirmButtonText: 'Aceptar'
                     }).then(function() {
@@ -331,7 +331,6 @@ switch ($accion) {
               </script>";
 
     } catch (Exception $e) {
-        // Mensaje de error si algo falla
         echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
               <script type='text/javascript'>
                 window.onload = function() {
@@ -347,6 +346,7 @@ switch ($accion) {
               </script>";
     }
     break;
+
 
     case 5:
         $id_cyc         = $_GET['id'];
