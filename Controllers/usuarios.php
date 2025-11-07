@@ -120,6 +120,7 @@ switch ($accion) {
             usuarios AS u
         JOIN 
             perfil AS p ON u.perfil_usuario = p.id_Perfil
+        Where u.status > 0
         ORDER BY 
             u.fecha_creacion DESC;
         ";
