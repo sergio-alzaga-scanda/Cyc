@@ -38,20 +38,9 @@
               <option value="2">Inactivo</option>
             </select>
           </div>
-          <!-- Proyecto -->
-         <!-- <div class="mb-3">
-  <select class="form-select form-input" required name="proyecto_usuario" id="edit_proyecto_usuario">
-    <option value="" selected disabled>Selecciona un proyecto</option>
-    <?php
-    //  foreach ($proyectos as $row) {
-     //     echo '<option value="' . $row['id_proyecto'] . '">' . $row['nombre_proyecto'] . '</option>';
-     // }
-    ?>
-  </select>
-</div> -->
 
-<div class="mb-3">
-            <input type="text" name="edit_proyecto_usuario" id="edit_proyecto_usuario" required class="form-control form-input" placeholder="Proyecto">
+          <div class="mb-3">
+            <input type="text" name="edit_proyecto_usuario" readonly id="edit_proyecto_usuario" required class="form-control form-input" placeholder="Proyecto">
           </div>
 
           <!-- Contraseña (opcional) -->

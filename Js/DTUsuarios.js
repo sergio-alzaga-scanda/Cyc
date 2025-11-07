@@ -25,8 +25,8 @@ $(document).ready(function () {
                 data-perfil="${item.perfil_usuario}"
                 data-telefono="${item.telefono_usuario}"
                 data-status="${item.status}"
-                data-proyecto="${item.id_proyecto}"
-                data-proyecto="${item.nombre_proyecto}"  
+                data-id_proyecto="${item.id_proyecto}"
+                data-nombre_proyecto="${item.nombre_proyecto}"
                 style="background: transparent; border: none;">
                 <img src="../iconos/edit.png" alt="Editar" style="width: 20px; height: 20px;">
               </button>
