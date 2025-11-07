@@ -195,6 +195,87 @@ $(document).on('click', '.btn-warning', function () {
     });
 });
 
+// Función para filtrar ubicaciones según el proyecto
+function actualizarUbicaciones(proyectoId, ubicacionSeleccionada = null) {
+    $('#ubicacion_edit option').each(function () {
+        var proyecto = $(this).data('proyecto');
+        if (!proyecto) return; // opción por defecto
+        $(this).toggle(proyecto == proyectoId);
+    });
+    if (ubicacionSeleccionada) {
+        $('#ubicacion_edit').val(ubicacionSeleccionada);
+    } else {
+        $('#ubicacion_edit').val('');
+    }
+}
+
+// Evento click para abrir modal y cargar datos
+$(document).on('click', '.btn-warning', function () {
+    var crisisId = $(this).data('id');
+    mostrarSplash();
+
+    $.ajax({
+        url: '../Controllers/crisis.php',
+        method: 'POST',
+        dataType: 'json',
+        data: { accion: 3, id: crisisId },
+        success: function (crisisData) {
+            // Datos básicos
+            $('#id').val(crisisData.id_cyc);
+            $('#no_ticket_edit').val(crisisData.no_ticket);
+            $('#nombre_edit').val(crisisData.nombre);
+            $('#categoria_edit').val(crisisData.categoria_cyc);
+            $('#tipo_edit').val(crisisData.tipo_cyc);
+            $('#edit_proyecto').val(crisisData.proyecto);
+            $('#ivr_edit').val(crisisData.redaccion_cyc || '');
+
+            // Manejo de checkbox y fecha/hora
+            if (crisisData.fecha_programacion) {
+                $('#programar_edit').prop('checked', true);
+                // Convertir formato a datetime-local
+                var fechaInput = crisisData.fecha_programacion.slice(0,16).replace(' ', 'T');
+                $('#fecha_programacion_2').val(fechaInput);
+            } else {
+                $('#programar_edit').prop('checked', false);
+                $('#fecha_programacion_2').val('');
+            }
+
+            // Actualizar ubicaciones según proyecto seleccionado
+            actualizarUbicaciones(crisisData.proyecto, crisisData.ubicacion_cyc);
+
+            // Mostrar modal
+            $('#editModal').modal('show');
+            ocultarSplash();
+        },
+        error: function () {
+            alert('Error al cargar datos.');
+            ocultarSplash();
+        }
+    });
+});
+
+// Evento cambio de proyecto para filtrar ubicaciones
+$('#edit_proyecto').on('change', function() {
+    actualizarUbicaciones($(this).val());
+});
+
+// Evento para mostrar u ocultar campo de fecha según checkbox
+$('#programar_edit').on('change', function() {
+    if ($(this).is(':checked')) {
+        $('#fecha-bloque-edit').show();
+    } else {
+        $('#fecha-bloque-edit').hide();
+        $('#fecha_programacion_2').val('');
+    }
+});
+
+// Inicializar: ocultar bloque de fecha si checkbox no está marcado
+$(document).ready(function() {
+    if (!$('#programar_edit').is(':checked')) {
+        $('#fecha-bloque-edit').hide();
+    }
+});
+
 // Listener para el checkbox de habilitar canal digital
 $('#habilitar-canal-digital-edit').on('change', function() {
     if ($(this).is(':checked')) {
