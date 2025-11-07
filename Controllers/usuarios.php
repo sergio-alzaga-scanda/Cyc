@@ -21,77 +21,84 @@ $accion = $_POST['accion'] ?? $_GET['accion'] ?? null;
 
 switch ($accion) {
     case 1:
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            $nombre_usuario   = $_POST['nombre_usuario'];
-            $correo_usuario   = $_POST['correo_usuario'];
-            $pass             = 'contra12345'; // contraseña por defecto
-            $puesto_usuario   = $_POST['puesto_usuario'];
-            $telefono_usuario = $_POST['telefono_usuario'];
-            $perfil_usuario   = $_POST['perfil_usuario'];
-            $status           = $_POST['status'];
-            $fecha_creacion   = $_POST['fecha_creacion'];
+    case 1:
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        $nombre_usuario   = $_POST['nombre_usuario'];
+        $correo_usuario   = $_POST['correo_usuario'];
+        $pass             = 'contra12345'; // contraseña por defecto
+        $puesto_usuario   = $_POST['puesto_usuario'];
+        $telefono_usuario = $_POST['telefono_usuario'];
+        $perfil_usuario   = $_POST['perfil_usuario'];
+        $status           = $_POST['status'];
+        $fecha_creacion   = $_POST['fecha_creacion'];
 
-           $query = "
-INSERT INTO usuarios (
-    nombre_usuario, 
-    correo_usuario, 
-    pass, 
-    puesto_usuario, 
-    telefono_usuario, 
-    perfil_usuario, 
-    status,
-    proyecto,
-    fecha_creacion
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-";
-
-$stmt = $conn->prepare($query);
-$stmt->bind_param(
-    "ssssssiss",
-    $nombre_usuario,
-    $correo_usuario,
-    $pass,
-    $puesto_usuario,
-    $telefono_usuario,
-    $perfil_usuario,
-    $status,
-    $proyecto,
-    $fecha_creacion
-);
-
-            if ($stmt->execute()) {
-                $id_insertado = $stmt->insert_id;
-
-                $descripcion = 'Ha registrado al usuario: ' . $nombre_usuario . ' con correo: ' . $correo_usuario;
-
-                $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) VALUES (NOW(), ?, ?, ?, ?)";
-                $stmtLog = $conn->prepare($queryLog);
-                if ($stmtLog === false) {
-                    die("Error en la preparación del log: " . $conn->error);
-                }
-                $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario_login, $descripcion, $proyecto);
-                $stmtLog->execute();
-
-                echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                      <script type='text/javascript'>
-                        window.onload = function() {
-                            Swal.fire({
-                                title: 'Éxito',
-                                text: 'El usuario se ha registrado correctamente.',
-                                icon: 'success',
-                                confirmButtonText: 'Aceptar'
-                            }).then(function() {
-                                window.location.href = '../Views/usuarios.php';
-                            });
-                        }
-                      </script>";
-            } else {
-                echo "Error al crear el usuario: " . $stmt->error;
-            }
-
-            $stmt->close();
+        // Asignar proyecto solo si existe y no es administrador
+        $proyecto = null;
+        if (isset($_POST['proyecto']) && !empty($_POST['proyecto'])) {
+            $proyecto = $_POST['proyecto'];
         }
-        break;
+
+        $query = "
+        INSERT INTO usuarios (
+            nombre_usuario, 
+            correo_usuario, 
+            pass, 
+            puesto_usuario, 
+            telefono_usuario, 
+            perfil_usuario, 
+            status,
+            proyecto,
+            fecha_creacion
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ";
+
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param(
+            "ssssssiss",
+            $nombre_usuario,
+            $correo_usuario,
+            $pass,
+            $puesto_usuario,
+            $telefono_usuario,
+            $perfil_usuario,
+            $status,
+            $proyecto,
+            $fecha_creacion
+        );
+
+        if ($stmt->execute()) {
+            $id_insertado = $stmt->insert_id;
+
+            $descripcion = 'Ha registrado al usuario: ' . $nombre_usuario . ' con correo: ' . $correo_usuario;
+
+            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) VALUES (NOW(), ?, ?, ?, ?)";
+            $stmtLog = $conn->prepare($queryLog);
+            if ($stmtLog === false) {
+                die("Error en la preparación del log: " . $conn->error);
+            }
+            $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario_login, $descripcion, $proyecto);
+            $stmtLog->execute();
+
+            echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+                  <script type='text/javascript'>
+                    window.onload = function() {
+                        Swal.fire({
+                            title: 'Éxito',
+                            text: 'El usuario se ha registrado correctamente.',
+                            icon: 'success',
+                            confirmButtonText: 'Aceptar'
+                        }).then(function() {
+                            window.location.href = '../Views/usuarios.php';
+                        });
+                    }
+                  </script>";
+        } else {
+            echo "Error al crear el usuario: " . $stmt->error;
+        }
+
+        $stmt->close();
+    }
+    break;
 
     case 2:
         $DtosTbl = array();

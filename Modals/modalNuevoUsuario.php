@@ -1,6 +1,7 @@
 <?php
 include("../Controllers/bd.php");
 
+// Obtener perfiles
 $queryPerfil = "SELECT * FROM perfil ORDER BY nombre_perfil ASC";
 $perfil_data = $conn->prepare($queryPerfil);
 $perfiles = [];
@@ -11,9 +12,21 @@ if ($perfil_data->execute()) {
         $perfiles[] = $row;
     }
 }
+
+// Obtener proyectos activos
+$queryProyectos = "SELECT * FROM cat_proyectos WHERE status = 1 ORDER BY nombre_proyecto ASC";
+$proyecto_data = $conn->prepare($queryProyectos);
+$proyectos = [];
+
+if ($proyecto_data->execute()) {
+    $result = $proyecto_data->get_result();
+    while ($row = $result->fetch_assoc()) {
+        $proyectos[] = $row;
+    }
+}
 ?>
 
-<!-- Modal (corregido) -->
+<!-- Modal -->
 <div class="modal fade" id="NuevoUsuario" tabindex="-1" role="dialog" aria-labelledby="NuevoUsuarioLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -52,6 +65,16 @@ if ($perfil_data->execute()) {
             </select>
           </div>
 
+          <!-- Selección de proyecto, oculto por defecto -->
+          <div class="mb-3" id="proyecto-container" style="display:none;">
+            <select class="form-select form-input" name="proyecto" id="proyecto">
+              <option selected disabled class="d-none">Selecciona un proyecto</option>
+              <?php foreach ($proyectos as $p): ?>
+                  <option value="<?= $p['id_proyecto']; ?>"><?= htmlspecialchars($p['nombre_proyecto']); ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+
           <div class="mb-3">
             <select class="form-select form-input" required name="status" id="status">
               <option value="1" selected>Activo</option>
@@ -68,7 +91,6 @@ if ($perfil_data->execute()) {
                 <img src="../iconos/Group-4.svg" alt="Guardar">
               </button>
 
-              <!-- Corregido: ahora solo cierra el modal -->
               <button type="button" class="btn-icon" style="border-radius: 15px;" data-bs-dismiss="modal">
                 <span>Cancelar</span>
                 <img src="../iconos/cancelar.png" alt="Cancelar">
@@ -81,6 +103,22 @@ if ($perfil_data->execute()) {
     </div>
   </div>
 </div>
+
+<!-- Script para mostrar/ocultar proyecto -->
+<script>
+document.getElementById('perfil_usuario').addEventListener('change', function() {
+    var perfil = parseInt(this.value);
+    var proyectoContainer = document.getElementById('proyecto-container');
+
+    if (perfil === 1) { // Administrador
+        proyectoContainer.style.display = 'none';
+        document.getElementById('proyecto').required = false;
+    } else {
+        proyectoContainer.style.display = 'block';
+        document.getElementById('proyecto').required = true;
+    }
+});
+</script>
 
 <style>
   .modal-footer {
