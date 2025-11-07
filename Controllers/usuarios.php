@@ -269,64 +269,82 @@ switch ($accion) {
         break;
 
     case 4:
-        $id_cyc = $_GET['id'];
-        try {
-            $query = "UPDATE usuarios SET status = 0 WHERE idUsuarios = ? AND proyecto = ?";
-            $stmt = $conn->prepare($query);
-            if ($stmt === false) {
-                die("Error en la preparación: " . $conn->error);
-            }
-            $stmt->bind_param("is", $id_cyc, $proyecto);
-            $stmt->execute();
-
-            $queryGetUser = "SELECT nombre_usuario, correo_usuario, idUsuarios FROM usuarios WHERE idUsuarios = ? AND proyecto = ?";
-            $stmtGetUser = $conn->prepare($queryGetUser);
-            $stmtGetUser->bind_param("is", $id_cyc, $proyecto);
-            $stmtGetUser->execute();
-            $resultUser = $stmtGetUser->get_result();
-            $userData = $resultUser->fetch_assoc();
-
-            $descripcion = 'Eliminó el usuario ' . $userData['nombre_usuario'] . ' con correo: ' .  $userData['correo_usuario'] . ' ID: ' . $userData['idUsuarios'];
-
-            $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) VALUES (NOW(), ?, ?, ?, ?)";
-            $stmtLog = $conn->prepare($queryLog);
-            $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario_login, $descripcion, $proyecto);
-            $stmtLog->execute();
-
-            echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                  <script type='text/javascript'>
-                    window.onload = function() {
-                        Swal.fire({
-                            title: 'Éxito',
-                            text: 'El usuario se eliminó correctamente.',
-                            icon: 'success',
-                            confirmButtonText: 'Aceptar'
-                        }).then(function() {
-                            window.location.href = '../Views/usuarios.php';
-                        });
-                    }
-                  </script>";
-
-            $stmt->close();
-            $stmtGetUser->close();
-            $stmtLog->close();
-
-        } catch (Exception $e) {
-            echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-                  <script type='text/javascript'>
-                    window.onload = function() {
-                        Swal.fire({
-                            title: 'Error',
-                            text: 'No se pudo eliminar el usuario',
-                            icon: 'error',
-                            confirmButtonText: 'Aceptar'
-                        }).then(function() {
-                            window.location.href = '../Views/usuarios.php';
-                        });
-                    }
-                  </script>";
+    $id_cyc = $_GET['id'];
+    try {
+        // Primero, desactivar el usuario
+        $query = "UPDATE usuarios SET status = 0 WHERE idUsuarios = ? AND proyecto = ?";
+        $stmt = $conn->prepare($query);
+        if ($stmt === false) {
+            throw new Exception("Error en la preparación: " . $conn->error);
         }
-        break;
+        $stmt->bind_param("is", $id_cyc, $proyecto);
+        $stmt->execute();
+
+        // Luego, obtener los datos del usuario
+        $queryGetUser = "SELECT nombre_usuario, correo_usuario, idUsuarios FROM usuarios WHERE idUsuarios = ? AND proyecto = ?";
+        $stmtGetUser = $conn->prepare($queryGetUser);
+        if ($stmtGetUser === false) {
+            throw new Exception("Error en la preparación: " . $conn->error);
+        }
+        $stmtGetUser->bind_param("is", $id_cyc, $proyecto);
+        $stmtGetUser->execute();
+        $resultUser = $stmtGetUser->get_result();
+        $userData = $resultUser->fetch_assoc();
+
+        if ($userData) {
+            $descripcion = 'Eliminó el usuario ' . $userData['nombre_usuario'] . 
+                           ' con correo: ' . $userData['correo_usuario'] . 
+                           ' ID: ' . $userData['idUsuarios'];
+        } else {
+            $descripcion = "Intentó eliminar un usuario que no existe o no pertenece al proyecto.";
+        }
+
+        // Guardar log
+        $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) VALUES (NOW(), ?, ?, ?, ?)";
+        $stmtLog = $conn->prepare($queryLog);
+        if ($stmtLog === false) {
+            throw new Exception("Error en la preparación: " . $conn->error);
+        }
+        $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario_login, $descripcion, $proyecto);
+        $stmtLog->execute();
+
+        // Mostrar mensaje de éxito
+        echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+              <script type='text/javascript'>
+                window.onload = function() {
+                    Swal.fire({
+                        title: 'Éxito',
+                        text: 'El usuario se eliminó correctamente.',
+                        icon: 'success',
+                        confirmButtonText: 'Aceptar'
+                    }).then(function() {
+                        window.location.href = '../Views/usuarios.php';
+                    });
+                }
+              </script>";
+
+        // Cerrar statements
+        $stmt->close();
+        $stmtGetUser->close();
+        $stmtLog->close();
+
+    } catch (Exception $e) {
+        // Mostrar mensaje de error
+        echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+              <script type='text/javascript'>
+                window.onload = function() {
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'No se pudo eliminar el usuario. Error: " . addslashes($e->getMessage()) . "',
+                        icon: 'error',
+                        confirmButtonText: 'Aceptar'
+                    }).then(function() {
+                        window.location.href = '../Views/usuarios.php';
+                    });
+                }
+              </script>";
+    }
+    break;
 
     case 5:
         $id_cyc         = $_GET['id'];
