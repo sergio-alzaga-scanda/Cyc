@@ -192,33 +192,32 @@ switch ($accion) {
 
     try {
         $query = "
-            UPDATE usuarios
-            SET 
-                nombre_usuario   = ?,
-                correo_usuario   = ?,
-                puesto_usuario   = ?,
-                telefono_usuario = ?,
-                perfil_usuario   = ?,
-                status           = ?,
-                pass             = ?,
-                proyecto         = ?
-            WHERE idUsuarios = ? AND proyecto = ?;
-        ";
+    UPDATE usuarios
+    SET 
+        nombre_usuario   = ?,
+        correo_usuario   = ?,
+        puesto_usuario   = ?,
+        telefono_usuario = ?,
+        perfil_usuario   = ?,
+        status           = ?,
+        pass             = ?,
+        proyecto         = ?
+    WHERE idUsuarios = ?;
+";
 
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param(
-            "sssssisiss",
-            $nombreUsuario,
-            $correoUsuario,
-            $puestoUsuario,
-            $telefonoUsuario,
-            $perfilUsuario,
-            $status,
-            $passwordHash,
-            $proyectoUsuario,  // NUEVO
-            $idUsuario,
-            $proyecto
-        );
+$stmt = $conn->prepare($query);
+$stmt->bind_param(
+    "sssssisii",
+    $nombreUsuario,
+    $correoUsuario,
+    $puestoUsuario,
+    $telefonoUsuario,
+    $perfilUsuario,
+    $status,
+    $passwordHash,
+    $proyectoUsuario,  // proyecto nuevo
+    $idUsuario         // filtra solo por ID
+);
 
         $stmt->execute();
 
