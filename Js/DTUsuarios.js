@@ -107,11 +107,12 @@ $(document).ready(function () {
   );
 });
 
-// Función para cargar los datos en el formulario de edición
 function cargarDatosUsuario(usuarioData) {
+  const proyectoSelect = document.querySelector("#edit_proyecto_usuario");
+
+  // Asignar valores a los inputs
   document.querySelector("#accion").value = "3";
   document.querySelector("#edit_id_usuario").value = usuarioData.idUsuarios;
-
   document.querySelector("#edit_nombre_usuario").value =
     usuarioData.nombre_usuario || "";
   document.querySelector("#edit_correo_usuario").value =
@@ -123,8 +124,24 @@ function cargarDatosUsuario(usuarioData) {
   document.querySelector("#edit_perfil_usuario").value =
     usuarioData.perfil_usuario || "";
   document.querySelector("#edit_status").value = usuarioData.status || "1";
-  document.querySelector("#edit_proyecto_usuario").value =
-    usuarioData.proyecto || ""; // id_proyecto
+
+  // Seleccionar proyecto
+  if (usuarioData.proyecto) {
+    let found = false;
+    for (let option of proyectoSelect.options) {
+      if (option.value == usuarioData.proyecto) {
+        // compara string o número
+        option.selected = true;
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      proyectoSelect.selectedIndex = 0; // opción por defecto
+    }
+  } else {
+    proyectoSelect.selectedIndex = 0; // opción por defecto
+  }
 }
 
 // Función para eliminar un usuario

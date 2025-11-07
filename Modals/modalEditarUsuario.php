@@ -40,15 +40,15 @@
           </div>
           <!-- Proyecto -->
           <div class="mb-3">
-            <select class="form-select form-input" required name="proyecto_usuario" id="edit_proyecto_usuario">
-              <option selected disabled class="d-none">Selecciona un proyecto</option>
-              <?php
-                foreach ($proyectos as $row) {
-                    echo '<option value="' . $row['id_proyecto'] . '">' . $row['nombre_proyecto'] . '</option>';
-                }
-              ?>
-            </select>
-          </div>
+  <select class="form-select form-input" required name="proyecto_usuario" id="edit_proyecto_usuario">
+    <option value="" selected disabled>Selecciona un proyecto</option>
+    <?php
+      foreach ($proyectos as $row) {
+          echo '<option value="' . $row['id_proyecto'] . '">' . $row['nombre_proyecto'] . '</option>';
+      }
+    ?>
+  </select>
+</div>
           <!-- Contraseña (opcional) -->
           <div class="mb-3">
             <input type="password" name="password_usuario" id="edit_password_usuario" class="form-control form-input" placeholder="Contraseña (opcional)">
