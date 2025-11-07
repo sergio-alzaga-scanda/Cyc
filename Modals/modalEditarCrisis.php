@@ -222,6 +222,35 @@
 
 </style>
 <script>
+
+document.getElementById('edit_proyecto').addEventListener('change', function() {
+    const proyectoId = this.value;
+    const ubicacionSelect = document.getElementById('ubicacion_edit');
+    ubicacionSelect.innerHTML = '<option value="">Seleccione una opción</option>';
+
+    if (!proyectoId) return;
+
+    fetch(`../Controllers/getUbicaciones.php?proyecto=${encodeURIComponent(proyectoId)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.length > 0) {
+                data.forEach(ubic => {
+                    const option = document.createElement('option');
+                    option.value = ubic.id_ubicacion_ivr;
+                    option.textContent = ubic.nombre_ubicacion_ivr;
+                    ubicacionSelect.appendChild(option);
+                });
+            } else {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'No hay ubicaciones disponibles';
+                ubicacionSelect.appendChild(option);
+            }
+        })
+        .catch(error => console.error('Error al obtener ubicaciones:', error));
+});
+
+
 $(document).on('click', '.btn-warning', function () {
     var crisisId = $(this).data('id');
     console.log('ID de crisis a editar:', crisisId);
