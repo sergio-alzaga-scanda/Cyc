@@ -269,22 +269,14 @@ switch ($accion) {
         break;
 
     case 4:
-    $id_cyc = $_GET['id'];
-    try {
-        // Primero, desactivar el usuario
-        $query = "UPDATE usuarios SET status = 0 WHERE idUsuarios = ? AND proyecto = ?";
-        $stmt = $conn->prepare($query);
-        if ($stmt === false) {
-            throw new Exception("Error en la preparación: " . $conn->error);
-        }
-        $stmt->bind_param("is", $id_cyc, $proyecto);
-        $stmt->execute();
+    $id_cyc = $_GET['id']; // ID del usuario a eliminar
 
-        // Luego, obtener los datos del usuario
+    try {
+        // 1️⃣ Obtener datos del usuario primero
         $queryGetUser = "SELECT nombre_usuario, correo_usuario, idUsuarios FROM usuarios WHERE idUsuarios = ? AND proyecto = ?";
         $stmtGetUser = $conn->prepare($queryGetUser);
         if ($stmtGetUser === false) {
-            throw new Exception("Error en la preparación: " . $conn->error);
+            throw new Exception("Error en la preparación de la consulta de usuario: " . $conn->error);
         }
         $stmtGetUser->bind_param("is", $id_cyc, $proyecto);
         $stmtGetUser->execute();
@@ -292,29 +284,45 @@ switch ($accion) {
         $userData = $resultUser->fetch_assoc();
 
         if ($userData) {
-            $descripcion = 'Eliminó el usuario ' . $userData['nombre_usuario'] . 
-                           ' con correo: ' . $userData['correo_usuario'] . 
+            // 2️⃣ Usuario existe, desactivarlo
+            $queryUpdate = "UPDATE usuarios SET status = 0 WHERE idUsuarios = ? AND proyecto = ?";
+            $stmtUpdate = $conn->prepare($queryUpdate);
+            if ($stmtUpdate === false) {
+                throw new Exception("Error en la preparación de la actualización: " . $conn->error);
+            }
+            $stmtUpdate->bind_param("is", $id_cyc, $proyecto);
+            $stmtUpdate->execute();
+
+            // 3️⃣ Preparar descripción del log
+            $descripcion = 'Eliminó el usuario ' . $userData['nombre_usuario'] .
+                           ' con correo: ' . $userData['correo_usuario'] .
                            ' ID: ' . $userData['idUsuarios'];
+
+            $stmtUpdate->close();
         } else {
+            // Usuario no encontrado
             $descripcion = "Intentó eliminar un usuario que no existe o no pertenece al proyecto.";
         }
 
-        // Guardar log
+        $stmtGetUser->close();
+
+        // 4️⃣ Guardar log
         $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) VALUES (NOW(), ?, ?, ?, ?)";
         $stmtLog = $conn->prepare($queryLog);
         if ($stmtLog === false) {
-            throw new Exception("Error en la preparación: " . $conn->error);
+            throw new Exception("Error en la preparación del log: " . $conn->error);
         }
         $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario_login, $descripcion, $proyecto);
         $stmtLog->execute();
+        $stmtLog->close();
 
-        // Mostrar mensaje de éxito
+        // 5️⃣ Mostrar mensaje de éxito (aunque el usuario no exista, el log lo registra)
         echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
               <script type='text/javascript'>
                 window.onload = function() {
                     Swal.fire({
                         title: 'Éxito',
-                        text: 'El usuario se eliminó correctamente.',
+                        text: 'El proceso se completó correctamente.',
                         icon: 'success',
                         confirmButtonText: 'Aceptar'
                     }).then(function() {
@@ -323,19 +331,14 @@ switch ($accion) {
                 }
               </script>";
 
-        // Cerrar statements
-        $stmt->close();
-        $stmtGetUser->close();
-        $stmtLog->close();
-
     } catch (Exception $e) {
-        // Mostrar mensaje de error
+        // Mensaje de error si algo falla
         echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
               <script type='text/javascript'>
                 window.onload = function() {
                     Swal.fire({
                         title: 'Error',
-                        text: 'No se pudo eliminar el usuario. Error: " . addslashes($e->getMessage()) . "',
+                        text: 'No se pudo completar la acción. Error: " . addslashes($e->getMessage()) . "',
                         icon: 'error',
                         confirmButtonText: 'Aceptar'
                     }).then(function() {
