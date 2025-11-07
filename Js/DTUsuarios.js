@@ -125,7 +125,7 @@ function cargarDatosUsuario(usuarioData) {
   document.querySelector("#edit_status").value = usuarioData.status || "1";
 
   document.querySelector("#edit_proyecto_usuario").value =
-    usuarioData.id_proyecto || "";
+    usuarioData.proyecto || "";
 }
 
 // Función para eliminar un usuario
