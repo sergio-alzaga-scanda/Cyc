@@ -25,7 +25,8 @@ $(document).ready(function () {
                 data-perfil="${item.perfil_usuario}"
                 data-telefono="${item.telefono_usuario}"
                 data-status="${item.status}"
-                data-proyecto="${item.id_proyecto}" 
+                data-proyecto="${item.id_proyecto}"
+                data-proyecto="${item.nombre_proyecto}"  
                 style="background: transparent; border: none;">
                 <img src="../iconos/edit.png" alt="Editar" style="width: 20px; height: 20px;">
               </button>
@@ -101,6 +102,7 @@ $(document).ready(function () {
         telefono_usuario: $(this).data("telefono"),
         status: $(this).data("status"),
         id_proyecto: $(this).data("id_proyecto"), // id_proyecto
+        nombre_proyecto: $(this).data("nombre_proyecto"), //nombre_proyecto
       };
 
       cargarDatosUsuario(usuarioData);
@@ -125,8 +127,11 @@ function cargarDatosUsuario(usuarioData) {
     usuarioData.perfil_usuario || "";
   document.querySelector("#edit_status").value = usuarioData.status || "1";
 
-  document.querySelector("#edit_proyecto_usuario").value =
+  document.querySelector("#edit_proyecto_usuario2").value =
     usuarioData.id_proyecto || "";
+
+  document.querySelector("#edit_proyecto_usuario").value =
+    usuarioData.nombre_proyecto || "";
 }
 
 // Función para eliminar un usuario
