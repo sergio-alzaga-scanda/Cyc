@@ -101,68 +101,70 @@ switch ($accion) {
     break;
 
     case 2:
-        $DtosTbl = array();
+    $DtosTbl = array();
 
-        try {
-            $queryTbl = "
-            SELECT 
-                u.idUsuarios,
-                u.nombre_usuario,
-                u.correo_usuario,
-                u.pass,
-                u.perfil_usuario,
-                u.puesto_usuario,
-                u.telefono_usuario,
-                u.status,
-                u.fecha_creacion,
-                p.nombre_perfil
-            FROM 
-                usuarios AS u
-            JOIN 
-                perfil AS p ON u.perfil_usuario = p.id_Perfil
-            WHERE 
-                u.status > 0 
-            ORDER BY 
-                u.fecha_creacion DESC;
-            ";
+    try {
+        $queryTbl = "
+        SELECT 
+            u.idUsuarios,
+            u.nombre_usuario,
+            u.correo_usuario,
+            u.pass,
+            u.perfil_usuario,
+            u.puesto_usuario,
+            u.telefono_usuario,
+            u.status,
+            u.fecha_creacion,
+            p.nombre_perfil
+        FROM 
+            usuarios AS u
+        JOIN 
+            perfil AS p ON u.perfil_usuario = p.id_Perfil
+        ORDER BY 
+            u.fecha_creacion DESC;
+        ";
 
-            $stmt = $conn->prepare($queryTbl);
-            if ($stmt === false) {
-                die("Error en la preparación: " . $conn->error);
-            }
-            $stmt->bind_param("s", $proyecto);
-            $stmt->execute();
-
-            $result = $stmt->get_result();
-
-            while ($rowTbl = $result->fetch_assoc()) {
-                if ($rowTbl['fecha_creacion']) {
-                    $fechaSinMilisegundos = substr($rowTbl['fecha_creacion'], 0, 19);
-                    $date = DateTime::createFromFormat('Y-m-d H:i:s', $fechaSinMilisegundos);
-                    $rowTbl['fecha_creacion'] = $date ? $date->format('d-m-Y H:i') : 'Fecha inválida';
-                }
-                $DtosTbl[] = array(
-                    'idUsuarios'       => $rowTbl['idUsuarios'],
-                    'nombre_usuario'   => $rowTbl['nombre_usuario'],
-                    'correo_usuario'   => $rowTbl['correo_usuario'],
-                    'puesto_usuario'   => $rowTbl['puesto_usuario'],
-                    'pass'             => $rowTbl['pass'],
-                    'telefono_usuario' => $rowTbl['telefono_usuario'],
-                    'nombre_perfil'    => $rowTbl['nombre_perfil'],
-                    'perfil_usuario'   => $rowTbl['perfil_usuario'],
-                    'status'           => $rowTbl['status']
-                );
-            }
-
-            header('Content-Type: application/json');
-            echo json_encode($DtosTbl);
-
-            $stmt->close();
-
-        } catch (Exception $e) {
-            echo json_encode(['error' => $e->getMessage()]);
+        $stmt = $conn->prepare($queryTbl);
+        if ($stmt === false) {
+            die("Error en la preparación: " . $conn->error);
         }
-        break;
+
+        // No hay parámetros que enlazar porque ya no hay WHERE
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        while ($rowTbl = $result->fetch_assoc()) {
+            if ($rowTbl['fecha_creacion']) {
+                $fechaSinMilisegundos = substr($rowTbl['fecha_creacion'], 0, 19);
+                $date = DateTime::createFromFormat('Y-m-d H:i:s', $fechaSinMilisegundos);
+                $rowTbl['fecha_creacion'] = $date ? $date->format('d-m-Y H:i') : 'Fecha inválida';
+            }
+
+            $DtosTbl[] = array(
+                'idUsuarios'       => $rowTbl['idUsuarios'],
+                'nombre_usuario'   => $rowTbl['nombre_usuario'],
+                'correo_usuario'   => $rowTbl['correo_usuario'],
+                'puesto_usuario'   => $rowTbl['puesto_usuario'],
+                'pass'             => $rowTbl['pass'],
+                'telefono_usuario' => $rowTbl['telefono_usuario'],
+                'nombre_perfil'    => $rowTbl['nombre_perfil'],
+                'perfil_usuario'   => $rowTbl['perfil_usuario'],
+                'status'           => $rowTbl['status'],
+                'fecha_creacion'   => $rowTbl['fecha_creacion']
+            );
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode($DtosTbl);
+
+        $stmt->close();
+
+    } catch (Exception $e) {
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+    break;
+
 
     case 3:
         $idUsuario       = $_POST['id_usuario'];
