@@ -269,7 +269,7 @@ document.getElementById('proyecto').addEventListener('change', function() {
 
     if (!proyectoId) return;
 
-    fetch(`getUbicaciones.php?proyecto=${encodeURIComponent(proyectoId)}`)
+    fetch(`../Controllers/getUbicaciones.php?proyecto=${encodeURIComponent(proyectoId)}`)
         .then(response => response.json())
         .then(data => {
             if (data.length > 0) {

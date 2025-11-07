@@ -10,7 +10,7 @@ if (!isset($_GET['proyecto'])) {
 
 $proyecto_id = $_GET['proyecto'];
 
-$stmt = $conn->prepare("SELECT id_ubicacion_ivr, nombre_ubicacion_ivr FROM ubicacion_ivr WHERE status >= 1 AND proyecto = ?");
+$stmt = $conn->prepare("SELECT id_ubicacion_ivr, nombre_ubicacion_ivr FROM ubicacion_ivr WHERE status > 0 AND proyecto = ?");
 if (!$stmt) {
     echo json_encode(['error' => 'Error en prepare: ' . $conn->error]);
     exit;
