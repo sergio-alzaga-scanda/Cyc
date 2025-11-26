@@ -215,13 +215,14 @@ case 1: // Crear o registrar un ticket
 
     case 4: // Editar ticket
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        $fecha = $_POST['fecha_programacion'] ?? null;
-        
+
+        /* --------------------- FECHA --------------------- */
+        $fecha = $_POST['fecha_programacion_2'] ?? null;
+
         if ($fecha) {
             $status = 3;
-            $fecha_string = trim($fecha);
             try {
-                $fecha_obj = new DateTime($fecha_string);
+                $fecha_obj = new DateTime(trim($fecha));
                 $fecha_programacion = $fecha_obj->format('Y-m-d H:i:s');
             } catch (Exception $e) {
                 echo "Error al procesar la fecha: " . $e->getMessage();
@@ -232,23 +233,31 @@ case 1: // Crear o registrar un ticket
             $fecha_programacion = null;
         }
 
-        $id_cyc              = $_POST['id'] ?? 0;
-        $no_ticket           = $_POST['no_ticket'] ?? '';
-        $nombre              = $_POST['nombre'] ?? '';
-        $criticidad          = $_POST['criticidad'] ?? '';
-        $tipo                = $_POST['tipo'] ?? '';
-        $ubicacion           = $_POST['ubicacion'] ?? '';
-        $ivr_texto           = $_POST['ivr'] ?? '';
-        $redaccion_canales   = $_POST['redaccion_canales'] ?? '';
-        $canales             = $_POST['canal'] ?? [];
-        $bots                = $_POST['bot'] ?? [];
-        $canal_digital_texto = $_POST['canal-digital-texto'] ?? '';
+
+        /* --------------------- CAMPOS POST --------------------- */
+        $id_cyc            = $_POST['id'] ?? 0;
+        $no_ticket         = $_POST['no_ticket'] ?? '';
+        $nombre            = $_POST['nombre'] ?? '';
+        $criticidad        = $_POST['categoria_edit'] ?? '';
+        $tipo              = $_POST['tipo_edit'] ?? '';
+        $ubicacion         = $_POST['ubicacion_edit'] ?? '';
+        $ivr_texto         = $_POST['ivr_edit'] ?? '';
+        $proyecto          = $_POST['edit_proyecto'] ?? 0;
+
+        // Canal digital
+        $redaccion_canales = $_POST['redaccion_canales_edit'] ?? '';
+        $canales           = $_POST['canal_edit'] ?? [];
+        $bots              = $_POST['bot_edit'] ?? [];
+        $canal_digital_txt = $_POST['redaccion_canales_edit'] ?? '';
+
         $canales_json = json_encode($canales);
         $bots_json    = json_encode($bots);
 
-        // 🔹 Limpiar saltos de línea de redaccion_canales
+        // Limpieza
         $redaccion_canales = preg_replace("/[\r\n]+/", " ", trim($redaccion_canales));
 
+
+        /* --------------------- QUERY --------------------- */
         $query = "UPDATE cyc 
                     SET nombre = ?, 
                         no_ticket = ?, 
@@ -262,15 +271,15 @@ case 1: // Crear o registrar un ticket
                         status_cyc = ?, 
                         fecha_programacion = ?, 
                         id_usuario = ?, 
-                        redaccion_canales = ? 
-                  WHERE id_cyc = ? AND proyecto = ?";
+                        redaccion_canales = ?, 
+                        proyecto = ?
+                  WHERE id_cyc = ?";
+
 
         if ($stmt = $conn->prepare($query)) {
 
-            // --- LÍNEA CORREGIDA ---
-            // Se mantiene 's' para la fecha, ya que es un string
             $stmt->bind_param(
-                "ssiiisssssssssi",
+                "ssiiissssssssii",
                 $nombre,
                 $no_ticket,
                 $criticidad,
@@ -279,18 +288,21 @@ case 1: // Crear o registrar un ticket
                 $ivr_texto,
                 $canales_json,
                 $bots_json,
-                $canal_digital_texto,
+                $canal_digital_txt,
                 $status,
                 $fecha_programacion,
                 $id_usuario,
                 $redaccion_canales,
-                $id_cyc,
-                $proyecto
+                $proyecto,   // ← ahora se actualiza correctamente
+                $id_cyc
             );
-            
+
             if ($stmt->execute()) {
+
+                /* -------- REGISTRO DE LOG -------- */
                 $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto) 
                              VALUES (NOW(), ?, ?, ?, ?)";
+
                 if ($stmtLog = $conn->prepare($queryLog)) {
                     $descripcion = 'El ticket se ha actualizado correctamente, número de ticket: ' . $no_ticket;
                     $stmtLog->bind_param("isss", $id_usuario, $nombre_usuario, $descripcion, $proyecto);
@@ -312,6 +324,7 @@ case 1: // Crear o registrar un ticket
             } else {
                 throw new mysqli_sql_exception($stmt->error, $stmt->errno);
             }
+
             $stmt->close();
         } else {
             echo "Error en la preparación de la consulta: " . $conn->error;
