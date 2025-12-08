@@ -210,7 +210,7 @@ case 1: // Crear o registrar un ticket
     case 3: // Obtener datos de un ticket para editar
         $id_cyc = $_POST['id_cyc'] ?? $_POST['id'] ?? 0;
         $proyecto = $_SESSION['proyecto'] ?? $_POST['proyecto'] ?? null;
-        $query = "SELECT c.*, cc.nombre_crisis, ui.nombre_ubicacion_ivr, p.nombre_proyecto FROM cyc AS c LEFT JOIN cat_crisis AS cc ON c.categoria_cyc = cc.id LEFT JOIN ubicacion_ivr AS ui ON c.ubicacion_cyc = ui.id_ubicacion_ivr LEFT JOIN cat_proyectos AS p ON c.proyecto = p.id_proyecto WHERE c.id_cyc = ? AND c.proyecto = ? LIMIT 1";
+        $query = "SELECT c.*, cc.nombre_crisis, ui.nombre_ubicacion_ivr, p.nombre_proyecto FROM cyc AS c LEFT JOIN cat_crisis AS cc ON c.categoria_cyc = cc.id LEFT JOIN ubicacion_ivr AS ui ON c.ubicacion_cyc = ui.id_ubicacion_ivr LEFT JOIN cat_proyectos AS p ON c.proyecto = p.id_proyecto WHERE c.id_cyc = ?  LIMIT 1";
         if ($stmt = $conn->prepare($query)) {
             $stmt->bind_param("is", $id_cyc, $proyecto);
             $stmt->execute();
@@ -394,7 +394,7 @@ case 1: // Crear o registrar un ticket
                     $stmtUpdate->bind_param("ii", $nuevoStatus, $id);
                     if ($stmtUpdate->execute()) {
                         $stmtUpdate->close();
-                        header("Location: ../views/cyc.php?msg=Estado actualizado");
+                        header("Location: ../Views/cyc.php?msg=Estado actualizado");
                         exit;
                     } else {
                         echo "Error al actualizar el estado: " . $stmtUpdate->error;
