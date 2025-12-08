@@ -179,7 +179,7 @@ function deleteCyc(id) {
       });
 
       // IMPORTANTE: ahora apunta a cyc.php
-      window.location.href = `../Controllers/cyc.php?accion=5&id=${id}`;
+      window.location.href = `../Controllers/crisis.php?accion=5&id=${id}`;
     }
   });
 }
