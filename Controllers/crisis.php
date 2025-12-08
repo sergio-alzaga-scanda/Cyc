@@ -366,35 +366,51 @@ case 1: // Crear o registrar un ticket
         exit;
         break;
 
-    case 6: // Alternar estado (activo <-> programado)
-        $id_cyc = $_GET['id'] ?? 0;
-        if ($id_cyc > 0) {
-            $queryStatus = "SELECT status_cyc FROM cyc WHERE id_cyc = ? AND proyecto = ?";
-            if ($stmtStatus = $conn->prepare($queryStatus)) {
-                $stmtStatus->bind_param("is", $id_cyc, $proyecto);
-                $stmtStatus->execute();
-                $stmtStatus->bind_result($statusActual);
-                $stmtStatus->fetch();
-                $stmtStatus->close();
+    case 6:
+    if (isset($_GET['id'])) {
+        $id = intval($_GET['id']);
 
-                if ($statusActual !== null) {
-                    $nuevoStatus = ($statusActual == 1) ? 3 : 1; 
-                    $accionVerbo = ($statusActual == 1) ? "programado" : "activado";
+        // Obtenemos el status actual
+        $sqlSelect = "SELECT status_cyc FROM cyc WHERE id_cyc = ?";
+        if ($stmt = $conn->prepare($sqlSelect)) {
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
+            $stmt->bind_result($statusActual);
+            if ($stmt->fetch()) {
+                $stmt->close();
 
-                    $queryUpdate = "UPDATE cyc SET status_cyc = ? WHERE id_cyc = ? AND proyecto = ?";
-                    if ($stmtUpdate = $conn->prepare($queryUpdate)) {
-                        $stmtUpdate->bind_param("iis", $nuevoStatus, $id_cyc, $proyecto);
-                        if ($stmtUpdate->execute()) {
-                            // Log
-                        }
+                // Invertimos entre 1 y 2
+                if ($statusActual == 1) {
+                    $nuevoStatus = 2;
+                } elseif ($statusActual == 2) {
+                    $nuevoStatus = 1;
+                } else {
+                    $nuevoStatus = $statusActual; // otros valores no cambian
+                }
+
+                // Actualizamos en la DB
+                $sqlUpdate = "UPDATE cyc SET status_cyc = ? WHERE id_cyc = ?";
+                if ($stmtUpdate = $conn->prepare($sqlUpdate)) {
+                    $stmtUpdate->bind_param("ii", $nuevoStatus, $id);
+                    if ($stmtUpdate->execute()) {
                         $stmtUpdate->close();
+                        header("Location: ../views/cyc.php?msg=Estado actualizado");
+                        exit;
+                    } else {
+                        echo "Error al actualizar el estado: " . $stmtUpdate->error;
                     }
                 }
+            } else {
+                echo "Registro no encontrado";
             }
+        } else {
+            echo "Error en la consulta: " . $conn->error;
         }
-        header("Location: ../Views/cyc.php");
-        exit;
-        break;
+    } else {
+        echo "ID no especificado";
+    }
+    break;
+
 
     default:
         echo "Acción no reconocida.";
