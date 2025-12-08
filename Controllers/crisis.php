@@ -379,9 +379,10 @@ case 1: // Crear o registrar un ticket
         }
 
         // 🔵 AGREGADO — Esperar antes de redirigir (2 segundos)
-        sleep(20);
+        
 
         header("Location: ../Views/cyc.php");
+        sleep(20);
         exit;
 
     break;
