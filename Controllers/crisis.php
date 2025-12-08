@@ -152,43 +152,60 @@ case 1: // Crear o registrar un ticket
 
 
     case 2: // Obtener tabla de tickets
-        $DtosTbl = [];
-        $queryTbl = "
-            SELECT 
-                c.id_cyc, c.no_ticket, c.status_cyc, cc.nombre_crisis AS categoria_nombre,
-                CASE WHEN c.tipo_cyc = 1 THEN 'Crisis' WHEN c.tipo_cyc = 2 THEN 'Contingencia' ELSE 'Desconocido' END AS tipo_cyc,
-                c.ubicacion_cyc, ui.nombre_ubicacion_ivr AS nombre_ubicacion,
-                CASE 
-                    WHEN c.status_cyc = 3 AND c.fecha_programacion IS NOT NULL THEN c.fecha_programacion
-                    ELSE c.fecha_registro_cyc
-                END AS fecha_activacion,
-                p.nombre_proyecto
-            FROM cyc AS c
-            JOIN cat_crisis AS cc ON c.categoria_cyc = cc.id
-            LEFT JOIN ubicacion_ivr AS ui ON c.ubicacion_cyc = ui.id_ubicacion_ivr
-            LEFT JOIN cat_proyectos AS p ON c.proyecto = p.id_proyecto
-            WHERE c.status_cyc > 0 AND c.proyecto = ?
-            ORDER BY c.fecha_registro_cyc DESC;
-        ";
+    $DtosTbl = [];
 
-        if ($stmt = $conn->prepare($queryTbl)) {
-            $stmt->bind_param("s", $proyecto);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            while ($rowTbl = $result->fetch_assoc()) {
-                if ($rowTbl['fecha_activacion']) {
-                    $date = DateTime::createFromFormat('Y-m-d H:i:s', substr($rowTbl['fecha_activacion'], 0, 19));
-                    $rowTbl['fecha_activacion'] = $date ? $date->format('d-m-Y H:i') : 'Fecha inválida';
-                }
-                $DtosTbl[] = $rowTbl;
-            }
-            $stmt->close();
-            header('Content-Type: application/json');
-            echo json_encode($DtosTbl);
-        } else {
-            echo json_encode(['error' => $conn->error]);
+    // Condición para filtrar tickets según perfil
+    $filtroUsuario = '';
+    $parametros = [];
+    $tipos = '';
+
+    if ($_SESSION['perfil'] != 1) { // Si NO es administrador
+        $filtroUsuario = ' AND c.id_usuario = ? ';
+        $parametros[] = $_SESSION['usuario'];
+        $tipos .= 'i';
+    }
+
+    $queryTbl = "
+        SELECT 
+            c.id_cyc, c.no_ticket, c.status_cyc, cc.nombre_crisis AS categoria_nombre,
+            CASE WHEN c.tipo_cyc = 1 THEN 'Crisis' WHEN c.tipo_cyc = 2 THEN 'Contingencia' ELSE 'Desconocido' END AS tipo_cyc,
+            c.ubicacion_cyc, ui.nombre_ubicacion_ivr AS nombre_ubicacion,
+            CASE 
+                WHEN c.status_cyc = 3 AND c.fecha_programacion IS NOT NULL THEN c.fecha_programacion
+                ELSE c.fecha_registro_cyc
+            END AS fecha_activacion,
+            p.nombre_proyecto
+        FROM cyc AS c
+        JOIN cat_crisis AS cc ON c.categoria_cyc = cc.id
+        LEFT JOIN ubicacion_ivr AS ui ON c.ubicacion_cyc = ui.id_ubicacion_ivr
+        LEFT JOIN cat_proyectos AS p ON c.proyecto = p.id_proyecto
+        WHERE c.status_cyc > 0 $filtroUsuario
+        ORDER BY c.fecha_registro_cyc DESC
+    ";
+
+    if ($stmt = $conn->prepare($queryTbl)) {
+        // Bind solo si hay filtro
+        if (!empty($parametros)) {
+            $stmt->bind_param($tipos, ...$parametros);
         }
-        break;
+
+        $stmt->execute();
+        $result = $stmt->get_result();
+        while ($rowTbl = $result->fetch_assoc()) {
+            if ($rowTbl['fecha_activacion']) {
+                $date = DateTime::createFromFormat('Y-m-d H:i:s', substr($rowTbl['fecha_activacion'], 0, 19));
+                $rowTbl['fecha_activacion'] = $date ? $date->format('d-m-Y H:i') : 'Fecha inválida';
+            }
+            $DtosTbl[] = $rowTbl;
+        }
+        $stmt->close();
+        header('Content-Type: application/json');
+        echo json_encode($DtosTbl);
+    } else {
+        echo json_encode(['error' => $conn->error]);
+    }
+    break;
+
 
     case 3: // Obtener datos de un ticket para editar
         $id_cyc = $_POST['id_cyc'] ?? $_POST['id'] ?? 0;
