@@ -58,6 +58,7 @@ case 1: // Crear o registrar un ticket
         $canales             = $_POST['canal'] ?? [];
         $bots                = $_POST['bot'] ?? [];
         $canal_digital_texto = $_POST['canal-digital-texto'] ?? '';
+        $proyecto_nuevo = $_POST['proyecto'] ?? '';
         $canales_json        = json_encode($canales);
         $bots_json           = json_encode($bots);
 
@@ -67,7 +68,7 @@ case 1: // Crear o registrar un ticket
         $query_check = "SELECT COUNT(*) FROM cyc WHERE no_ticket = ? AND status_cyc IN (1, 3) AND proyecto = ?";
 
         if ($stmt_check = $conn->prepare($query_check)) {
-            $stmt_check->bind_param("ss", $no_ticket, $proyecto);
+            $stmt_check->bind_param("ss", $no_ticket, $proyecto_nuevo);
             $stmt_check->execute();
             $stmt_check->bind_result($ticket_exists);
             $stmt_check->fetch();
@@ -110,7 +111,7 @@ case 1: // Crear o registrar un ticket
                         $fecha_programacion,
                         $id_usuario,
                         $redaccion_canales,
-                        $proyecto
+                        $proyecto_nuevo
                     );
 
                     if ($stmt->execute()) {
