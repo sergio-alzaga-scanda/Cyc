@@ -351,21 +351,39 @@ case 1: // Crear o registrar un ticket
     break;
 
 
-    case 5: // Eliminar ticket
-        $id_cyc = $_GET['id'] ?? 0;
-        if ($id_cyc > 0) {
-            $query = "UPDATE cyc SET status_cyc = 0 WHERE id_cyc = ? AND proyecto = ?";
-            if ($stmt = $conn->prepare($query)) {
-                $stmt->bind_param("is", $id_cyc, $proyecto);
-                if ($stmt->execute()) {
-                    // Log
-                }
-                $stmt->close();
-            }
+    case 5:
+
+        $id_cyc = isset($_GET['id']) ? intval($_GET['id']) : 0;
+
+        if ($id_cyc <= 0) {
+            echo "ID inválido";
+            exit;
         }
+
+        
+        $query = "UPDATE cyc SET status_cyc = 0 WHERE id_cyc = ? AND proyecto = ?";
+
+        if ($stmt = $conn->prepare($query)) {
+
+            $stmt->bind_param("is", $id_cyc, $proyecto);
+
+            if (!$stmt->execute()) {
+                echo "Error al ejecutar update: " . $stmt->error;
+                exit;
+            }
+
+            $stmt->close();
+
+        } else {
+            echo "Error en prepare: " . $conn->error;
+            exit;
+        }
+
+        // REDIRECCIÓN
         header("Location: ../Views/cyc.php");
         exit;
-        break;
+
+    break;
 
     case 6:
     if (isset($_GET['id'])) {
