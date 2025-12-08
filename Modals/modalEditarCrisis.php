@@ -13,7 +13,7 @@
       </div>
       <div class="modal-body">
         <form action="../Controllers/crisis.php" method="POST" id="form-cyc">
-          <input type="text" name="accion" id="accion" hidden value="5">
+          <input type="text" name="accion" id="accion" hidden value="4">
           <input type="text" name="id" id="id" hidden>
 
           <div class="row g-3 mb-3">
