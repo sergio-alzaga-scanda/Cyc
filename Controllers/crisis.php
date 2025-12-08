@@ -212,7 +212,7 @@ case 1: // Crear o registrar un ticket
         $proyecto = $_SESSION['proyecto'] ?? $_POST['proyecto'] ?? null;
         $query = "SELECT c.*, cc.nombre_crisis, ui.nombre_ubicacion_ivr, p.nombre_proyecto FROM cyc AS c LEFT JOIN cat_crisis AS cc ON c.categoria_cyc = cc.id LEFT JOIN ubicacion_ivr AS ui ON c.ubicacion_cyc = ui.id_ubicacion_ivr LEFT JOIN cat_proyectos AS p ON c.proyecto = p.id_proyecto WHERE c.id_cyc = ?  LIMIT 1";
         if ($stmt = $conn->prepare($query)) {
-            $stmt->bind_param("is", $id_cyc, $proyecto);
+            $stmt->bind_param("i", $id_cyc);
             $stmt->execute();
             $res = $stmt->get_result();
             if ($row = $res->fetch_assoc()) {
