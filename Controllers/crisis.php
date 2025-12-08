@@ -353,39 +353,38 @@ case 1: // Crear o registrar un ticket
 
     case 5:
 
-        $id_cyc = isset($_GET['id']) ? intval($_GET['id']) : 0;
+    $id_cyc = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-        if ($id_cyc <= 0) {
-            echo "ID inválido";
-            exit;
-        }
-
-        $query = "UPDATE cyc SET status_cyc = 0 WHERE id_cyc = ? AND proyecto = ?";
-
-        if ($stmt = $conn->prepare($query)) {
-
-            $stmt->bind_param("is", $id_cyc, $proyecto);
-
-            if (!$stmt->execute()) {
-                echo "Error al ejecutar update: " . $stmt->error;
-                exit;
-            }
-
-            $stmt->close();
-
-        } else {
-            echo "Error en prepare: " . $conn->error;
-            exit;
-        }
-
-        // 🔵 AGREGADO — Esperar antes de redirigir (2 segundos)
-        
-
-        header("Location: ../Views/cyc.php");
-        sleep(20);
+    if ($id_cyc <= 0) {
+        header("Location: ../Views/cyc.php?status=err"); 
         exit;
+    }
 
-    break;
+    $query = "UPDATE cyc SET status_cyc = 0 WHERE id_cyc = ?";
+
+    if ($stmt = $conn->prepare($query)) {
+
+        $stmt->bind_param("is", $id_cyc, $proyecto);
+
+        if (!$stmt->execute()) {
+            header("Location: ../Views/cyc.php?status=err");
+            exit;
+        }
+
+        $stmt->close();
+
+    } else {
+        header("Location: ../Views/cyc.php?status=err");
+        exit;
+    }
+
+    // Pequeño delay opcional
+    sleep(1);
+
+    header("Location: ../Views/cyc.php?status=ok");
+    exit;
+
+break;
 
     case 6:
     if (isset($_GET['id'])) {

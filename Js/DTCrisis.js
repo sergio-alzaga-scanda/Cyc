@@ -178,8 +178,9 @@ function deleteCyc(id) {
         didOpen: () => Swal.showLoading(),
       });
 
-      // IMPORTANTE: ahora apunta a cyc.php
-      window.location.href = `../Controllers/crisis.php?accion=5&id=${id}`;
+      setTimeout(() => {
+        window.location.href = `../Controllers/cyc.php?accion=5&id=${id}`;
+      }, 800);
     }
   });
 }
