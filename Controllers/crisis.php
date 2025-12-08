@@ -360,7 +360,6 @@ case 1: // Crear o registrar un ticket
             exit;
         }
 
-        
         $query = "UPDATE cyc SET status_cyc = 0 WHERE id_cyc = ? AND proyecto = ?";
 
         if ($stmt = $conn->prepare($query)) {
@@ -379,7 +378,9 @@ case 1: // Crear o registrar un ticket
             exit;
         }
 
-        // REDIRECCIÓN
+        // 🔵 AGREGADO — Esperar antes de redirigir (2 segundos)
+        sleep(7);
+
         header("Location: ../Views/cyc.php");
         exit;
 

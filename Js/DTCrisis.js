@@ -159,10 +159,10 @@ function cargarDatosCrisis(crisisData) {
   });
 }
 
-function deleteCrisis(id) {
+function deleteCyc(id) {
   Swal.fire({
     title: "¿Estás seguro?",
-    text: "¿Quieres eliminar esta crisis??",
+    text: "Esta acción eliminará este registro (borrado lógico).",
     icon: "warning",
     showCancelButton: true,
     confirmButtonText: "Sí, eliminar",
@@ -175,12 +175,11 @@ function deleteCrisis(id) {
         icon: "info",
         showConfirmButton: false,
         allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
+        didOpen: () => Swal.showLoading(),
       });
 
-      window.location.href = `../Controllers/crisis.php?accion=5&id=${id}`;
+      // IMPORTANTE: ahora apunta a cyc.php
+      window.location.href = `../Controllers/cyc.php?accion=5&id=${id}`;
     }
   });
 }
