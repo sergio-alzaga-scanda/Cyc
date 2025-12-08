@@ -394,7 +394,7 @@ case 1: // Crear o registrar un ticket
                     $stmtUpdate->bind_param("ii", $nuevoStatus, $id);
                     if ($stmtUpdate->execute()) {
                         $stmtUpdate->close();
-                        header("Location: ../views/cyc.php?msg=Estado actualizado");
+                        header("Location: ../Views/cyc.php?msg=Estado actualizado");
                         exit;
                     } else {
                         echo "Error al actualizar el estado: " . $stmtUpdate->error;
