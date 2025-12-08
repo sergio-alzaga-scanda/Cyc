@@ -364,7 +364,7 @@ case 1: // Crear o registrar un ticket
 
     if ($stmt = $conn->prepare($query)) {
 
-        $stmt->bind_param("is", $id_cyc, $proyecto);
+        $stmt->bind_param("i", $id_cyc);
 
         if (!$stmt->execute()) {
             header("Location: ../Views/cyc.php?status=err");
