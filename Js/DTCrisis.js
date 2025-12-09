@@ -28,8 +28,7 @@ $(document).ready(function () {
               <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal" data-id="${item.id_cyc}" style="background: transparent; border: none;">
                 <img src="../iconos/edit.png" alt="Editar" style="width: 20px; height: 20px;">
               </button>
-              <button class="btn btn-danger btn-sm" onclick="onclick="deleteCyc(${item.id_cyc})"
-(${item.id_cyc})" style="background: transparent; border: none;">
+              <button class="btn btn-danger btn-sm" onclick="deleteCyc(${item.id_cyc})" style="background: transparent; border: none;">
                 <img src="../iconos/delete.png" alt="Eliminar" style="width: 20px; height: 20px;">
               </button>
               ${iconoStatus}
@@ -189,19 +188,15 @@ function deleteCyc(id) {
 function toggleStatus(id, imgElement, status_cyc) {
   status_cyc = Number(status_cyc);
 
-  // Lógica para cambiar el status
   let nuevoStatus;
   if (status_cyc === 1) {
-    // Si está activo, cambiar a 2 (deshabilitado parcial o estado intermedio)
     nuevoStatus = 2;
   } else if (status_cyc > 1) {
-    // Si es mayor a 1, volver a 1 (activo)
     nuevoStatus = 1;
   } else {
-    nuevoStatus = status_cyc; // otros valores no cambian
+    nuevoStatus = status_cyc;
   }
 
-  // Mensaje dinámico según el estado actual
   const mensaje =
     status_cyc === 1
       ? "¿Estás seguro que deseas deshabilitar la grabación? Esto será eliminado inmediatamente de Five9"
@@ -230,16 +225,13 @@ function toggleStatus(id, imgElement, status_cyc) {
     },
   }).then((result) => {
     if (result.isConfirmed) {
-      // Actualizamos el atributo data-status y el icono visual
       imgElement.setAttribute("data-status", nuevoStatus);
 
-      // Cambiamos el icono según el nuevo estado
       if (nuevoStatus === 1) {
         imgElement.src = "../iconos/activo.png";
         imgElement.alt = "Activo";
       } else {
-        // Cualquier estado mayor a 1
-        imgElement.src = "../iconos/desactivo.png"; // puedes poner otro icono si quieres diferenciar
+        imgElement.src = "../iconos/desactivo.png";
         imgElement.alt = "Desactivado";
       }
 
@@ -254,12 +246,10 @@ function toggleStatus(id, imgElement, status_cyc) {
         },
       });
 
-      // Llamada al PHP para actualizar en la base de datos
       window.location.href = `../Controllers/crisis.php?accion=6&id=${id}`;
     }
   });
 
-  // Agregar estilo solo si no existe
   if (!document.querySelector("style#swal-custom-style")) {
     document.head.insertAdjacentHTML(
       "beforeend",
