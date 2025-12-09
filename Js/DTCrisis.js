@@ -28,7 +28,8 @@ $(document).ready(function () {
               <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal" data-id="${item.id_cyc}" style="background: transparent; border: none;">
                 <img src="../iconos/edit.png" alt="Editar" style="width: 20px; height: 20px;">
               </button>
-              <button class="btn btn-danger btn-sm" onclick="deleteCrisis(${item.id_cyc})" style="background: transparent; border: none;">
+              <button class="btn btn-danger btn-sm" onclick="onclick="deleteCyc(${item.id_cyc})"
+(${item.id_cyc})" style="background: transparent; border: none;">
                 <img src="../iconos/delete.png" alt="Eliminar" style="width: 20px; height: 20px;">
               </button>
               ${iconoStatus}
