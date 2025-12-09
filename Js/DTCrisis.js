@@ -162,7 +162,7 @@ function cargarDatosCrisis(crisisData) {
 function deleteCyc(id) {
   Swal.fire({
     title: "¿Estás seguro?",
-    text: "Esta acción eliminará este registro (borrado lógico).",
+    text: "Esta acción eliminará este registro.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonText: "Sí, eliminar",
