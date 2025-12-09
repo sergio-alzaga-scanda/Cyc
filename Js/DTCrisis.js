@@ -179,7 +179,7 @@ function deleteCyc(id) {
       });
 
       setTimeout(() => {
-        window.location.href = `../Controllers/cyc.php?accion=5&id=${id}`;
+        window.location.href = `../Controllers/crisis.php?accion=5&id=${id}`;
       }, 800);
     }
   });
