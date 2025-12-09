@@ -126,10 +126,10 @@ if (count($rows) > 1) {
         $mensajes[] = "{$redaccion}.";
     }
     $data = $rows[0];
-    $data['grabacion'] = "Estimado usuario. " . implode(" ", $mensajes);
+    $data['grabacion'] = " " . implode(" ", $mensajes);
 } else {
     $data = $rows[0];
-    $data['grabacion'] = "Estimado usuario, " . limpiarGrabacion($data['grabacion']);
+    $data['grabacion'] = " " . limpiarGrabacion($data['grabacion']);
 }
 
 echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
