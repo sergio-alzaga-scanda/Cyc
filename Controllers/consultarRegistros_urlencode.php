@@ -61,8 +61,10 @@ SELECT
     CASE cyc.tipo_cyc 
         WHEN 1 THEN 'Crisis'
         WHEN 2 THEN 'Contingencia'
+        WHEN 3 THEN 'Dia asueto'
         ELSE 'Desconocido'
     END AS tipo_cyc,
+    cyc.tipo_cyc as id_tipo,
     ubicaciones.nombre_ubicacion_ivr AS ubicacion_cyc,
     cyc.redaccion_cyc AS grabacion,
     cyc.canal_cyc,

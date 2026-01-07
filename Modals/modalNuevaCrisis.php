@@ -128,6 +128,7 @@ $stmt->close();
                   <option value="">Seleccione una opción</option>
                   <option value="1">Contingencia</option>
                   <option value="2">Crisis</option>
+                  <option value="3">Dia asueto</option>
                 </select>
               </div>
 

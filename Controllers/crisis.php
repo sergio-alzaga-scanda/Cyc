@@ -169,7 +169,11 @@ case 1: // Crear o registrar un ticket
     $queryTbl = "
         SELECT 
             c.id_cyc, c.no_ticket, c.status_cyc, cc.nombre_crisis AS categoria_nombre,
-            CASE WHEN c.tipo_cyc = 1 THEN 'Crisis' WHEN c.tipo_cyc = 2 THEN 'Contingencia' ELSE 'Desconocido' END AS tipo_cyc,
+            CASE
+            WHEN c.tipo_cyc = 1 THEN 'Crisis'
+            WHEN c.tipo_cyc = 2 THEN 'Contingencia' 
+            WHEN c.tipo_cyc = 3 THEN 'Dia asueto'
+            ELSE 'Desconocido' END AS tipo_cyc,
             c.ubicacion_cyc, ui.nombre_ubicacion_ivr AS nombre_ubicacion,
             CASE 
                 WHEN c.status_cyc = 3 AND c.fecha_programacion IS NOT NULL THEN c.fecha_programacion

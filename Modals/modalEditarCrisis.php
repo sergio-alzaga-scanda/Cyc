@@ -58,6 +58,7 @@
         <option selected disabled class="d-none">Tipo</option>
         <option value="1">Contingencia</option>
         <option value="2">Crisis</option>
+        <option value="3">Dia asueto</option>
       </select>
     </div>
     <div class="col-md-2">
