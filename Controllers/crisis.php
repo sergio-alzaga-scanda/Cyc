@@ -407,7 +407,7 @@ break;
                 // Invertimos entre 1 y 2
                 if ($statusActual == 1) {
                     $nuevoStatus = 2;
-                } elseif ($statusActual == 2) {
+                } elseif ($statusActual > 1) {
                     $nuevoStatus = 1;
                 } else {
                     $nuevoStatus = $statusActual; // otros valores no cambian
