@@ -96,23 +96,24 @@ case 1: // Crear o registrar un ticket
 
                 if ($stmt = $conn->prepare($query)) {
                     $stmt->bind_param(
-                        "ssiiissssssisss",  // ← ahora con 15 letras
-                        $nombre,
-                        $no_ticket,
-                        $criticidad,
-                        $tipo,
-                        $ubicacion,
-                        $ivr_texto,
-                        $canales_json,
-                        $bots_json,
-                        $canal_digital_texto,
-                        $fecha_registro,         
-                        $status,
-                        $fecha_programacion,
-                        $id_usuario,
-                        $redaccion_canales,
-                        $proyecto_nuevo
-                    );
+    "ssiiisssssisiss",
+    $nombre,               // s
+    $no_ticket,            // s
+    $criticidad,           // i
+    $tipo,                 // i
+    $ubicacion,            // i
+    $ivr_texto,            // s
+    $canales_json,         // s
+    $bots_json,            // s
+    $canal_digital_texto,  // s
+    $fecha_registro,       // s
+    $status,               // i  ← IMPORTANTE
+    $fecha_programacion,   // s  ← IMPORTANTE
+    $id_usuario,           // i
+    $redaccion_canales,    // s
+    $proyecto_nuevo        // s
+);
+
 
                     if ($stmt->execute()) {
                         $queryLog = "INSERT INTO logs (fecha, user_id, name_user, description, proyecto)
